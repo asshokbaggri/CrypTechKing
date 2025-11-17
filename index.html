@@ -443,6 +443,77 @@
 
       </div>
     </section>
+
+    <!-- ============================================= -->
+    <!--                X (TWITTER) FEED               -->
+    <!-- ============================================= -->
+    <section id="xfeed" class="section fade-in">
+      <h2 class="section-title">Latest From X ✖️</h2>
+      <p class="section-sub">Auto-updating tweets, viral post detector & tweet generator.</p>
+
+      <!-- ----------------------------- -->
+      <!--       AUTO TWEET CARDS       -->
+      <!-- ----------------------------- -->
+      <h3 style="font-size:22px;font-weight:700;margin-bottom:16px;">
+        Your Latest Tweets
+      </h3>
+
+      <div id="tweet-feed" class="tweet-grid">
+        <!-- Sample Placeholder Cards (Real tweets will fill via JS in Part-7) -->
+        <div class="tweet-card">
+          <strong>@cryptechking</strong>
+          <p style="margin-top:8px;color:var(--text-muted);">Tweets loading...</p>
+        </div>
+        <div class="tweet-card">
+          <strong>@cryptechking</strong>
+          <p style="margin-top:8px;color:var(--text-muted);">Tweets loading...</p>
+        </div>
+        <div class="tweet-card">
+          <strong>@cryptechking</strong>
+          <p style="margin-top:8px;color:var(--text-muted);">Tweets loading...</p>
+        </div>
+      </div>
+
+
+      <!-- ----------------------------- -->
+      <!--     VIRAL TWEET SPOTLIGHT    -->
+      <!-- ----------------------------- -->
+      <h3 style="font-size:22px;font-weight:700;margin:40px 0 16px;">
+        🔥 Most Viral Tweet Today
+      </h3>
+
+      <div id="viral-tweet" class="tweet-card viral-card">
+        <strong>@cryptechking</strong>
+        <p style="margin-top:8px;color:var(--text-muted);">Detecting today's most viral tweet…</p>
+      </div>
+
+
+      <!-- ----------------------------- -->
+      <!--      TWEET GENERATOR TOOL     -->
+      <!-- ----------------------------- -->
+      <h3 style="font-size:22px;font-weight:700;margin:40px 0 16px;">
+        Tweet Generator 🧠
+      </h3>
+
+      <p class="section-sub">Generate ready-to-post crypto tweets for X.</p>
+
+      <div class="card" style="margin-bottom:20px;">
+        <label>Select Style</label>
+        <select id="tweet-style" class="input" style="margin-top:8px;margin-bottom:18px;">
+          <option value="general">General</option>
+          <option value="meme">Meme</option>
+          <option value="alpha">Alpha</option>
+          <option value="motivation">Motivation</option>
+        </select>
+
+        <button onclick="generateTweets()" class="btn-main" style="width:100%;margin-bottom:10px;">
+          Generate Tweets
+        </button>
+      </div>
+
+      <div id="tweet-output"></div>
+
+    </section>
     
   </main>
 
