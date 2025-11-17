@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+
+  <!-- SEO -->
+  <title>CrypTech King – Crypto Tools, Automation & Web3 Insights</title>
+  <meta name="description" content="Anonymous creator & developer. Crypto tools, automation dashboards, alpha feeds & Telegram-gated utilities. Join CrypTechKingAlpha on Telegram." />
+  <meta name="keywords" content="crypto tools, honeypot checker, wallet profit checker, web3 automation, telegram bot developer, CrypTech King" />
+  <link rel="canonical" href="https://cryptechking.com/" />
+
+  <!-- Open Graph (social preview) -->
+  <meta property="og:title" content="CrypTech King – Crypto Tools & Automation" />
+  <meta property="og:description" content="Anonymous creator & developer. Tools, dashboards and gated alpha — join @CrypTechKingAlpha on Telegram." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://cryptechking.com/" />
+  <meta property="og:site_name" content="CrypTech King" />
+  <!-- Replace with your production image once ready -->
+  <meta property="og:image" content="assets/og-card.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@cryptechking" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="assets/favicon.png" />
+
+  <!-- Stylesheet (separate file - Part 7 will include full CSS) -->
+  <link rel="stylesheet" href="css/theme.css" />
+
+  <!-- Basic inline critical styles for hero layout so preview looks OK before full CSS -->
+  <style>
+    :root{--bg:#000;--muted:#9aa0a6;--gold:#FFC95E;--accent:#F57C00;--red:#E53935;}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    .topbar{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:14px 22px;z-index:60;background:rgba(0,0,0,0.45);backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,0.03);}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px}
+    .brand img{height:38px;width:38px;object-fit:contain;border-radius:8px}
+    .nav{display:flex;gap:18px;align-items:center}
+    .nav a{color:#ddd;text-decoration:none;font-weight:600;font-size:14px;opacity:0.9}
+    .btn{padding:10px 14px;border-radius:999px;font-weight:700;border:none;cursor:pointer}
+    .btn-cta{background:linear-gradient(90deg,var(--gold),var(--accent));color:#111}
+    .btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.06)}
+    .theme-toggle{padding:8px;border-radius:8px;cursor:pointer;background:rgba(255,255,255,0.03);color:#fff;font-weight:700}
+    main{padding-top:86px}
+    .hero{min-height:78vh;display:flex;align-items:center;padding:48px 6vw;gap:40px}
+    .hero-left{flex:1;max-width:760px}
+    .hero-title{font-size:48px;line-height:1.02;margin:0;color:#fff}
+    .hero-sub{color:var(--muted);margin:14px 0 20px;font-size:18px}
+    .hero-ctas{display:flex;gap:12px}
+    .hero-right{width:420px;flex:0 0 420px;display:flex;align-items:center;justify-content:center}
+    .mascot{width:320px;height:320px;background:linear-gradient(180deg,#111 0,#0b0b0b 100%);border-radius:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
+    .ticker{margin-top:20px;display:flex;gap:12px;align-items:center;color:var(--muted);font-weight:700}
+    .chip{padding:8px 12px;background:rgba(255,255,255,0.02);border-radius:999px;font-size:13px}
+    @media (max-width:940px){.hero{flex-direction:column}.hero-right{width:100%;order:2;margin-top:12px}.hero-left{order:1}}
+  </style>
+
+  <!-- Inline script: theme loader (default Ultra Dark) -->
+  <script>
+    (function(){
+      const stored = localStorage.getItem('ctk_theme');
+      const prefer = stored || 'ultra-dark';
+      document.documentElement.dataset.theme = prefer;
+      // small helper (main.js will add full toggle behavior)
+    })();
+  </script>
+</head>
+<body>
+  <!-- TOP NAVBAR -->
+  <header class="topbar" role="banner">
+    <div class="brand" aria-label="CrypTech King">
+      <!-- Place logo at assets/logo.png (use provided gorilla image) -->
+      <img src="assets/logo.png" alt="CrypTech King logo" />
+      <div>
+        <div style="font-size:15px">CRYPTECH KING</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Anonymous • Developer • Operator</div>
+      </div>
+    </div>
+
+    <nav class="nav" role="navigation" aria-label="Main">
+      <a href="#tools">Tools</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#promo">Promotions</a>
+      <a href="#dev">Dev Hub</a>
+      <a href="#projects">Projects</a>
+      <a href="#xfeed">X Feed</a>
+      <a href="#secret">Secret Lab</a>
+      <a href="#contact">Contact</a>
+      <!-- Theme toggle (JS will attach) -->
+      <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">🌓</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="home" role="region" aria-label="Hero">
+      <div class="hero-left">
+        <h1 class="hero-title">CRYPTECH KING <span style="font-size:28px;opacity:0.8">👑</span></h1>
+        <p class="hero-sub">Building automation. Delivering impact.  
+        I create tools, systems and influence that move the web3 world.</p>
+
+        <div class="hero-ctas">
+          <!-- X link: replace with https://x.com/cryptechking -->
+          <a class="btn btn-cta" href="https://x.com/cryptechking" target="_blank" rel="noopener noreferrer">Connect on X</a>
+          <!-- Telegram channel link -->
+          <a class="btn btn-ghost" href="https://t.me/CrypTechKingAlpha" target="_blank" rel="noopener noreferrer">Join Telegram</a>
+        </div>
+
+        <div class="ticker" aria-hidden="false">
+          <div class="chip">BTC: <span id="tick-btc">—</span></div>
+          <div class="chip">ETH: <span id="tick-eth">—</span></div>
+          <div class="chip">Fear & Greed: <span id="tick-fg">—</span></div>
+          <div class="chip">Gas: <span id="tick-gas">—</span></div>
+        </div>
+      </div>
+
+      <div class="hero-right" aria-hidden="true">
+        <div class="mascot">
+          <!-- Use full quality mascot here. If not yet available show placeholder emoji -->
+          <img src="assets/mascot.png" alt="CrypTech King mascot" style="width:260px;height:260px;object-fit:contain" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Placeholder: next sections will be injected/added in subsequent parts -->
+    <section id="placeholder-next" style="padding:40px 6vw;color:var(--muted)">
+      <!-- Next parts will add Dashboard, Tools, Promo, Dev Hub, X Feed, Secret Lab, Contact -->
+      <p style="opacity:0.85">Loading full CrypTech King UI… (remaining parts will add Dashboard, Tools, X Integration, and more.)</p>
+    </section>
+  </main>
+
+  <footer style="padding:28px 6vw;text-align:center;color:var(--muted);border-top:1px solid rgba(255,255,255,0.02);">
+    © CrypTechKing • cryptechking.com — Built in silence • Deployed worldwide
+  </footer>
+
+  <!-- Main JS (Part 3/4 will contain full scripts) -->
+  <script src="js/main.js"></script>
+</body>
+</html>
