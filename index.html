@@ -121,10 +121,132 @@
       </div>
     </section>
 
-    <!-- Placeholder: next sections will be injected/added in subsequent parts -->
-    <section id="placeholder-next" style="padding:40px 6vw;color:var(--muted)">
-      <!-- Next parts will add Dashboard, Tools, Promo, Dev Hub, X Feed, Secret Lab, Contact -->
-      <p style="opacity:0.85">Loading full CrypTech King UI… (remaining parts will add Dashboard, Tools, X Integration, and more.)</p>
+    <!-- ====================== -->
+    <!--   LIVE DASHBOARD       -->
+    <!-- ====================== -->
+    <section id="dashboard" class="section fade-in">
+      <h2 class="section-title">Live Crypto Dashboard ⚡</h2>
+      <p class="section-sub">Auto-updating prices, metrics and sentiment.</p>
+
+      <div class="dashboard-grid">
+        <!-- BTC -->
+        <div class="metric-card">
+          <div class="metric-label">Bitcoin (BTC)</div>
+          <div class="metric-value" id="dash-btc">Loading...</div>
+        </div>
+
+        <!-- ETH -->
+        <div class="metric-card">
+          <div class="metric-label">Ethereum (ETH)</div>
+          <div class="metric-value" id="dash-eth">Loading...</div>
+        </div>
+
+        <!-- GAS -->
+        <div class="metric-card">
+          <div class="metric-label">Gas Fee (GWEI)</div>
+          <div class="metric-value" id="dash-gas">Loading...</div>
+        </div>
+
+        <!-- Fear & Greed -->
+        <div class="metric-card">
+          <div class="metric-label">Fear & Greed Index</div>
+          <div class="metric-value" id="dash-fg">Loading...</div>
+        </div>
+
+        <!-- Trending Market -->
+        <div class="metric-card">
+          <div class="metric-label">Market Sentiment</div>
+          <div class="metric-value" id="dash-sentiment">Neutral</div>
+        </div>
+
+        <!-- Trending Tokens -->
+        <div class="metric-card">
+          <div class="metric-label">Trending Tokens</div>
+          <div class="metric-value" id="dash-trending">Loading...</div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ====================== -->
+    <!--     FREE TOOLS         -->
+    <!-- ====================== -->
+    <section id="tools" class="section fade-in">
+      <h2 class="section-title">Free Crypto Tools 🧰</h2>
+      <p class="section-sub">Use high-quality free utilities powered by CrypTech King.</p>
+
+      <!-- TOOL GRID -->
+      <div class="tool-grid">
+
+        <!-- Wallet Profit Checker -->
+        <div class="card">
+          <div class="tool-card-title">Wallet Profit Checker</div>
+          <div class="tool-desc">Check estimated wallet ROI & balance trend.</div>
+
+          <input id="tool-wallet" class="input" placeholder="Enter wallet address">
+          <button onclick="runWalletTool()" class="btn-main" style="margin-top:12px;">Scan</button>
+
+          <div id="result-wallet" style="margin-top:18px;"></div>
+        </div>
+
+        <!-- Honeypot Scanner -->
+        <div class="card">
+          <div class="tool-card-title">Honeypot Scanner</div>
+          <div class="tool-desc">Detect buying/selling restrictions instantly.</div>
+
+          <input id="tool-token" class="input" placeholder="Enter token contract">
+          <button onclick="runHoneypotTool()" class="btn-main" style="margin-top:12px;">Scan</button>
+
+          <div id="result-honey" style="margin-top:18px;"></div>
+        </div>
+
+        <!-- New Token Radar -->
+        <div class="card">
+          <div class="tool-card-title">New Token Radar</div>
+          <div class="tool-desc">Discover freshly deployed tokens (fast scanning).</div>
+
+          <button onclick="showResultCard('result-radar','New Token Radar','Real data coming soon.')" 
+                  class="btn-line" style="margin-top:12px;">Scan Latest</button>
+
+          <div id="result-radar" style="margin-top:18px;"></div>
+        </div>
+
+        <!-- Contract Safety Score -->
+        <div class="card">
+          <div class="tool-card-title">Contract Safety Score</div>
+          <div class="tool-desc">Basic trust score from quick checks.</div>
+
+          <input id="tool-contract" class="input" placeholder="Enter contract address">
+          <button onclick="showResultCard('result-contract', 'Safety Score','Full scoring engine coming soon.')" 
+                  class="btn-line" style="margin-top:12px;">Check</button>
+
+          <div id="result-contract" style="margin-top:18px;"></div>
+        </div>
+
+        <!-- Whale Feed -->
+        <div class="card">
+          <div class="tool-card-title">Whale Feed</div>
+          <div class="tool-desc">Top whale wallet movements (UI only now).</div>
+
+          <button onclick="showResultCard('result-whale','Whale Feed','Live whale API will be plugged in.')" 
+                  class="btn-line" style="margin-top:12px;">Refresh</button>
+
+          <div id="result-whale" style="margin-top:18px;"></div>
+        </div>
+
+        <!-- Portfolio Snapshot -->
+        <div class="card">
+          <div class="tool-card-title">Portfolio Snapshot</div>
+          <div class="tool-desc">Quick view of token holdings (future integrated).</div>
+
+          <input id="tool-port" class="input" placeholder="Enter wallet address">
+          <button onclick="showResultCard('result-port','Portfolio Snapshot','Portfolio data placeholder.')" 
+                  class="btn-line" style="margin-top:12px;">Load</button>
+
+          <div id="result-port" style="margin-top:18px;"></div>
+        </div>
+
+      </div>
     </section>
   </main>
 
