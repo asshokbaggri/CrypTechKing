@@ -5,8 +5,8 @@ import { calculateHypeScore } from "./pump.score.js";
 import { savePumpTrend } from "../../database/queries/pump.query.js";
 
 // 🔥 ADD THESE IMPORTS (BOT ALERTS)
-import { sendTelegramPumpAlert } from "../../../bots/telegram/whale.alert.js";
-import { tweetPump } from "../../../bots/twitter/autopost.js";
+import { sendTelegramPumpAlert } from "../alerts/telegram.bot.js";
+import { tweetPump } from "../alerts/twitter.bot.js";
 
 export class PumpScanner {
     constructor() {
