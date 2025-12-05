@@ -3,15 +3,18 @@
 import EXCHANGES from "../../config/exchanges.json" assert { type: "json" };
 import { saveWhaleTx } from "../../database/queries/whales.query.js";
 
+// ADD THESE:
+import { sendTelegramWhaleAlert } from "../../../bots/telegram/whale.alert.js";
+import { tweetWhale } from "../../../bots/twitter/autopost.js";
+
 export const parseWhaleTx = async (chain, tx, source) => {
     try {
         if (!tx || !tx.value) return;
 
         const amountEth = Number(tx.value) / 1e18;
-        const usdValue = amountEth * 3000; // TEMP — replace with live price API
+        const usdValue = amountEth * 3000;
 
-        // Whale filtering
-        if (usdValue < 100000) return; // ignore small tx
+        if (usdValue < 100000) return;
 
         const fromLabel = labelAddress(tx.from);
         const toLabel = labelAddress(tx.to);
@@ -25,12 +28,16 @@ export const parseWhaleTx = async (chain, tx, source) => {
             toLabel,
             amountEth,
             usdValue,
-            source, // mempool / confirmed
+            source,
             timestamp: Date.now()
         };
 
         // Save in DB
         await saveWhaleTx(whaleData);
+
+        // 🔥 Bot Alerts HERE
+        await sendTelegramWhaleAlert(whaleData);
+        await tweetWhale(whaleData);
 
         console.log("🐋 Whale TX:", whaleData);
 
