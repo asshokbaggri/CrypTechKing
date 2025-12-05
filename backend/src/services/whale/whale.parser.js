@@ -4,8 +4,8 @@ import EXCHANGES from "../../config/exchanges.json" assert { type: "json" };
 import { saveWhaleTx } from "../../database/queries/whales.query.js";
 
 // ADD THESE:
-import { sendTelegramWhaleAlert } from "../../../bots/telegram/whale.alert.js";
-import { tweetWhale } from "../../../bots/twitter/autopost.js";
+import { sendTelegramWhaleAlert } from "../alerts/telegram.bot.js";
+import { tweetWhale } from "../alerts/twitter.bot.js";
 
 export const parseWhaleTx = async (chain, tx, source) => {
     try {
