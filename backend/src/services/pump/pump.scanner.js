@@ -4,6 +4,10 @@ import axios from "axios";
 import { calculateHypeScore } from "./pump.score.js";
 import { savePumpTrend } from "../../database/queries/pump.query.js";
 
+// 🔥 ADD THESE IMPORTS (BOT ALERTS)
+import { sendTelegramPumpAlert } from "../../../bots/telegram/whale.alert.js";
+import { tweetPump } from "../../../bots/twitter/autopost.js";
+
 export class PumpScanner {
     constructor() {
         this.interval = 30 * 1000; // every 30 sec
@@ -18,6 +22,8 @@ export class PumpScanner {
             const tokens = res.data.pairs.slice(0, 50); // top 50 trending
 
             for (const token of tokens) {
+                
+                // 🧠 Calculate hype score
                 const score = calculateHypeScore({
                     volume: token.volume?.h24 || 0,
                     liquidity: token.liquidity?.usd || 0,
@@ -26,6 +32,7 @@ export class PumpScanner {
                     sells: token.sells || 0
                 });
 
+                // Data object for DB + bots
                 const data = {
                     address: token.baseToken?.address || "",
                     symbol: token.baseToken?.symbol || "",
@@ -40,7 +47,14 @@ export class PumpScanner {
                     timestamp: Date.now()
                 };
 
+                // 💾 Save to DB
                 await savePumpTrend(data);
+
+                // 🚀 Pump Alerts (ONLY if hype score > 80)
+                if (score > 80) {
+                    await sendTelegramPumpAlert(data);
+                    await tweetPump(data);
+                }
             }
 
             console.log("🔥 Pump scan complete");
