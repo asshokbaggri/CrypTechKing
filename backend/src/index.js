@@ -14,3 +14,8 @@ app.listen(5000, () => {
 
 // START WHALE ENGINE
 WhaleListener.start();
+
+import PumpScanner from "./services/pump/pump.scanner.js";
+
+// Start Pump Engine
+PumpScanner.start();
