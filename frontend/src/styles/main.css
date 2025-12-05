@@ -1,1 +1,24 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #0d0d0d;
+    color: white;
+    margin: 0;
+    padding: 20px;
+}
 
+h1, h2 {
+    font-weight: 700;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+    gap: 20px;
+}
+
+.whale-card, .pump-card {
+    padding: 18px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    border: 1px solid #333;
+}
