@@ -2,6 +2,6 @@
 
 export default {
     ETH: {
-        WS: process.env.ALCHEMY_ETH_WSS
+        HTTP: process.env.ALCHEMY_ETH_HTTP
     }
 };
