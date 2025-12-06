@@ -2,12 +2,20 @@
 
 export default {
     ETH: {
-        WS: "wss://eth-mainnet.g.alchemy.com/v2/XXXX"
-    },
-    BNB: {
-        WS: "wss://bsc-mainnet.nodereal.io/ws/v1/XXXX"
+        NAME: "Ethereum",
+        // HTTP optional – future use
+        HTTP: process.env.ALCHEMY_ETH_HTTP || "",
+        // WebSocket for live whales
+        WS: process.env.ALCHEMY_ETH_WS || ""
     },
     POLYGON: {
-        WS: "wss://polygon-mainnet.g.alchemy.com/v2/XXXX"
+        NAME: "Polygon",
+        HTTP: process.env.ALCHEMY_POLYGON_HTTP || "",
+        WS: process.env.ALCHEMY_POLYGON_WS || ""
+    },
+    BNB: {
+        NAME: "BNB Chain",
+        HTTP: process.env.BNB_HTTP || "",
+        WS: process.env.BNB_WS || ""
     }
 };
