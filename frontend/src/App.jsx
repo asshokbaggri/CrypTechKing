@@ -3,7 +3,7 @@ import Home from "./pages/index.jsx";
 import Pump from "./pages/pump.jsx";
 import Whales from "./pages/whales.jsx";
 import Coin from "./pages/coin.jsx";
-import "../styles/main.css";
+import "./styles/main.css";
 
 export default function App() {
   return (
