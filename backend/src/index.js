@@ -10,6 +10,16 @@ import whaleAPI from "./api/whales.api.js";
 import pumpAPI from "./api/pump.api.js";
 import coinAPI from "./api/coin.api.js";
 
+// SAFETY: Catch any unhandled crashes
+process.on("unhandledRejection", (err) => {
+    console.log("UNHANDLED REJECTION:", err);
+});
+
+process.on("uncaughtException", (err) => {
+    console.log("UNCAUGHT EXCEPTION:", err);
+});
+
+
 const app = express();
 app.use(cors());
 app.use(express.json());
