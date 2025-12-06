@@ -1,6 +1,10 @@
 // backend/src/services/whale/whale.parser.js
 
-import EXCHANGES from "../../config/exchanges.json" assert { type: "json" };
+import fs from "fs";
+const EXCHANGES = JSON.parse(
+  fs.readFileSync(new URL("../../config/exchanges.json", import.meta.url))
+);
+
 import { saveWhaleTx } from "../../database/queries/whales.query.js";
 
 // ADD THESE:
