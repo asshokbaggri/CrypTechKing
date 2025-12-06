@@ -4,26 +4,39 @@ import axios from "axios";
 import { calculateHypeScore } from "./pump.score.js";
 import { savePumpTrend } from "../../database/queries/pump.query.js";
 
-// 🔥 ADD THESE IMPORTS (BOT ALERTS)
+// BOT ALERTS
 import { sendTelegramPumpAlert } from "../alerts/telegram.bot.js";
 import { tweetPump } from "../alerts/twitter.bot.js";
 
 export class PumpScanner {
     constructor() {
-        this.interval = 30 * 1000; // every 30 sec
+        this.interval = 120 * 1000; // Run every 2 minutes (Cloudflare safe)
     }
 
     async fetchTrending() {
         try {
-            const res = await axios.get("https://api.dexscreener.com/latest/dex/tokens");
+            const res = await axios.get(
+                "https://api.dexscreener.com/latest/dex/tokens",
+                {
+                    headers: {
+                        "User-Agent": "Mozilla/5.0 (CrypTechKing Bot)",
+                        "Cache-Control": "no-cache",
+                        "Accept": "application/json"
+                    },
+                    timeout: 8000,
+                    validateStatus: () => true // prevent crash on 403/404/500
+                }
+            );
 
-            if (!res.data || !res.data.pairs) return;
+            // Cloudflare / HTML response → skip cycle
+            if (!res.data || !res.data.pairs) {
+                console.log("⚠️ Dex API blocked / returned HTML. Skipping this cycle.");
+                return;
+            }
 
             const tokens = res.data.pairs.slice(0, 50); // top 50 trending
 
             for (const token of tokens) {
-                
-                // 🧠 Calculate hype score
                 const score = calculateHypeScore({
                     volume: token.volume?.h24 || 0,
                     liquidity: token.liquidity?.usd || 0,
@@ -32,7 +45,6 @@ export class PumpScanner {
                     sells: token.sells || 0
                 });
 
-                // Data object for DB + bots
                 const data = {
                     address: token.baseToken?.address || "",
                     symbol: token.baseToken?.symbol || "",
@@ -47,20 +59,20 @@ export class PumpScanner {
                     timestamp: Date.now()
                 };
 
-                // 💾 Save to DB
+                // SAVE IN DB
                 await savePumpTrend(data);
 
-                // 🚀 Pump Alerts (ONLY if hype score > 80)
+                // ALERTS (if hype is high)
                 if (score > 80) {
                     await sendTelegramPumpAlert(data);
                     await tweetPump(data);
                 }
             }
 
-            console.log("🔥 Pump scan complete");
+            console.log("🔥 Pump scan completed successfully");
 
         } catch (err) {
-            console.log("Pump Scanner Error:", err);
+            console.log("❌ Pump Scanner Error:", err.message);
         }
     }
 
