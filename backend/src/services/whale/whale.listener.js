@@ -6,43 +6,74 @@ import CHAINS from "../../config/chains.js";
 
 export class WhaleListener {
     constructor() {
-        this.interval = 15 * 1000; // poll every 15 sec
-        this.web3 = new Web3(CHAINS.ETH.HTTP);
-        this.lastBlock = null;
+        this.providers = {};
     }
 
-    async poll() {
-        try {
-            const latest = await this.web3.eth.getBlockNumber();
+    createProvider(chain) {
+        const url = CHAINS[chain].WS;
 
-            if (!this.lastBlock) {
-                this.lastBlock = latest;
-                return;
+        const provider = new Web3.providers.WebsocketProvider(url, {
+            reconnect: {
+                auto: true,
+                delay: 2000,
+                maxAttempts: 100,
+                onTimeout: false
             }
+        });
 
-            for (let block = this.lastBlock + 1; block <= latest; block++) {
-                const blockData = await this.web3.eth.getBlock(block, true);
+        provider.on("connect", () => {
+            console.log(`🔵 WS Connected → ${chain}`);
+        });
 
-                if (!blockData || !blockData.transactions) continue;
+        provider.on("error", (err) => {
+            console.log(`❌ WS Error on ${chain}:`, err.message);
+        });
 
-                blockData.transactions.forEach(tx => {
-                    parseWhaleTx("ETH", tx, "confirmed");
+        provider.on("end", () => {
+            console.log(`⚠️ WS Closed → Reconnecting ${chain}...`);
+            this.providers[chain] = this.createProvider(chain);
+            this.startListeners(chain); 
+        });
+
+        return provider;
+    }
+
+    startListeners(chain) {
+        const web3 = new Web3(this.providers[chain]);
+
+        // Pending TX
+        web3.eth.subscribe("pendingTransactions", async (txHash) => {
+            try {
+                const tx = await web3.eth.getTransaction(txHash);
+                if (!tx) return;
+                parseWhaleTx(chain, tx, "mempool");
+            } catch (err) {
+                console.log("Error mempool:", err);
+            }
+        });
+
+        // Confirmed Blocks
+        web3.eth.subscribe("newBlockHeaders", async (block) => {
+            try {
+                const blockData = await web3.eth.getBlock(block.hash, true);
+                if (!blockData || !blockData.transactions) return;
+
+                blockData.transactions.forEach((tx) => {
+                    parseWhaleTx(chain, tx, "confirmed");
                 });
-
-                console.log(`🐋 Processed block ${block}`);
+            } catch (err) {
+                console.log("Error block:", err);
             }
+        });
 
-            this.lastBlock = latest;
-
-        } catch (err) {
-            console.log("Whale Polling Error:", err.message);
-        }
+        console.log(`🐋 Whale Listener running on ${chain}`);
     }
 
     start() {
-        console.log("🐋 Whale Listener (HTTP Polling Mode) Started...");
-        this.poll();
-        setInterval(() => this.poll(), this.interval);
+        Object.keys(CHAINS).forEach(chain => {
+            this.providers[chain] = this.createProvider(chain);
+            this.startListeners(chain);
+        });
     }
 }
 
