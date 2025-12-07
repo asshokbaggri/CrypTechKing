@@ -1,7 +1,15 @@
 import { MongoClient } from "mongodb";
-import config from "../config/env.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-const client = new MongoClient(config.mongoUrl);
+const mongoUrl = process.env.MONGO_URL;
+
+if (!mongoUrl) {
+    console.error("❌ MONGO_URL missing in Railway env");
+    process.exit(1);
+}
+
+const client = new MongoClient(mongoUrl);
 
 await client.connect();
 
