@@ -1,7 +1,7 @@
 const API = import.meta.env.VITE_BACKEND_URL;
 
 // Latest Whale TXs
-export async function getWhales(limit = 5) {
+export async function getWhales(limit = 50) {
     try {
         const res = await fetch(`${API}/whales?limit=${limit}`);
         return res.json();
