@@ -3,14 +3,16 @@
 import express from "express";
 import cors from "cors";
 
+// Services
 import startETHWhaleListener from "./services/whale/eth.listener.js";
 import PumpScanner from "./services/pump/pump.scanner.js";
 
+// Routes
 import whaleAPI from "./api/whales.api.js";
 import pumpAPI from "./api/pump.api.js";
 import coinAPI from "./api/coin.api.js";
 
-// SAFETY: Catch any unhandled crashes
+// SAFETY — Prevent crashes
 process.on("unhandledRejection", (err) => {
     console.log("UNHANDLED REJECTION:", err);
 });
@@ -37,6 +39,5 @@ app.listen(5000, () => {
 });
 
 // START ENGINES
-startETHWhaleListener();   // ✅ NEW listener active
-PumpScanner.start();       // ✅ Pump scanner ON
-
+startETHWhaleListener();   // Ethereum WS live listener
+PumpScanner.start();       // Pump scanner ON
