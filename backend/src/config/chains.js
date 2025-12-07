@@ -1,21 +1,19 @@
-// backend/src/config/chains.js
+import ENV from "./env.js";
 
 export default {
     ETH: {
         NAME: "Ethereum",
-        // HTTP optional – future use
-        HTTP: process.env.ALCHEMY_ETH_HTTP || "",
-        // WebSocket for live whales
-        WS: process.env.ALCHEMY_ETH_WS || ""
+        HTTP: ENV.ETH_HTTP,
+        WS: ENV.ETH_WS
     },
     POLYGON: {
         NAME: "Polygon",
-        HTTP: process.env.ALCHEMY_POLYGON_HTTP || "",
-        WS: process.env.ALCHEMY_POLYGON_WS || ""
+        HTTP: ENV.POLYGON_HTTP,
+        WS: ENV.POLYGON_WS
     },
     BNB: {
         NAME: "BNB Chain",
-        HTTP: process.env.BNB_HTTP || "",
-        WS: process.env.BNB_WS || ""
+        HTTP: ENV.BNB_HTTP,
+        WS: ENV.BNB_WS
     }
 };
