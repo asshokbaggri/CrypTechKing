@@ -2,9 +2,10 @@
 
 export default {
     wallet: String,
-    score: Number,
-    labels: Array,
-    totalVolume: Number,
-    winRate: Number,
-    lastActive: Number
+    totalTrades: Number,
+    profitableTrades: Number,
+    winRate: Number,      // %
+    avgScore: Number,
+    labels: [String],     // ["whale", "sniper"]
+    lastUpdated: Number
 };
