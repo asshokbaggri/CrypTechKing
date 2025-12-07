@@ -3,7 +3,7 @@
 import express from "express";
 import cors from "cors";
 
-import WhaleListener from "./services/whale/whale.listener.js";
+import startETHWhaleListener from "./services/whale/eth.listener.js";
 import PumpScanner from "./services/pump/pump.scanner.js";
 
 import whaleAPI from "./api/whales.api.js";
