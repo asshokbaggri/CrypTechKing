@@ -1,20 +1,31 @@
-// frontend/src/utils/api.js
+const API = import.meta.env.VITE_BACKEND_URL;
 
-const API_BASE = "http://localhost:5000/api";
-
-export const api = {
-    getWhales: async () => {
-        const res = await fetch(`${API_BASE}/whales/live`);
-        return await res.json();
-    },
-
-    getTrending: async () => {
-        const res = await fetch(`${API_BASE}/pump/trending`);
-        return await res.json();
-    },
-
-    getCoin: async (address) => {
-        const res = await fetch(`${API_BASE}/coin/${address}`);
-        return await res.json();
+// Latest Whale TXs
+export async function getWhales(limit = 5) {
+    try {
+        const res = await fetch(`${API}/whales?limit=${limit}`);
+        return res.json();
+    } catch {
+        return [];
     }
-};
+}
+
+// Trending Pump Tokens
+export async function getTrending(limit = 5) {
+    try {
+        const res = await fetch(`${API}/pump/trending?limit=${limit}`);
+        return res.json();
+    } catch {
+        return [];
+    }
+}
+
+// Smart Money Summary
+export async function getSmartMoneySummary() {
+    try {
+        const res = await fetch(`${API}/smartmoney/summary`);
+        return res.json();
+    } catch {
+        return null;
+    }
+}
