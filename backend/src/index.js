@@ -19,7 +19,6 @@ process.on("uncaughtException", (err) => {
     console.log("UNCAUGHT EXCEPTION:", err);
 });
 
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -38,5 +37,6 @@ app.listen(5000, () => {
 });
 
 // START ENGINES
-WhaleListener.start();
-PumpScanner.start();
+startETHWhaleListener();   // ✅ NEW listener active
+PumpScanner.start();       // ✅ Pump scanner ON
+
