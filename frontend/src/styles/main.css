@@ -84,3 +84,23 @@ body {
 .navbar a:hover {
     color: var(--text);
 }
+
+/* Better typography */
+h1, h2, h3, h4 {
+    letter-spacing: -0.5px;
+    margin-top: 0;
+}
+
+p {
+    line-height: 1.6;
+}
+
+/* Better hover states */
+a:hover {
+    opacity: 0.8;
+}
+
+/* Smooth animation */
+* {
+    transition: 0.15s all ease-in-out;
+}
