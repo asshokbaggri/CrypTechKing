@@ -1,12 +1,10 @@
-// backend/src/services/whale/eth.listener.js
-
 import WebSocket from "ws";
 import axios from "axios";
-import chains from "../../config/chains.js";
+import { saveWhaleTx } from "../../database/queries/whales.query.js";
 
 export default function startETHWhaleListener() {
-    const wsUrl = chains.ETH.WS;
-    const httpUrl = chains.ETH.HTTP;
+    const wsUrl = process.env.ETH_WS_URL;
+    const httpUrl = process.env.ETH_HTTP_URL;
 
     if (!wsUrl || !httpUrl) {
         return console.error("❌ ETH WS/HTTP URL missing in Railway env!");
@@ -46,14 +44,28 @@ export default function startETHWhaleListener() {
 
             const valueETH = Number(txData.value) / 1e18;
 
-            // Filter — whale threshold
+            // Whale threshold
             if (valueETH >= 25) {
                 console.log(`🐋 ETH Whale: ${valueETH} ETH | ${txData.from} → ${txData.to}`);
-                // TODO: save in DB + telegram alert + X alert
+
+                const whaleRecord = {
+                    chain: "ETH",
+                    hash: txHash,
+                    from: txData.from,
+                    to: txData.to,
+                    amountEth: valueETH,
+                    usdValue: null, // later add price API
+                    fromLabel: "",
+                    toLabel: "",
+                    source: "live",
+                    timestamp: Date.now()
+                };
+
+                await saveWhaleTx(whaleRecord);
             }
 
         } catch (err) {
-            // Ignore small errors
+            // ignore
         }
     });
 
