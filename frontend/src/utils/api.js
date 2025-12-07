@@ -21,11 +21,12 @@ export async function getTrending(limit = 5) {
 }
 
 // Smart Money Summary
-export async function getSmartMoneySummary() {
+export async function getSmartMoney() {
     try {
-        const res = await fetch(`${API}/smartmoney/summary`);
+        const res = await fetch(`${API}/smartmoney/live`);
         return res.json();
     } catch {
-        return null;
+        return [];
     }
 }
+
