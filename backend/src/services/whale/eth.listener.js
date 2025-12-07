@@ -2,10 +2,11 @@
 
 import WebSocket from "ws";
 import axios from "axios";
+import chains from "../../config/chains.js";
 
 export default function startETHWhaleListener() {
-    const wsUrl = process.env.ETH_WS_URL;
-    const httpUrl = process.env.ETH_HTTP_URL;
+    const wsUrl = chains.ETH.WS;
+    const httpUrl = chains.ETH.HTTP;
 
     if (!wsUrl || !httpUrl) {
         return console.error("❌ ETH WS/HTTP URL missing in Railway env!");
