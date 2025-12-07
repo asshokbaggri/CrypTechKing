@@ -30,3 +30,11 @@ export async function getSmartMoney() {
     }
 }
 
+export async function getTokenDetails(address) {
+    try {
+        const res = await fetch(`${API}/coin/${address}`);
+        return res.json();
+    } catch {
+        return null;
+    }
+}
