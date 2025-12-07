@@ -8,6 +8,7 @@ import "./config/env.js";
 import startETHWhaleListener from "./services/whale/eth.listener.js";
 import startPolygonWhaleListener from "./services/whale/polygon.listener.js";
 import startBNBWhaleListener from "./services/whale/bnb.listener.js";
+import startSmartMoneyListener from "./services/smartmoney/smartmoney.listener.js";
 import PumpScanner from "./services/pump/pump.scanner.js";
 
 // Routes
@@ -45,4 +46,5 @@ app.listen(5000, () => {
 startETHWhaleListener();   // Ethereum WS live listener
 startPolygonWhaleListener(); // NEW Polygon WS live listener
 startBNBWhaleListener();   // 🟡 BNB listener ON
+startSmartMoneyListener();   // 🚀 Smart Money ON
 PumpScanner.start();       // Pump scanner ON
