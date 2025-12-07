@@ -8,7 +8,9 @@ import "./config/env.js";
 import startETHWhaleListener from "./services/whale/eth.listener.js";
 import startPolygonWhaleListener from "./services/whale/polygon.listener.js";
 import startBNBWhaleListener from "./services/whale/bnb.listener.js";
-import startSmartMoneyListener from "./services/smartmoney/smartmoney.listener.js";
+import startSmartMoneyETH from "./services/smartmoney/sm.listener.eth.js";
+import startSmartMoneyPOLYGON from "./services/smartmoney/sm.listener.polygon.js";
+import startSmartMoneyBNB from "./services/smartmoney/sm.listener.bnb.js";
 import PumpScanner from "./services/pump/pump.scanner.js";
 
 // Routes
@@ -46,5 +48,7 @@ app.listen(5000, () => {
 startETHWhaleListener();   // Ethereum WS live listener
 startPolygonWhaleListener(); // NEW Polygon WS live listener
 startBNBWhaleListener();   // 🟡 BNB listener ON
-startSmartMoneyListener();   // 🚀 Smart Money ON
+startSmartMoneyETH();      // 🚀 Smart Money ON
+startSmartMoneyPOLYGON();  // 🚀 Smart Money ON
+startSmartMoneyBNB();      // 🚀 Smart Money ON
 PumpScanner.start();       // Pump scanner ON
