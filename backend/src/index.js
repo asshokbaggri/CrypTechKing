@@ -6,6 +6,7 @@ import "./config/env.js";
 
 // Services
 import startETHWhaleListener from "./services/whale/eth.listener.js";
+import startPolygonWhaleListener from "./services/whale/polygon.listener.js";
 import PumpScanner from "./services/pump/pump.scanner.js";
 
 // Routes
@@ -41,4 +42,5 @@ app.listen(5000, () => {
 
 // START ENGINES
 startETHWhaleListener();   // Ethereum WS live listener
+startPolygonWhaleListener(); // NEW Polygon WS live listener
 PumpScanner.start();       // Pump scanner ON
