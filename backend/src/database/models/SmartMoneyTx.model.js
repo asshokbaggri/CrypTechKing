@@ -1,16 +1,18 @@
 // backend/src/database/models/SmartMoneyTx.model.js
 
 export default {
-    chain: String,
+    chain: String,            // ETH, BNB, POLYGON
     hash: String,
-    wallet: String,
-    token: String,
-    tokenSymbol: String,
-    tokenName: String,
-    amount: Number,
+    wallet: String,           // trader wallet
+    tokenIn: String,          // e.g. WETH
+    tokenOut: String,         // token bought
+    amountIn: Number,
+    amountOut: Number,
     usdValue: Number,
-    type: String,        // buy | sell | transfer
-    score: Number,
-    label: String,       // smart whale | sniper | early buyer
-    timestamp: Number
+    label: String,            // whale, sniper...
+    score: Number,            // 0–100
+    action: String,           // buy, sell, swap
+    tokenAddress: String,
+    timestamp: Number,
+    source: String            // "smartmoney"
 };
