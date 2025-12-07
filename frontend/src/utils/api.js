@@ -38,3 +38,43 @@ export async function getTokenDetails(address) {
         return null;
     }
 }
+
+// Global whale volume (24h)
+export async function getWhaleStats() {
+    try {
+        const res = await fetch(`${API}/whales/stats`);
+        return res.json();
+    } catch {
+        return null;
+    }
+}
+
+// Smart Money overview summary
+export async function getSmartMoneyStats() {
+    try {
+        const res = await fetch(`${API}/smartmoney/summary`);
+        return res.json();
+    } catch {
+        return null;
+    }
+}
+
+// Pump Strength Index (AI-driven score)
+export async function getPumpStrength() {
+    try {
+        const res = await fetch(`${API}/pump/strength`);
+        return res.json();
+    } catch {
+        return null;
+    }
+}
+
+// Network activity (tx/s, mempool load)
+export async function getNetworkActivity() {
+    try {
+        const res = await fetch(`${API}/network/activity`);
+        return res.json();
+    } catch {
+        return null;
+    }
+}
