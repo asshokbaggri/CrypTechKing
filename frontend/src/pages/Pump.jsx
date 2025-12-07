@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getTrending } from "../utils/api";
+import Sparkline from "../components/Sparkline";
 
 export default function Pump() {
     const [tokens, setTokens] = useState([]);
@@ -55,6 +56,8 @@ export default function Pump() {
                             <th>24h Volume</th>
                             <th>Liquidity</th>
                             <th>Hype Score</th>
+                            <td><Sparkline data={t.sparkline || []} /></td>
+
                         </tr>
                     </thead>
 
