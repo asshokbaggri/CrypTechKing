@@ -2,6 +2,7 @@
 
 import express from "express";
 import cors from "cors";
+import "./config/env.js";
 
 // Services
 import startETHWhaleListener from "./services/whale/eth.listener.js";
