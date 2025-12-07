@@ -11,7 +11,7 @@ export async function getWhales(limit = 50) {
 }
 
 // Trending Pump Tokens
-export async function getTrending(limit = 5) {
+export async function getTrending(limit = 50) {
     try {
         const res = await fetch(`${API}/pump/trending?limit=${limit}`);
         return res.json();
