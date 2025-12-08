@@ -2,52 +2,57 @@ import { useState } from "react";
 import ChainSelector from "../components/ChainSelector";
 import WhaleTable from "../components/WhaleTable";
 import useLiveWhales from "../hooks/useLiveWhales";
-import format from "../utils/format";
 
 export default function Whales() {
     const [chain, setChain] = useState("ALL");
     const [minAmount, setMinAmount] = useState(0);
 
-    // LIVE FEED (auto-refresh every 5 sec)
-    const whales = useLiveWhales(50);
+    const whales = useLiveWhales(50); // auto-refresh every 5 secs
 
-    // FILTERING
+    // APPLY FILTERS
     const filtered = whales.filter(w => {
-        const byChain = chain === "ALL" || w.chain === chain;
-        const byAmount = Number(w.amount) >= Number(minAmount || 0);
-        return byChain && byAmount;
+        if (chain !== "ALL" && w.chain !== chain) return false;
+        if (minAmount > 0 && Number(w.amount) < Number(minAmount)) return false;
+        return true;
     });
 
     return (
         <div>
             <h1 style={{ marginBottom: 20 }}>🐳 Whale Transactions</h1>
 
-            {/* ------- FILTER BAR ------- */}
+            {/* -------- FILTER BAR -------- */}
             <div className="card" style={{ marginBottom: 20 }}>
                 <h3>Filters</h3>
 
-                <div style={{ display: "flex", gap: 20, marginTop: 10, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 20, marginTop: 15 }}>
                     
-                    {/* Chain Selector Component */}
-                    <ChainSelector value={chain} onChange={setChain} />
+                    {/* Chain Dropdown */}
+                    <ChainSelector value={chain} onChange={(val) => setChain(val)} />
 
-                    {/* Min Amount Input */}
+                    {/* Min Amount Filter */}
                     <input
                         type="number"
                         placeholder="Min Amount"
                         value={minAmount}
                         onChange={(e) => setMinAmount(e.target.value)}
-                        style={{ padding: 8, borderRadius: 8, width: 150 }}
+                        style={{
+                            padding: 8,
+                            borderRadius: 8,
+                            width: 140,
+                            background: "#111",
+                            border: "1px solid #333",
+                            color: "#fff",
+                        }}
                     />
                 </div>
             </div>
 
-            {/* ------- WHALE TABLE ------- */}
+            {/* -------- TABLE -------- */}
             <div className="card">
                 <WhaleTable data={filtered} />
 
                 {filtered.length === 0 && (
-                    <p style={{ marginTop: 20, color: "#888" }}>
+                    <p style={{ marginTop: 20, color: "#999" }}>
                         No transactions found with the selected filters.
                     </p>
                 )}
