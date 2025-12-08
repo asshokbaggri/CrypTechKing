@@ -78,3 +78,13 @@ export async function getNetworkActivity() {
         return null;
     }
 }
+
+// Smart Money Summary
+export async function getSmartMoneySummary() {
+    try {
+        const res = await fetch(`${API}/smartmoney/summary`);
+        return res.json();
+    } catch {
+        return null;
+    }
+}
