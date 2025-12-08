@@ -1,5 +1,5 @@
 import React from "react";
-import { formatAmount, formatTime } from "../utils/format";
+import { formatTime } from "../utils/format";
 
 export default function WhaleTable({ data }) {
   if (!data || data.length === 0) {
