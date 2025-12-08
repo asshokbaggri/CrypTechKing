@@ -1,14 +1,35 @@
-import { useState } from "react";
-import ChainSelector from "../components/ChainSelector.jsx";
-import WhaleTable from "../components/WhaleTable.jsx";
-import useLiveWhales from "../hooks/useLiveWhales.js";
+import { useEffect, useState } from "react";
+import { getWhales } from "../utils/api";
 
 export default function Whales() {
+    const [whales, setWhales] = useState([]);
     const [chain, setChain] = useState("ALL");
     const [minAmount, setMinAmount] = useState(0);
 
-    // 🔥 LIVE WHALE FEED (auto-refresh every 5s)
-    const whales = useLiveWhales(50, chain, minAmount);
+    useEffect(() => {
+        loadData();
+        const interval = setInterval(loadData, 5000); // auto-refresh
+        return () => clearInterval(interval);
+    }, [chain, minAmount]);
+
+    async function loadData() {
+        const feed = await getWhales(50); // get last 50 whales
+        if (!feed) return;
+
+        let filtered = feed;
+
+        // FILTER: chain
+        if (chain !== "ALL") {
+            filtered = filtered.filter(w => w.chain === chain);
+        }
+
+        // FILTER: amount
+        if (minAmount > 0) {
+            filtered = filtered.filter(w => Number(w.amount) >= Number(minAmount));
+        }
+
+        setWhales(filtered);
+    }
 
     return (
         <div>
@@ -19,9 +40,17 @@ export default function Whales() {
                 <h3>Filters</h3>
 
                 <div style={{ display: "flex", gap: "20px", marginTop: 10 }}>
-                    
-                    {/* Chain Selector Component */}
-                    <ChainSelector value={chain} onChange={setChain} />
+                    {/* Chain Selector */}
+                    <select
+                        value={chain}
+                        onChange={(e) => setChain(e.target.value)}
+                        style={{ padding: 8, borderRadius: 8 }}
+                    >
+                        <option value="ALL">All Chains</option>
+                        <option value="ETH">Ethereum</option>
+                        <option value="POLYGON">Polygon</option>
+                        <option value="BNB">BNB</option>
+                    </select>
 
                     {/* Min Amount */}
                     <input
@@ -34,9 +63,47 @@ export default function Whales() {
                 </div>
             </div>
 
-            {/* ------- TABLE (Component) ------- */}
+            {/* ------- TABLE ------- */}
             <div className="card">
-                <WhaleTable data={whales} />
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <th>Chain</th>
+                            <th>Amount</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {whales.map((w, i) => (
+                            <tr key={i}>
+                                <td>
+                                    <span className="badge badge-whale">
+                                        {w.chain}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <strong>{w.amount}</strong>
+                                </td>
+
+                                <td>
+                                    {w.from ? w.from.slice(0, 6) : "N/A"}…
+                                </td>
+
+                                <td>
+                                    {w.to ? w.to.slice(0, 6) : "N/A"}…
+                                </td>
+
+                                <td>
+                                    {new Date(w.timestamp * 1000).toLocaleTimeString()}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
 
                 {whales.length === 0 && (
                     <p style={{ marginTop: 20, color: "#888" }}>
