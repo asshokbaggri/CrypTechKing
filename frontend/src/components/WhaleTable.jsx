@@ -1,5 +1,5 @@
 import React from "react";
-import format from "../utils/format";
+import format from "../utils/format.js";   // FORCE .js extension
 
 export default function WhaleTable({ data }) {
     if (!data || data.length === 0) {
