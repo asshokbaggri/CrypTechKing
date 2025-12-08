@@ -1,0 +1,59 @@
+body {
+  background: #0d0d12;
+  color: white;
+  margin: 0;
+  font-family: Inter, sans-serif;
+}
+
+.feed-container {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+.card {
+  background: #11131a;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 100px 150px 1fr 150px;
+  padding: 12px;
+  background: #181b22;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 100px 150px 1fr 150px;
+  padding: 12px;
+  border-bottom: 1px solid #1f2330;
+  align-items: center;
+  animation: popIn 0.25s ease-out;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.badge-chain {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #2a2e3d;
+  font-size: 13px;
+}
+
+.amount {
+  font-weight: 600;
+  color: #4ade80;
+}
+
+.time {
+  color: #a1a1a1;
+}
