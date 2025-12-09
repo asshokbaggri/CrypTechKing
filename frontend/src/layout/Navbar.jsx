@@ -1,11 +1,11 @@
 export default function Navbar() {
     return (
-        <div className="navbar">
-            <h2>CrypTechKing Dashboard</h2>
+        <header className="navbar">
+            <h2>Dashboard</h2>
 
-            <div className="right">
-                <span className="status live">● Live</span>
+            <div className="nav-right">
+                <span className="status-dot"></span> Live Data
             </div>
-        </div>
+        </header>
     );
 }
