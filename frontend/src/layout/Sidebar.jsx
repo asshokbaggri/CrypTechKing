@@ -1,13 +1,30 @@
+import { Link, useLocation } from "react-router-dom";
+
 export default function Sidebar() {
+    const { pathname } = useLocation();
+
+    const navItems = [
+        { icon: "📊", label: "Dashboard", path: "/dashboard" },
+        { icon: "🐋", label: "Whales", path: "/whales" },
+        { icon: "🧠", label: "Smart Money", path: "/smartmoney" },
+        { icon: "🚀", label: "Pump Scanner", path: "/pump" },
+        { icon: "⚠️", label: "Alerts", path: "/alerts" }
+    ];
+
     return (
-        <div className="sidebar">
+        <aside className="sidebar">
             <div className="logo">⚡ CrypTechKing</div>
 
-            <a href="/dashboard" className="nav-link">📊 Dashboard</a>
-            <a href="/whales" className="nav-link">🐋 Whales</a>
-            <a href="/smartmoney" className="nav-link">🧠 Smart Money</a>
-            <a href="/pump" className="nav-link">🚀 Pump Scanner</a>
-            <a href="/alerts" className="nav-link">⚠ Alerts</a>
-        </div>
+            {navItems.map((item) => (
+                <Link 
+                    key={item.path}
+                    to={item.path}
+                    className={`nav-link ${pathname === item.path ? "active" : ""}`}
+                >
+                    <span>{item.icon}</span>
+                    {item.label}
+                </Link>
+            ))}
+        </aside>
     );
 }
