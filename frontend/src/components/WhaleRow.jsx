@@ -1,22 +1,15 @@
-import { shortWallet, formatTime, formatAmount } from "../utils/format.js";
 import ChainBadge from "./ChainBadge";
+import { formatAmount, formatTime } from "../utils/format";
 
-export default function WhaleRow({ item }) {
-  return (
-    <div className="row">
-      <ChainBadge chain={item.chain} />
+export default function WhaleRow({ tx }) {
+    return (
+        <tr style={{ background: "#0d0f14", borderBottom: "1px solid #1c1f26" }}>
+            <td><ChainBadge chain={tx.chain} /></td>
+            <td style={{ fontWeight: 600 }}>{formatAmount(tx.amount)}</td>
 
-      <div className="amount">
-        {formatAmount(item.amount)} {item.chain}
-      </div>
+            <td>{tx.from?.slice(0, 6)}… → {tx.to?.slice(0, 6)}…</td>
 
-      <div>
-        {shortWallet(item.from)} → {shortWallet(item.to)}
-      </div>
-
-      <div className="time">
-        {formatTime(item.timestamp)}
-      </div>
-    </div>
-  );
+            <td>{formatTime(tx.timestamp)}</td>
+        </tr>
+    );
 }
