@@ -3,14 +3,15 @@ import Navbar from "./Navbar";
 
 export default function AppLayout({ children }) {
     return (
-        <div className="app-layout">
+        <div className="app-container">
             <Sidebar />
-            <div className="main-content">
+
+            <main className="content-wrapper">
                 <Navbar />
-                <div className="page-body">
+                <div className="page-content">
                     {children}
                 </div>
-            </div>
+            </main>
         </div>
     );
 }
