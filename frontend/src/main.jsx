@@ -1,21 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.jsx";
 
-import Dashboard from "./pages/Dashboard";
-import Whales from "./pages/Whales";
-import Pump from "./pages/PumpScanner";
-import SmartMoney from "./pages/SmartMoney";
-import Alerts from "./pages/Alerts";
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/whales" element={<Whales />} />
-        <Route path="/pump" element={<Pump />} />
-        <Route path="/smartmoney" element={<SmartMoney />} />
-        <Route path="/alerts" element={<Alerts />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
+ReactDOM.createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+        <App />
+    </React.StrictMode>
+);
