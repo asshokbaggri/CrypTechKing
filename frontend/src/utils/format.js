@@ -1,11 +1,11 @@
-export function shortWallet(addr) {
-  return addr ? addr.slice(0, 6) + "…" : "N/A";
+export function formatAmount(num) {
+    if (!num) return "0";
+    return Number(num).toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+    });
 }
 
-export function formatTime(ts) {
-  return new Date(ts).toLocaleTimeString();
-}
-
-export function formatAmount(a) {
-  return Number(a).toLocaleString();
+export function formatTime(timestamp) {
+    if (!timestamp) return "—";
+    return new Date(timestamp * 1000).toLocaleTimeString();
 }
