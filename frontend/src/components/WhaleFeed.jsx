@@ -1,40 +1,33 @@
-import { useEffect, useState } from "react";
 import WhaleRow from "./WhaleRow";
+import TableWrapper from "./TableWrapper";
 
-export default function WhaleFeed() {
-  const [feed, setFeed] = useState([]);
+export default function WhaleFeed({ data }) {
+    return (
+        <TableWrapper>
+            <table style={{ width: "100%", color: "#fff" }}>
+                <thead>
+                    <tr style={{ background: "#14181f" }}>
+                        <th>Chain</th>
+                        <th>Amount</th>
+                        <th>From → To</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
 
-  useEffect(() => {
-    generateDummy();
-    const int = setInterval(generateDummy, 3000);
-    return () => clearInterval(int);
-  }, []);
-
-  function generateDummy() {
-    const chains = ["ETH", "BNB", "POLYGON"];
-    const item = {
-      chain: chains[Math.floor(Math.random() * chains.length)],
-      amount: (Math.random() * 100).toFixed(2),
-      from: "0x" + Math.random().toString(16).substring(2, 8),
-      to: "0x" + Math.random().toString(16).substring(2, 8),
-      timestamp: Date.now()
-    };
-
-    setFeed(f => [item, ...f].slice(0, 40));
-  }
-
-  return (
-    <div>
-      <div className="table-header">
-        <div>Chain</div>
-        <div>Amount</div>
-        <div>From → To</div>
-        <div>Time</div>
-      </div>
-
-      {feed.map((item, idx) => (
-        <WhaleRow key={idx} item={item} />
-      ))}
-    </div>
-  );
+                <tbody>
+                    {data.length === 0 ? (
+                        <tr>
+                            <td colSpan="4" style={{ padding: 20, color: "#777" }}>
+                                No transactions found.
+                            </td>
+                        </tr>
+                    ) : (
+                        data.map((tx, i) => (
+                            <WhaleRow key={i} tx={tx} />
+                        ))
+                    )}
+                </tbody>
+            </table>
+        </TableWrapper>
+    );
 }
