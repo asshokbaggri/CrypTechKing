@@ -475,3 +475,9 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .sidebar { transition: width .28s cubic-bezier(.2,.9,.2,1), padding .18s ease, box-shadow .22s ease; }
 
 /* End of file */
+
+/* Remove ONLY the inner close button inside sidebar */
+.sidebar .collapse-btn {
+  display: none !important;
+}
+
