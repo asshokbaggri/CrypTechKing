@@ -316,3 +316,64 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .small-muted { color:var(--muted); font-size:13px; }
 
 /* End of file - tweak accents in :root */
+
+/* --- Sidebar fine-tune overrides --- */
+
+/* logo sizing */
+.brand-row { display:flex; align-items:center; gap:12px; }
+.brand-logo {
+  width: 160px;
+  max-height: 34px;
+  object-fit: contain;
+  display:block;
+  filter: drop-shadow(0 6px 18px rgba(2,6,23,0.5));
+}
+
+/* when collapsed show smaller mark and hide texts */
+.sidebar.closed .brand-logo { width: 38px; max-height:38px; }
+.sidebar.closed .brand-texts { display: none !important; }
+
+/* center nav icons when collapsed */
+.sidebar.closed .nav-links .nav-item { justify-content:center; padding-left:0; padding-right:0; }
+.sidebar.closed .nav-links .link-label { display:none; }
+
+/* nav icon style */
+.nav-icon { font-size:20px; width:28px; display:inline-flex; align-items:center; justify-content:center; margin-left:-18px; }
+.nav-item .nav-icon { opacity:0.95; }
+
+/* footer pinned so it never gets cut off */
+.sidebar-footer {
+  margin-top: auto;
+  font-size:12px;
+  color:var(--muted);
+  padding-top:12px;
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  background: transparent;
+}
+
+/* hide copyright text in collapsed mode, show small centered icon if needed */
+.sidebar.closed .sidebar-footer .copyright { display:none; }
+
+/* when mobile overlay open, keep main area under */
+.sidebar-backdrop.visible { display:block; }
+
+/* small tweak: compact collapse chevron button location */
+.collapse-btn { position: absolute; top: 18px; right: 12px; }
+
+/* if you want brand color to match logo tone, add subtle tint */
+.brand { color: var(--text); }
+.sidebar .brand-logo[data-theme="light"] { filter:none; }
+
+/* smoother transition for width and internal content */
+.sidebar, .sidebar .brand-logo, .sidebar .nav-item { transition: all .18s cubic-bezier(.2,.9,.2,1); }
+
+/* make nav icons visible on mobile overlay */
+.sidebar.mobile .nav-links .nav-item { padding-left: 20px; }
+
+/* finally: better contrast for logo if the file is dark — add a subtle white outline if needed */
+/* only apply if using an svg/transparent icon that needs emphasis */
+.brand-logo.outline { filter: drop-shadow(0 2px 0 rgba(255,255,255,0.02)) drop-shadow(0 8px 30px rgba(0,0,0,0.55)); }
+
