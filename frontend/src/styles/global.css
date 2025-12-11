@@ -1,10 +1,12 @@
-/* src/styles/global.css
-   Enhanced Polished Dark theme + textured background + sidebar/nav feel
+/* frontend/src/styles/global.css
+   Unified Global CSS — Dark textured theme + DEXTools-like sidebar + Responsive
+   Paste/replace this file. Tweak :root variables to change accents and radii.
 */
 
 :root{
-  --bg-dark:#08080a;
-  --bg-mid:#0b0c10;
+  /* Colors & accents */
+  --bg-dark: #08080a;
+  --bg-mid: #0b0c10;
   --panel: rgba(255,255,255,0.03);
   --glass: rgba(255,255,255,0.035);
   --glass-strong: rgba(255,255,255,0.06);
@@ -16,111 +18,271 @@
   --radius: 14px;
   --shadow-1: 0 8px 28px rgba(2,6,23,0.6);
   --glass-border: 1px solid rgba(255,255,255,0.04);
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+
+  /* Layout */
+  --sidebar-w: 240px;
+  --sidebar-closed-w: 78px;
+
+  /* Typography */
+  --font-stack: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --base-font-size: 16px;
 }
 
-/* baseline */
-*{box-sizing:border-box}
-html,body,#root{height:100%;margin:0;background:
-  radial-gradient(400px 600px at 10% 10%, rgba(138,108,255,0.04), transparent 8%),
-  radial-gradient(500px 700px at 90% 80%, rgba(108,227,255,0.03), transparent 9%),
-  linear-gradient(180deg,var(--bg-mid), var(--bg-dark)); color:var(--text);
-  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+/* === BASELINE === */
+* { box-sizing: border-box; }
+html,body,#root { height:100%; margin:0; font-family:var(--font-stack); font-size:var(--base-font-size); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; color:var(--text); }
+
+/* page background — textured radial highlights */
+body {
+  background:
+    radial-gradient(400px 600px at 10% 10%, rgba(138,108,255,0.04), transparent 8%),
+    radial-gradient(500px 700px at 90% 80%, rgba(108,227,255,0.03), transparent 9%),
+    linear-gradient(180deg, var(--bg-mid), var(--bg-dark));
+  min-height:100vh;
+  position:relative;
 }
 
-/* subtle diagonal texture (low-opacity) */
-body::before{
-  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+/* subtle diagonal texture overlay */
+body::before {
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
   background-image: linear-gradient(135deg, rgba(255,255,255,0.004) 1px, transparent 1px);
-  background-size: 10px 10px; opacity:0.6;
+  background-size: 10px 10px;
+  opacity:0.6;
 }
 
-/* layout root */
-.app-root{ display:flex; min-height:100vh; align-items:stretch; gap:28px; position:relative; z-index:1; }
+/* app root flex layout */
+.app-root { display:flex; min-height:100vh; align-items:stretch; gap:28px; position:relative; z-index:1; }
 
-/* SIDEBAR - left column */
-.sidebar{
-  width:240px; padding:28px 20px; display:flex; flex-direction:column; gap:18px;
+/* === SIDEBAR / LEFT COLUMN === */
+/* Toggle button for mobile/compact */
+.sidebar-toggle {
+  position: fixed;
+  left: 12px;
+  top: 12px;
+  z-index: 1600;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.03);
+  display: none; /* shown on small screens via media query */
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.sidebar-toggle svg { opacity:.95; stroke:rgba(255,255,255,0.9); fill:none; stroke-width:1.1 }
+
+/* backdrop for mobile overlay */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: rgba(0,0,0,0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s;
+}
+.sidebar-backdrop.visible { opacity: 1; pointer-events: all; }
+
+/* Sidebar container */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  padding: 28px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
   background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.35));
   border-right: 1px solid rgba(255,255,255,0.02);
   position:relative;
   box-shadow: 0 10px 30px rgba(2,6,23,0.6);
   backdrop-filter: blur(6px);
+  z-index: 1400;
+  transition: width .2s ease, transform .28s cubic-bezier(.2,.9,.2,1);
 }
-.brand{ font-size:20px; font-weight:800; letter-spacing:-0.6px; color:var(--text); margin-bottom:4px; }
+
+/* closed (compact) sidebar */
+.sidebar.closed { width: var(--sidebar-closed-w); min-width: var(--sidebar-closed-w); overflow:visible; }
+.sidebar.closed .label, .sidebar.closed .small { display:none; }
+.sidebar.closed .brand { font-size:18px; }
+.sidebar.closed .nav-item { justify-content:center; padding-left:0; padding-right:0; }
+
+/* mobile overlay state */
+.sidebar.mobile { position: fixed; left:0; top:0; bottom:0; height:100vh; transform: translateX(-110%); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+.sidebar.mobile.open { transform: translateX(0); }
+
+/* top / brand area */
+.brand { font-size:20px; font-weight:800; letter-spacing:-0.6px; color:var(--text); margin-bottom:4px; }
 .sidebar .small { color:var(--muted); font-size:12px; margin-bottom:6px; }
 
-/* nav links similar to DEX style */
-.nav-links{ display:flex; flex-direction:column; gap:6px; margin-top:8px; }
-.nav-links a{
-  display:block; padding:12px 12px; border-radius:10px; color: #d1dbe3; font-weight:700;
-  transition:transform .14s ease, background .14s ease, color .14s ease;
+/* nav list (DEXTools-like) */
+.nav-links { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.nav-links a {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 12px 12px 28px;
+  border-radius:10px;
+  color: #d1dbe3;
+  font-weight:700;
+  text-decoration:none;
+  transition: transform .14s ease, background .14s ease, color .14s ease;
   position:relative;
+  overflow:visible;
 }
-.nav-links a .dot {
-  position:absolute; left:8px; top:50%; transform:translateY(-50%); width:8px; height:8px; border-radius:8px; opacity:0;
-}
-.nav-links a:hover{
+
+/* small left dot (hidden by default but can be used) */
+.nav-links a .dot { position:absolute; left:8px; top:50%; transform:translateY(-50%); width:8px; height:8px; border-radius:8px; opacity:0; }
+
+/* hover and active styles */
+.nav-links a:hover {
   transform: translateX(8px);
   background: linear-gradient(90deg, rgba(124,108,255,0.06), rgba(108,227,255,0.03));
   color:var(--text);
   box-shadow: 0 12px 30px rgba(2,6,23,0.6);
 }
-.nav-links a.active{
+.nav-links a.active {
   background: linear-gradient(90deg, rgba(124,108,255,0.09), rgba(108,227,255,0.03));
-  color:var(--text); transform:none;
+  color:var(--text);
+  transform:none;
 }
-.nav-links a.active::before{
-  content:""; position:absolute; left:-6px; top:8px; bottom:8px; width:6px; border-radius:8px;
+.nav-links a.active::before {
+  content:"";
+  position:absolute;
+  left:-6px;
+  top:8px;
+  bottom:8px;
+  width:6px;
+  border-radius:8px;
   background: linear-gradient(180deg, var(--accent-a), var(--accent-b));
   box-shadow: 0 8px 20px rgba(124,108,255,0.12);
 }
 
-/* top navbar */
-.navbar{ height:72px; display:flex; align-items:center; justify-content:space-between; padding:0 28px; }
-.top-brand{ display:flex; gap:18px; align-items:center; }
-.top-brand h2{ margin:0; font-size:18px; font-weight:800; letter-spacing:-0.6px; }
-.live-badge{
-  padding:8px 12px; border-radius:999px; background: linear-gradient(90deg, rgba(108,227,255,0.08), rgba(124,108,255,0.06));
-  color:var(--text); font-weight:700; border:1px solid rgba(255,255,255,0.03);
-  display:inline-flex; gap:8px; align-items:center;
+/* small icon and label inside nav item (if you use inline svg icons) */
+.nav-item .icon { width:20px; height:20px; display:flex; align-items:center; justify-content:center; }
+.nav-item .label { font-weight:700; color:#eaf2f8; }
+
+/* collapse button (if used) */
+.collapse-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; padding:6px; border-radius:8px; }
+.collapse-btn svg { stroke: rgba(255,255,255,0.9); transform: rotate(0deg); transition: transform .18s; }
+.sidebar.closed .collapse-btn svg { transform: rotate(180deg); }
+
+/* sidebar footer */
+.sidebar-footer { margin-top:auto; font-size:12px; color:var(--muted); }
+
+/* === NAVBAR / TOP AREA === */
+.navbar { height:72px; display:flex; align-items:center; justify-content:space-between; padding:0 28px; background:transparent; }
+.top-brand { display:flex; gap:18px; align-items:center; }
+.top-brand h2 { margin:0; font-size:18px; font-weight:800; letter-spacing:-0.6px; }
+.live-badge {
+  padding:8px 12px;
+  border-radius:999px;
+  background: linear-gradient(90deg, rgba(108,227,255,0.08), rgba(124,108,255,0.06));
+  color:var(--text);
+  font-weight:700;
+  border:1px solid rgba(255,255,255,0.03);
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
 }
 
-/* main content area */
-.main-area{ flex:1; display:flex; flex-direction:column; min-height:100vh; padding-bottom:40px; }
-.page-content{ padding:24px 36px; }
+/* === MAIN CONTENT === */
+.main-area { flex:1; display:flex; flex-direction:column; min-height:100vh; padding-bottom:40px; z-index:1; }
+.page-content { padding:24px 36px; }
 
-/* hero */
-.page-hero{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:14px; }
-h1.hero{ font-size:34px; margin:0; letter-spacing:-1px; }
+/* hero/title */
+.page-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:14px; }
+h1.hero { font-size:34px; margin:0; letter-spacing:-1px; }
 
-/* row of stat cards */
-.row{ display:flex; gap:18px; margin:18px 0; flex-wrap:wrap; }
-.card { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02)); border-radius:12px; padding:18px; min-width:230px; flex:1 1 240px; border: var(--glass-border); box-shadow: var(--shadow-1); transition: transform .16s ease, box-shadow .16s ease; backdrop-filter: blur(6px); }
-.card:hover{ transform: translateY(-6px); box-shadow: 0 26px 60px rgba(2,6,23,0.65); }
-.card.accent::before{ content:""; position:absolute; left:-10px; top:14px; height:calc(100% - 28px); width:8px; border-radius:9px; background: linear-gradient(180deg,var(--accent-a),var(--accent-b)); box-shadow: 0 12px 30px rgba(124,108,255,0.12); }
-
-/* table container */
-.table-card{ margin-top:20px; border-radius:12px; overflow:hidden; border:var(--glass-border); background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.02)); padding-bottom:6px; }
-.table-header{ padding:22px 28px; font-size:20px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:12px; }
-.table{ width:100%; border-collapse:collapse; color:var(--text); }
-.table th, .table td{ padding:18px 28px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.02); font-weight:700; color:#dbe9f2; }
-.table tr:last-child td{ border-bottom:none; }
-
-/* small utilities */
-.badge{ padding:6px 10px; border-radius:8px; background: rgba(255,255,255,0.02); color:var(--accent-a); font-weight:800; }
-.empty-note{ padding:28px; color:var(--muted) }
-
-/* responsive */
-@media (max-width:980px){
-  .sidebar{ display:none; }
-  .page-content{ padding:20px 18px; }
-  .card{ flex:1 1 100%; }
+/* stat row cards */
+.row { display:flex; gap:18px; margin:18px 0; flex-wrap:wrap; }
+.card {
+  position:relative;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  border-radius:12px;
+  padding:18px;
+  min-width:230px;
+  flex:1 1 240px;
+  border: var(--glass-border);
+  box-shadow: var(--shadow-1);
+  transition: transform .16s ease, box-shadow .16s ease;
+  backdrop-filter: blur(6px);
+}
+.card:hover { transform: translateY(-6px); box-shadow: 0 26px 60px rgba(2,6,23,0.65); }
+.card.accent::before {
+  content:"";
+  position:absolute;
+  left:-10px;
+  top:14px;
+  height:calc(100% - 28px);
+  width:8px;
+  border-radius:9px;
+  background: linear-gradient(180deg,var(--accent-a),var(--accent-b));
+  box-shadow: 0 12px 30px rgba(124,108,255,0.12);
 }
 
-/* small animated micro-interactions */
+/* table / transactions card */
+.table-card { margin-top:20px; border-radius:12px; overflow:hidden; border:var(--glass-border); background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.02)); padding-bottom:6px; }
+.table-header { padding:22px 28px; font-size:20px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:12px; }
+.table { width:100%; border-collapse:collapse; color:var(--text); }
+.table th, .table td { padding:18px 28px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.02); font-weight:700; color:#dbe9f2; }
+.table tr:last-child td { border-bottom:none; }
+.empty-note { padding:28px; color:var(--muted) }
+
+/* badges & small UI */
+.badge { padding:6px 10px; border-radius:8px; background: rgba(255,255,255,0.02); color:var(--accent-a); font-weight:800; }
+
+/* === TOOLTIPS & FOCUS (ACCESSIBILITY) === */
+a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); outline-offset:2px; border-radius:6px; }
+
+/* === SMALL MICRO-INTERACTIONS === */
 .fade-in { animation:fadeIn .32s ease both; }
 @keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
 
-/* small helper for icons */
-.h-icon{ margin-right:10px; font-size:20px; vertical-align:middle; }
+/* === RESPONSIVE RULES === */
+/* tablet / small desktop */
+@media (max-width: 1200px) {
+  .page-content { padding:20px 28px; }
+  .navbar { padding:0 20px; }
+}
+
+/* mobile: transform sidebar into overlay, show toggle */
+@media (max-width: 980px) {
+  .sidebar { display:none; }             /* hide left column entirely if using overlay sidebar */
+  .sidebar-toggle { display:flex; }      /* show toggle button */
+  .page-content { padding:18px 16px; }
+  .card { flex:1 1 100%; }
+}
+
+/* If you use the overlay version of sidebar (Sidebar.jsx uses .mobile and .open),
+   add rules to show it on small screens while preserving layout for desktop. */
+@media (max-width: 900px) {
+  /* if sidebar element is present with class .mobile, it will be overlayed and visible/open via JS toggles */
+  .sidebar.mobile { display:flex; transform: translateX(-110%); position:fixed; z-index:1600; }
+  .sidebar.mobile.open { transform: translateX(0); }
+  .sidebar-backdrop { display:block; }
+  /* ensure main area spacing doesn't appear hidden under overlay */
+  .main-area { z-index:1; }
+}
+
+/* === SPECIAL: compact layout adjustments when sidebar closed (desktop compact) === */
+@media (min-width: 981px) {
+  .sidebar { display:flex; }
+  /* If you programmatically add .closed to sidebar, these styles apply */
+  .sidebar.closed { width: var(--sidebar-closed-w); padding-left:12px; padding-right:12px; }
+  .main-area { margin-left: 0; } /* main area flex handles spacing */
+}
+
+/* === HELPERS === */
+.h-icon { margin-right:10px; font-size:20px; vertical-align:middle; }
+
+/* small utilities that might be useful in components */
+.center-row { display:flex; align-items:center; gap:12px; }
+.small-muted { color:var(--muted); font-size:13px; }
+
+/* === END OF FILE === */
+/* Tip: Adjust --accent-a / --accent-b / --accent-c for different color palettes. */
