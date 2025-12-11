@@ -1,30 +1,18 @@
-import { Link, useLocation } from "react-router-dom";
+// src/layout/Sidebar.jsx
+import React from "react";
+import { Link } from "react-router-dom";
 
 export default function Sidebar() {
-    const { pathname } = useLocation();
-
-    const navItems = [
-        { icon: "📊", label: "Dashboard", path: "/dashboard" },
-        { icon: "🐋", label: "Whales", path: "/whales" },
-        { icon: "🧠", label: "Smart Money", path: "/smartmoney" },
-        { icon: "🚀", label: "Pump Scanner", path: "/pump" },
-        { icon: "⚠️", label: "Alerts", path: "/alerts" }
-    ];
-
-    return (
-        <aside className="sidebar">
-            <div className="logo">⚡ CrypTechKing</div>
-
-            {navItems.map((item) => (
-                <Link 
-                    key={item.path}
-                    to={item.path}
-                    className={`nav-link ${pathname === item.path ? "active" : ""}`}
-                >
-                    <span>{item.icon}</span>
-                    {item.label}
-                </Link>
-            ))}
-        </aside>
-    );
+  return (
+    <aside className="sidebar">
+      <h3 className="brand">CrypTechKing</h3>
+      <nav className="nav-links">
+        <Link to="/dashboard">Dashboard</Link>
+        <Link to="/whales">Whales</Link>
+        <Link to="/smartmoney">Smart Money</Link>
+        <Link to="/pump">Pump Scanner</Link>
+        <Link to="/alerts">Alerts</Link>
+      </nav>
+    </aside>
+  );
 }
