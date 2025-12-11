@@ -90,7 +90,9 @@ body::before {
 }
 .sidebar-backdrop.visible { opacity: 1; pointer-events: all; }
 
-/* Sidebar container */
+/* Sidebar container
+   NOTE: for desktop we use position:fixed so expanding doesn't push page content.
+*/
 .sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
@@ -101,7 +103,7 @@ body::before {
   background:
     linear-gradient(180deg, rgba(6,8,11,0.85), rgba(12,14,18,0.78));
   border-right: 1px solid rgba(255,255,255,0.02);
-  position:relative;
+  position: relative;    /* overridden to fixed for desktop below */
   box-shadow: 0 10px 30px rgba(2,6,23,0.6);
   backdrop-filter: blur(6px);
   z-index: 1400;
@@ -230,7 +232,8 @@ body::before {
 }
 
 /* ================= MAIN CONTENT ================= */
-.main-area { flex:1; display:flex; flex-direction:column; min-height:100vh; padding-bottom:40px; z-index:1; }
+/* IMPORTANT: main-area gets a left margin on desktop so fixed sidebar doesn't hide content */
+.main-area { flex:1; display:flex; flex-direction:column; min-height:100vh; padding-bottom:40px; z-index:1; transition: margin-left .18s ease; }
 .page-content { padding:24px 36px; }
 
 /* hero/title */
@@ -307,9 +310,15 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 
 /* desktop compact adjustments when sidebar closed */
 @media (min-width: 981px) {
-  .sidebar { display:flex; }
-  .sidebar.closed { width: var(--sidebar-closed-w); padding-left:12px; padding-right:12px; }
-  .main-area { margin-left: 0; } /* layout handled by flex */
+  /* Make the sidebar fixed so expanding it overlays instead of pushing content */
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; height:100vh; }
+  /* keep main content offset to closed width so fixed sidebar doesn't cover it */
+  .main-area { margin-left: calc(var(--sidebar-closed-w) + 28px); } /* +28 = gap in .app-root */
+  .page-content { padding-left: 20px; }
+  /* collapsed default */
+  .sidebar.closed { width: var(--sidebar-closed-w); padding-left:10px; padding-right:10px; }
+  /* Hide the collapse button on desktop (cleaner look) */
+  .collapse-btn { display: none; }
 }
 
 /* helpers */
@@ -365,8 +374,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .link-label { display:inline-block; }
 .nav-item .label, .nav-item .link-label { color: #eaf2f8; font-weight:700; }
 
-/* final note: tweak accents by editing :root variables above */
-
 /* ===== Mobile overlay: force labels & brand visible ===== */
 .sidebar.mobile {
   display:flex !important;
@@ -421,14 +428,17 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   .sidebar.mobile { padding-top: 36px; }
 }
 
-/* ---------------- Desktop hover-to-expand behaviour ---------------- */
+/* ---------------- Desktop hover-to-expand behaviour (overlay) ---------------- */
 /* Expand the collapsed sidebar on hover for desktop (gives premium feel).
-   This is a CSS safety/visual fallback; logic in Sidebar.jsx still controls actual class. */
+   Because sidebar is fixed and main-area has margin-left, content won't shift.
+*/
 @media (min-width: 981px) {
   .sidebar.closed:hover {
     width: var(--sidebar-w);
     padding-left: 20px;
     padding-right: 20px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    z-index: 1700;
   }
   .sidebar.closed:hover .brand-texts { display:flex !important; }
   .sidebar.closed:hover .nav-item .label,
