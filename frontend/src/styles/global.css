@@ -23,6 +23,10 @@
   --sidebar-w: 240px;
   --sidebar-closed-w: 78px;
 
+  /* Animation speed (tweak to taste) */
+  --sidebar-speed: 220ms;
+  --sidebar-ease: cubic-bezier(.2,.9,.2,1);
+
   /* Typography */
   --font-stack: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   --base-font-size: 16px;
@@ -90,38 +94,121 @@ body::before {
 }
 .sidebar-backdrop.visible { opacity: 1; pointer-events: all; }
 
-/* Sidebar container
-   NOTE: for desktop we use position:fixed so expanding overlays instead of pushing content.
-*/
+/* Sidebar container (desktop default = compact) */
 .sidebar {
-  width: var(--sidebar-w);
-  min-width: var(--sidebar-w);
-  padding: 28px 20px;
+  /* set compact size by default so the page layout does NOT shift */
+  width: var(--sidebar-closed-w);
+  min-width: var(--sidebar-closed-w);
+  padding: 28px 12px;
   display:flex;
   flex-direction:column;
   gap:18px;
   background:
     linear-gradient(180deg, rgba(6,8,11,0.85), rgba(12,14,18,0.78));
   border-right: 1px solid rgba(255,255,255,0.02);
-  position: relative;
+  position:relative; /* will switch to fixed on hover overlay */
   box-shadow: 0 10px 30px rgba(2,6,23,0.6);
   backdrop-filter: blur(6px);
   z-index: 1400;
-  transition:
-    width .32s cubic-bezier(.2,.9,.2,1),
-    padding .22s cubic-bezier(.2,.9,.2,1),
-    box-shadow .28s;
+  transition: width var(--sidebar-speed) var(--sidebar-ease), padding var(--sidebar-speed) var(--sidebar-ease);
   overflow:visible;
-  will-change: width, box-shadow;
 }
 
-/* closed (compact) sidebar */
-.sidebar.closed { width: var(--sidebar-closed-w); min-width: var(--sidebar-closed-w); overflow:visible; }
-.sidebar.closed .brand { font-size:18px; }
-.sidebar.closed .nav-item { justify-content:center; padding-left:0; padding-right:0; }
-.sidebar.closed .brand-logo { width:36px; height:36px; padding:4px; }
+/* Desktop: COLLAPSED (this is the normal state) */
+.sidebar.closed {
+  width: var(--sidebar-closed-w);
+  min-width: var(--sidebar-closed-w);
+  padding-left:12px;
+  padding-right:12px;
+}
 
-/* mobile overlay state */
+/* ---------- HOVER-to-expand (desktop) ----------
+   Idea: when user hovers the compact sidebar, it switches to overlay-fixed
+   (position:fixed) so it expands visually over the page without moving content.
+   This prevents the whole UI from shifting while giving a smooth "peek" effect.
+*/
+@media (min-width: 981px) {
+  /* only apply hover-overlay on desktop */
+
+  /* prepare labels/brand for smooth opacity transition (prevent instant layout show/hide) */
+  .brand-texts, .nav-item .link-label, .nav-item .label {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-6px);
+    transition: opacity calc(var(--sidebar-speed) + 80ms) var(--sidebar-ease), transform var(--sidebar-speed) var(--sidebar-ease), visibility 0s linear var(--sidebar-speed);
+  }
+
+  /* When the sidebar is hovered (or has a class .open), expand as fixed overlay */
+  .sidebar.closed:hover,
+  .sidebar.closed.open {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    padding: 28px 20px;
+    z-index: 1600;
+    /* visually overlay — no layout shift because it is fixed */
+    box-shadow: 0 30px 90px rgba(2,6,23,0.6);
+    transition: transform 260ms var(--sidebar-ease), width var(--sidebar-speed) var(--sidebar-ease), padding var(--sidebar-speed) var(--sidebar-ease);
+    background:
+      linear-gradient(180deg, rgba(6,8,11,0.95), rgba(12,14,18,0.92));
+  }
+
+  /* reveal labels/brand smoothly */
+  .sidebar.closed:hover .brand-texts,
+  .sidebar.closed.open .brand-texts,
+  .sidebar.closed:hover .nav-item .link-label,
+  .sidebar.closed.open .nav-item .link-label,
+  .sidebar.closed:hover .nav-item .label,
+  .sidebar.closed.open .nav-item .label {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    transition-delay: 60ms; /* small delay makes it feel buttery */
+  }
+
+  /* When expanded, nav-items get wider padding and their hover effect */
+  .sidebar.closed:hover .nav-links .nav-item,
+  .sidebar.closed.open .nav-links .nav-item {
+    padding-left: 28px;
+    padding-right: 12px;
+  }
+
+  /* keep footer hidden until expanded to avoid cropping look */
+  .sidebar.closed .sidebar-footer { opacity: 0; visibility: hidden; transition: opacity var(--sidebar-speed) var(--sidebar-ease), visibility 0s linear var(--sidebar-speed); }
+  .sidebar.closed:hover .sidebar-footer, .sidebar.closed.open .sidebar-footer { opacity:1; visibility:visible; transition-delay: 80ms; }
+
+  /* Slight backdrop to page while hover open — subtle */
+  .sidebar.closed:hover ~ .sidebar-backdrop,
+  .sidebar.closed.open ~ .sidebar-backdrop {
+    display:block;
+    opacity: .02; /* extremely subtle so page isn't totally darkened */
+    pointer-events: none; /* keep mouse interactions to content */
+  }
+}
+
+/* ---------- Desktop visual tweaks when fully open (non-hover) ---------- */
+/* If you want to programmatically open sidebar (add .open), behavior same as hover */
+.sidebar.open {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  padding: 28px 20px;
+  z-index: 1600;
+  box-shadow: 0 30px 90px rgba(2,6,23,0.6);
+}
+
+/* closed (compact) appearance adjustments */
+.sidebar.closed .brand-logo { width:38px; height:38px; padding:4px; }
+.sidebar.closed .nav-links .nav-item { justify-content:center; padding-left:0; padding-right:0; }
+.sidebar.closed .nav-links .link-label, .sidebar.closed .nav-links .label { display:inline-block; /* kept so opacity transition works */ }
+
+/* mobile overlay state (kept from previous file) */
 .sidebar.mobile { position: fixed; left:0; top:0; bottom:0; height:100vh; transform: translateX(-110%); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
 .sidebar.mobile.open { transform: translateX(0); }
 
@@ -146,20 +233,16 @@ body::before {
 /* small logo when collapsed */
 .sidebar.closed .brand-logo { width: 38px; max-height:38px; padding:4px; }
 
-/* brand texts: use opacity/visibility so it fades instead of snapping */
-.brand-texts {
-  display:flex;
-  flex-direction:column;
-  transition: opacity .26s ease, transform .26s ease, visibility .26s;
-  transform: translateX(-6px);
-  opacity:0;
-  visibility:hidden;
-}
+/* brand texts */
+.brand-texts { display:flex; flex-direction:column; transform-origin:left center; }
 .brand { font-size:20px; font-weight:800; letter-spacing:-0.6px; color:var(--text); margin:0; }
 .sidebar .small { color:var(--muted); font-size:12px; margin-top:4px; }
 
-/* collapse button (top-right inside sidebar) */
-/* Hide this button on mobile overlay — we want only the top-right toggle visible there */
+/* collapse button inside sidebar — HIDDEN on desktop because we use hover.
+   Mobile still shows this button for normal overlay close. */
+@media (min-width: 981px) {
+  .collapse-btn { display:none !important; }
+}
 .collapse-btn {
   position:absolute;
   right:10px;
@@ -192,16 +275,6 @@ body::before {
 }
 .nav-links a.nav-item .nav-icon { width:28px; display:flex; align-items:center; justify-content:center; margin-left:-18px; font-size:20px; }
 
-/* labels use opacity + transform (no display toggles) */
-.nav-links a.nav-item .link-label,
-.nav-links a.nav-item .label {
-  transition: opacity .22s ease, transform .22s ease, visibility .22s;
-  transform: translateX(-6px);
-  opacity:0;
-  visibility:hidden;
-  pointer-events: none;
-}
-
 /* hover and active styles */
 .nav-links a.nav-item:hover {
   transform: translateX(8px);
@@ -224,16 +297,6 @@ body::before {
   border-radius:8px;
   background: linear-gradient(180deg, var(--accent-a), var(--accent-b));
   box-shadow: 0 8px 20px rgba(124,108,255,0.12);
-}
-
-/* ensure nav items look right when sidebar collapsed */
-.sidebar.closed .nav-item { justify-content:center; padding-left:0; padding-right:0; }
-.sidebar.closed .nav-item .link-label,
-.sidebar.closed .nav-item .label {
-  opacity:0;
-  visibility:hidden;
-  transform:translateX(-6px);
-  pointer-events:none;
 }
 
 /* spacer keeps footer pinned to bottom */
@@ -259,8 +322,7 @@ body::before {
 }
 
 /* ================= MAIN CONTENT ================= */
-/* IMPORTANT: main-area gets a left margin on desktop so fixed sidebar doesn't hide content */
-.main-area { flex:1; display:flex; flex-direction:column; min-height:100vh; padding-bottom:40px; z-index:1; transition: margin-left .28s cubic-bezier(.2,.9,.2,1); }
+.main-area { flex:1; display:flex; flex-direction:column; min-height:100vh; padding-bottom:40px; z-index:1; }
 .page-content { padding:24px 36px; }
 
 /* hero/title */
@@ -337,15 +399,9 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 
 /* desktop compact adjustments when sidebar closed */
 @media (min-width: 981px) {
-  /* Make the sidebar fixed so expanding it overlays instead of pushing content */
-  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; height:100vh; }
-  /* keep main content offset to closed width so fixed sidebar doesn't cover it */
-  .main-area { margin-left: calc(var(--sidebar-closed-w) + 28px); } /* +28 = gap in .app-root */
-  .page-content { padding-left: 20px; }
-  /* collapsed default */
-  .sidebar.closed { width: var(--sidebar-closed-w); padding-left:10px; padding-right:10px; }
-  /* Hide the collapse button on desktop (cleaner look) */
-  .collapse-btn { display: none; }
+  .sidebar { display:flex; }
+  .sidebar.closed { width: var(--sidebar-closed-w); padding-left:12px; padding-right:12px; }
+  .main-area { margin-left: 0; } /* layout handled by flex */
 }
 
 /* helpers */
@@ -355,24 +411,11 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 
 /* ---------------- Sidebar fine-tune overrides ---------------- */
 
-/* when collapsed: hide texts visually but keep them in DOM for smooth fade */
-.sidebar.closed .brand-texts {
-  opacity:0;
-  visibility:hidden;
-  transform:translateX(-6px);
-  transition: opacity .26s ease, transform .26s ease, visibility .26s;
-}
+/* when collapsed show smaller mark and hide texts (but keep them in DOM for smooth opacity transition) */
+.sidebar.closed .brand-texts { display:flex !important; }
 
 /* center nav icons when collapsed */
 .sidebar.closed .nav-links .nav-item { justify-content:center; padding-left:0; padding-right:0; }
-.sidebar.closed .nav-links .link-label,
-.sidebar.closed .nav-links .label {
-  opacity:0;
-  visibility:hidden;
-  transform:translateX(-6px);
-  pointer-events:none;
-  transition: opacity .22s ease, transform .22s ease, visibility .22s;
-}
 
 /* nav icon style (emoji or svg) */
 .nav-icon, .nav-emoji { font-size:20px; width:28px; display:inline-flex; align-items:center; justify-content:center; margin-left:-18px; }
@@ -401,7 +444,7 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .collapse-btn { position: absolute; top: 18px; right: 12px; }
 
 /* smoother transition for width and internal content */
-.sidebar, .sidebar .brand-logo, .sidebar .nav-item { transition: all .28s cubic-bezier(.2,.9,.2,1); }
+.sidebar, .sidebar .brand-logo, .sidebar .nav-item { transition: all .18s cubic-bezier(.2,.9,.2,1); }
 
 /* mobile overlay: ensure nav items get full paddings and icon visible */
 .sidebar.mobile .nav-links .nav-item { padding-left: 20px; }
@@ -413,7 +456,9 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .link-label { display:inline-block; }
 .nav-item .label, .nav-item .link-label { color: #eaf2f8; font-weight:700; }
 
-/* ===== Mobile overlay: force labels & brand visible ===== */
+/* final note: tweak accents by editing :root variables above */
+
+/* ===== Mobile overlay: force labels & brand visible (kept) ===== */
 .sidebar.mobile {
   display:flex !important;
   transform: translateX(-110%);
@@ -430,7 +475,7 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .sidebar.mobile.open { transform: translateX(0); }
 
 /* Make sure brand + label are visible on mobile overlay */
-.sidebar.mobile .brand-texts { display:block !important; opacity:1; transform:none; visibility:visible; }
+.sidebar.mobile .brand-texts { display:block !important; opacity:1; }
 .sidebar.mobile .brand-logo { width:64px; height:auto; padding:6px; }
 
 /* Ensure nav labels appear (desktop collapse hides labels — override for mobile overlay) */
@@ -438,9 +483,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .sidebar.mobile .nav-links .nav-item .label {
   display: inline-block !important;
   opacity: 1 !important;
-  transform:none !important;
-  visibility:visible !important;
-  pointer-events:auto !important;
   margin-left: 8px;
   font-weight:700;
   color: var(--text);
@@ -459,7 +501,7 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 /* backdrop visible state (stronger on mobile) */
 .sidebar-backdrop.visible { opacity: 1; pointer-events: all; background: rgba(0,0,0,0.55); }
 
-/* make toggle visible on mobile (already present) but ensure z-index keeps it on top */
+/* make toggle visible on mobile but ensure z-index keeps it on top */
 .sidebar-toggle { z-index: 1800; }
 
 /* minor: ensure footer is readable on overlay*/
@@ -470,55 +512,4 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   .sidebar.mobile { padding-top: 36px; }
 }
 
-/* ---------------- Desktop hover-to-expand behaviour (overlay) ---------------- */
-/* Expand the collapsed sidebar on hover for desktop (gives premium feel).
-   Because sidebar is fixed and main-area has margin-left, content won't shift.
-*/
-@media (min-width: 981px) {
-  .sidebar.closed:hover {
-    width: var(--sidebar-w);
-    padding-left: 20px;
-    padding-right: 20px;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-    z-index: 1700;
-  }
-
-  /* reveal brand texts + nav labels smoothly with a tiny delay */
-  .sidebar.closed:hover .brand-texts {
-    opacity:1;
-    transform:none;
-    visibility:visible;
-    transition-delay: .08s;
-  }
-  .sidebar.closed:hover .nav-item .link-label,
-  .sidebar.closed:hover .nav-item .label {
-    opacity:1;
-    transform:none;
-    visibility:visible;
-    pointer-events:auto;
-    transition-delay: .12s;
-  }
-  .sidebar.closed:hover .nav-item { justify-content:flex-start; padding-left:28px; }
-}
-
-/* Keep icons centered and visible in collapsed state */
-.sidebar.closed .nav-emoji, .sidebar.closed .nav-icon {
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:36px;
-  height:36px;
-  font-size:20px;
-}
-
-/* Footer in collapsed mode: hide long text, keep space for small icon if you add later */
-.sidebar.closed .sidebar-footer { left: 8px; right:8px; text-align:center; }
-
-/* Optional smoother/fast expansion */
-.sidebar { transition: width .32s cubic-bezier(.2,.9,.2,1), padding .22s ease; }
-
-/* ---------- FIX: hide inner collapse button when mobile overlay is active ---------- */
-/* This prevents two close buttons showing on mobile (we use top-right toggle only). */
-.sidebar.mobile .collapse-btn { display:none !important; }
-
-/* End of file */
+/* End of file - tweak accents in :root */
