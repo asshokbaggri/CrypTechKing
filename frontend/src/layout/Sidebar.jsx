@@ -1,23 +1,33 @@
 // frontend/src/layout/Sidebar.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
-import Logo from "../assets/logo.png"; // <-- make sure file exists at this path
+import Logo from "../assets/logo.png"; // adjust if your filename differs
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false); // desktop compact
-  const [mobileOpen, setMobileOpen] = useState(false); // overlay for mobile
+  const MOBILE_BREAK = 980;
+  const DESKTOP_COLLAPSE_BREAK = 981; // >= this value we use collapsed-by-default behavior
 
-  // collapse automatically on small screens for desktop compact behavior
+  const [collapsed, setCollapsed] = useState(true); // collapsed by default for desktop (emoji-only)
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [lockCollapsed, setLockCollapsed] = useState(false); // if user explicitly toggles, lock the state
+  const sidebarRef = useRef(null);
+
+  // On mount set initial collapsed based on width (collapsed on wide screens by default)
   useEffect(() => {
-    const onResize = () => setCollapsed(window.innerWidth <= 980 && window.innerWidth > 780);
-    onResize();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    const handleResizeInit = () => {
+      if (window.innerWidth >= DESKTOP_COLLAPSE_BREAK) {
+        setCollapsed(true);
+      } else {
+        // On mobile/tablet, sidebar not shown as collapsed column; keep expanded flag false
+        setCollapsed(false);
+      }
+    };
+    handleResizeInit();
+    window.addEventListener("resize", handleResizeInit);
+    return () => window.removeEventListener("resize", handleResizeInit);
   }, []);
 
-  // close overlay on route change (optional) - requires react-router v6 NavLink won't give router change here,
-  // but if you later want to close on navigation you can add useLocation and effect.
-
+  // List of links with emojis (shows emoji in collapsed state)
   const links = [
     { to: "/dashboard", label: "Dashboard", emoji: "🔥" },
     { to: "/whales", label: "Whales", emoji: "🐳" },
@@ -25,6 +35,35 @@ export default function Sidebar() {
     { to: "/pump", label: "Pump Scanner", emoji: "🚀" },
     { to: "/alerts", label: "Alerts", emoji: "⚠️" }
   ];
+
+  // handlers for hover behaviour (desktop only)
+  const handleMouseEnter = () => {
+    // only expand on hover if we're on desktop and user hasn't locked collapse via toggle
+    if (window.innerWidth >= DESKTOP_COLLAPSE_BREAK && !lockCollapsed) {
+      setCollapsed(false);
+    }
+  };
+  const handleMouseLeave = () => {
+    if (window.innerWidth >= DESKTOP_COLLAPSE_BREAK && !lockCollapsed) {
+      setCollapsed(true);
+    }
+  };
+
+  // manual collapse toggle (click) - this locks state until user clicks again
+  const onToggleClick = () => {
+    // if mobile overlay, close overlay instead of toggling collapse
+    if (window.innerWidth <= MOBILE_BREAK) {
+      setMobileOpen((s) => !s);
+      return;
+    }
+    // desktop: toggle and lock
+    setCollapsed((s) => {
+      const newVal = !s;
+      setLockCollapsed(true); // lock so hover doesn't override — user explicitly set preference
+      // small timeout: if user toggles back to the other state quickly, we reset lock
+      return newVal;
+    });
+  };
 
   return (
     <>
@@ -34,7 +73,6 @@ export default function Sidebar() {
         aria-label={mobileOpen ? "Close menu" : "Open menu"}
         onClick={() => setMobileOpen((s) => !s)}
       >
-        {/* a simple burger/close icon using text for simplicity — replace with svg if you want */}
         <span style={{ fontSize: 18, color: "var(--text)", fontWeight: 800 }}>
           {mobileOpen ? "✕" : "≡"}
         </span>
@@ -47,11 +85,17 @@ export default function Sidebar() {
         aria-hidden={!mobileOpen}
       />
 
-      {/* Desktop sidebar (normal element) */}
-      <aside className={`sidebar ${collapsed ? "closed" : ""}`} aria-label="Main navigation">
+      {/* Desktop/regular sidebar */}
+      <aside
+        ref={sidebarRef}
+        className={`sidebar ${collapsed ? "closed" : "open"}`}
+        aria-label="Main navigation"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         <div className="brand-row">
           <img src={Logo} alt="CrypTechKing" className="brand-logo" />
-          <div className="brand-texts">
+          <div className="brand-texts" aria-hidden={collapsed}>
             <div className="brand">CrypTechKing</div>
             <div className="small">Real-time analytics • alpha</div>
           </div>
@@ -60,7 +104,7 @@ export default function Sidebar() {
         <button
           className="collapse-btn"
           aria-label={collapsed ? "Open menu" : "Collapse menu"}
-          onClick={() => setCollapsed((s) => !s)}
+          onClick={onToggleClick}
         >
           <span className="chev">{collapsed ? "›" : "‹"}</span>
         </button>
@@ -73,7 +117,9 @@ export default function Sidebar() {
               className={({ isActive }) => (isActive ? "active nav-item" : "nav-item")}
               end
             >
-              <span className="nav-icon nav-emoji" aria-hidden="true">{l.emoji}</span>
+              <span className="nav-icon nav-emoji" aria-hidden="true">
+                {l.emoji}
+              </span>
               <span className="link-label">{l.label}</span>
             </NavLink>
           ))}
@@ -86,11 +132,11 @@ export default function Sidebar() {
         </footer>
       </aside>
 
-      {/* Mobile overlay sidebar (same markup but class 'mobile') */}
+      {/* Mobile overlay sidebar (same markup but .mobile class) */}
       <aside
         className={`sidebar mobile ${mobileOpen ? "open" : ""}`}
         aria-hidden={!mobileOpen}
-        onClick={(e) => e.stopPropagation()} /* prevent backdrop close when clicking inside */
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="brand-row">
           <img src={Logo} alt="CrypTechKing" className="brand-logo" />
@@ -105,7 +151,7 @@ export default function Sidebar() {
           aria-label="Close menu"
           onClick={() => setMobileOpen(false)}
         >
-          <span style={{fontSize:18, color:"var(--text)", fontWeight:800}}>✕</span>
+          <span style={{ fontSize: 18, color: "var(--text)", fontWeight: 800 }}>✕</span>
         </button>
 
         <nav className="nav-links" aria-label="mobile primary">
@@ -117,7 +163,9 @@ export default function Sidebar() {
               className={({ isActive }) => (isActive ? "active nav-item" : "nav-item")}
               end
             >
-              <span className="nav-icon nav-emoji" aria-hidden="true">{l.emoji}</span>
+              <span className="nav-icon nav-emoji" aria-hidden="true">
+                {l.emoji}
+              </span>
               <span className="link-label">{l.label}</span>
             </NavLink>
           ))}
