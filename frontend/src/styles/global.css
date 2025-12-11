@@ -91,7 +91,7 @@ body::before {
 .sidebar-backdrop.visible { opacity: 1; pointer-events: all; }
 
 /* Sidebar container
-   NOTE: for desktop we use position:fixed so expanding doesn't push page content.
+   NOTE: for desktop we use position:fixed so expanding overlays instead of pushing content.
 */
 .sidebar {
   width: var(--sidebar-w);
@@ -103,21 +103,23 @@ body::before {
   background:
     linear-gradient(180deg, rgba(6,8,11,0.85), rgba(12,14,18,0.78));
   border-right: 1px solid rgba(255,255,255,0.02);
-  position: relative;    /* overridden to fixed for desktop below */
+  position: relative;
   box-shadow: 0 10px 30px rgba(2,6,23,0.6);
   backdrop-filter: blur(6px);
   z-index: 1400;
-  transition: width .22s ease, transform .28s cubic-bezier(.2,.9,.2,1), padding .18s;
+  transition:
+    width .32s cubic-bezier(.2,.9,.2,1),
+    padding .22s cubic-bezier(.2,.9,.2,1),
+    box-shadow .28s;
   overflow:visible;
   will-change: width, box-shadow;
 }
 
 /* closed (compact) sidebar */
 .sidebar.closed { width: var(--sidebar-closed-w); min-width: var(--sidebar-closed-w); overflow:visible; }
-.sidebar.closed .label, .sidebar.closed .small { display:none; }
 .sidebar.closed .brand { font-size:18px; }
 .sidebar.closed .nav-item { justify-content:center; padding-left:0; padding-right:0; }
-.sidebar.closed .brand-logo { width:36px; height:36px; }
+.sidebar.closed .brand-logo { width:36px; height:36px; padding:4px; }
 
 /* mobile overlay state */
 .sidebar.mobile { position: fixed; left:0; top:0; bottom:0; height:100vh; transform: translateX(-110%); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
@@ -144,8 +146,15 @@ body::before {
 /* small logo when collapsed */
 .sidebar.closed .brand-logo { width: 38px; max-height:38px; padding:4px; }
 
-/* brand texts */
-.brand-texts { display:flex; flex-direction:column; transition: opacity .22s ease, transform .22s ease; transform: translateX(-6px); opacity:0; }
+/* brand texts: use opacity/visibility so it fades instead of snapping */
+.brand-texts {
+  display:flex;
+  flex-direction:column;
+  transition: opacity .26s ease, transform .26s ease, visibility .26s;
+  transform: translateX(-6px);
+  opacity:0;
+  visibility:hidden;
+}
 .brand { font-size:20px; font-weight:800; letter-spacing:-0.6px; color:var(--text); margin:0; }
 .sidebar .small { color:var(--muted); font-size:12px; margin-top:4px; }
 
@@ -182,12 +191,15 @@ body::before {
   overflow:visible;
 }
 .nav-links a.nav-item .nav-icon { width:28px; display:flex; align-items:center; justify-content:center; margin-left:-18px; font-size:20px; }
-/* labels fade in/out smoothly */
+
+/* labels use opacity + transform (no display toggles) */
 .nav-links a.nav-item .link-label,
 .nav-links a.nav-item .label {
-  transition: opacity .20s ease, transform .20s ease;
+  transition: opacity .22s ease, transform .22s ease, visibility .22s;
   transform: translateX(-6px);
   opacity:0;
+  visibility:hidden;
+  pointer-events: none;
 }
 
 /* hover and active styles */
@@ -216,7 +228,13 @@ body::before {
 
 /* ensure nav items look right when sidebar collapsed */
 .sidebar.closed .nav-item { justify-content:center; padding-left:0; padding-right:0; }
-.sidebar.closed .nav-item .link-label, .sidebar.closed .nav-item .label { display:none; }
+.sidebar.closed .nav-item .link-label,
+.sidebar.closed .nav-item .label {
+  opacity:0;
+  visibility:hidden;
+  transform:translateX(-6px);
+  pointer-events:none;
+}
 
 /* spacer keeps footer pinned to bottom */
 .sidebar-spacer { flex:1; }
@@ -242,7 +260,7 @@ body::before {
 
 /* ================= MAIN CONTENT ================= */
 /* IMPORTANT: main-area gets a left margin on desktop so fixed sidebar doesn't hide content */
-.main-area { flex:1; display:flex; flex-direction:column; min-height:100vh; padding-bottom:40px; z-index:1; transition: margin-left .18s ease; }
+.main-area { flex:1; display:flex; flex-direction:column; min-height:100vh; padding-bottom:40px; z-index:1; transition: margin-left .28s cubic-bezier(.2,.9,.2,1); }
 .page-content { padding:24px 36px; }
 
 /* hero/title */
@@ -337,12 +355,24 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 
 /* ---------------- Sidebar fine-tune overrides ---------------- */
 
-/* when collapsed show smaller mark and hide texts */
-.sidebar.closed .brand-texts { display:none !important; }
+/* when collapsed: hide texts visually but keep them in DOM for smooth fade */
+.sidebar.closed .brand-texts {
+  opacity:0;
+  visibility:hidden;
+  transform:translateX(-6px);
+  transition: opacity .26s ease, transform .26s ease, visibility .26s;
+}
 
 /* center nav icons when collapsed */
 .sidebar.closed .nav-links .nav-item { justify-content:center; padding-left:0; padding-right:0; }
-.sidebar.closed .nav-links .label, .sidebar.closed .nav-links .link-label { display:none; }
+.sidebar.closed .nav-links .link-label,
+.sidebar.closed .nav-links .label {
+  opacity:0;
+  visibility:hidden;
+  transform:translateX(-6px);
+  pointer-events:none;
+  transition: opacity .22s ease, transform .22s ease, visibility .22s;
+}
 
 /* nav icon style (emoji or svg) */
 .nav-icon, .nav-emoji { font-size:20px; width:28px; display:inline-flex; align-items:center; justify-content:center; margin-left:-18px; }
@@ -400,7 +430,7 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .sidebar.mobile.open { transform: translateX(0); }
 
 /* Make sure brand + label are visible on mobile overlay */
-.sidebar.mobile .brand-texts { display:block !important; opacity:1; transform:none; }
+.sidebar.mobile .brand-texts { display:block !important; opacity:1; transform:none; visibility:visible; }
 .sidebar.mobile .brand-logo { width:64px; height:auto; padding:6px; }
 
 /* Ensure nav labels appear (desktop collapse hides labels — override for mobile overlay) */
@@ -409,6 +439,8 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   display: inline-block !important;
   opacity: 1 !important;
   transform:none !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
   margin-left: 8px;
   font-weight:700;
   color: var(--text);
@@ -455,15 +487,16 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   .sidebar.closed:hover .brand-texts {
     opacity:1;
     transform:none;
+    visibility:visible;
     transition-delay: .08s;
-    display:flex;
   }
   .sidebar.closed:hover .nav-item .link-label,
   .sidebar.closed:hover .nav-item .label {
     opacity:1;
     transform:none;
+    visibility:visible;
+    pointer-events:auto;
     transition-delay: .12s;
-    display:inline-block;
   }
   .sidebar.closed:hover .nav-item { justify-content:flex-start; padding-left:28px; }
 }
@@ -482,7 +515,7 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .sidebar.closed .sidebar-footer { left: 8px; right:8px; text-align:center; }
 
 /* Optional smoother/fast expansion */
-.sidebar { transition: width .28s cubic-bezier(.2,.9,.2,1), padding .18s ease; }
+.sidebar { transition: width .32s cubic-bezier(.2,.9,.2,1), padding .22s ease; }
 
 /* ---------- FIX: hide inner collapse button when mobile overlay is active ---------- */
 /* This prevents two close buttons showing on mobile (we use top-right toggle only). */
