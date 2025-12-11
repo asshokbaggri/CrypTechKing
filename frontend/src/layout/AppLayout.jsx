@@ -1,15 +1,18 @@
-// src/layout/AppLayout.jsx
-import React from "react";
-import Sidebar from "./Sidebar";
-import Navbar from "./Navbar";
+import React from 'react';
+import Sidebar from './Sidebar';
+import Navbar from './Navbar';
 
-export default function AppLayout({ children }) {
+export default function AppLayout({ children }){
   return (
-    <div className="app-root">
+    <div className="app-wrap">
       <Sidebar />
-      <div className="main-area">
-        <Navbar />
-        <div className="page-content">{children}</div>
+      <div style={{flex:1}}>
+        <div style={{padding:'18px 32px'}}>
+          <Navbar />
+        </div>
+        <main className="content">
+          {children}
+        </main>
       </div>
     </div>
   );
