@@ -1,10 +1,39 @@
-body {
-    margin: 0;
-    background: #0c0f14;
-    font-family: "Inter", sans-serif;
-    color: white;
+/* src/styles/global.css - minimal styling to restore layout and visible navbar/sidebar */
+:root {
+  --bg: #0a0a0b;
+  --card: #111217;
+  --muted: #9aa0a6;
+  --accent: #2b9cff;
+  --white: #fff;
 }
-a {
-    color: inherit;
-    text-decoration: none;
+
+* { box-sizing: border-box; }
+body, html, #root { height: 100%; margin: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); color: var(--white); }
+
+.app-root { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 220px;
+  background: #0b0b0c;
+  padding: 28px 18px;
+  border-right: 1px solid rgba(255,255,255,0.03);
+}
+.brand { margin: 0 0 18px 0; font-size: 20px; }
+.nav-links a { display:block; margin:8px 0; color:#c8c1ff; text-decoration: none; }
+.nav-links a:hover { color: var(--accent); }
+
+.main-area { flex: 1; display:flex; flex-direction:column; }
+.navbar { height: 74px; display:flex; align-items:center; justify-content:space-between; padding: 0 28px; border-bottom: 1px solid rgba(255,255,255,0.03); background: transparent; }
+.page-content { padding: 32px; flex:1; }
+
+/* cards */
+.card { background: var(--card); padding: 18px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); color: var(--white); }
+
+/* table */
+.table { width: 100%; border-collapse: collapse; color: #e6eef6; }
+.table th, .table td { padding: 18px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.02); }
+.badge { padding:4px 8px; background:#112; border-radius:6px; font-weight:700; }
+
+/* responsive tweaks */
+@media (max-width: 900px) {
+  .sidebar { display:none; }
 }
