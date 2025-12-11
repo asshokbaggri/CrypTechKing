@@ -109,6 +109,7 @@ body::before {
   z-index: 1400;
   transition: width .22s ease, transform .28s cubic-bezier(.2,.9,.2,1), padding .18s;
   overflow:visible;
+  will-change: width, box-shadow;
 }
 
 /* closed (compact) sidebar */
@@ -144,11 +145,12 @@ body::before {
 .sidebar.closed .brand-logo { width: 38px; max-height:38px; padding:4px; }
 
 /* brand texts */
-.brand-texts { display:flex; flex-direction:column; }
+.brand-texts { display:flex; flex-direction:column; transition: opacity .22s ease, transform .22s ease; transform: translateX(-6px); opacity:0; }
 .brand { font-size:20px; font-weight:800; letter-spacing:-0.6px; color:var(--text); margin:0; }
 .sidebar .small { color:var(--muted); font-size:12px; margin-top:4px; }
 
 /* collapse button (top-right inside sidebar) */
+/* Hide this button on mobile overlay — we want only the top-right toggle visible there */
 .collapse-btn {
   position:absolute;
   right:10px;
@@ -180,6 +182,13 @@ body::before {
   overflow:visible;
 }
 .nav-links a.nav-item .nav-icon { width:28px; display:flex; align-items:center; justify-content:center; margin-left:-18px; font-size:20px; }
+/* labels fade in/out smoothly */
+.nav-links a.nav-item .link-label,
+.nav-links a.nav-item .label {
+  transition: opacity .20s ease, transform .20s ease;
+  transform: translateX(-6px);
+  opacity:0;
+}
 
 /* hover and active styles */
 .nav-links a.nav-item:hover {
@@ -207,7 +216,7 @@ body::before {
 
 /* ensure nav items look right when sidebar collapsed */
 .sidebar.closed .nav-item { justify-content:center; padding-left:0; padding-right:0; }
-.sidebar.closed .nav-item .label { display:none; }
+.sidebar.closed .nav-item .link-label, .sidebar.closed .nav-item .label { display:none; }
 
 /* spacer keeps footer pinned to bottom */
 .sidebar-spacer { flex:1; }
@@ -362,7 +371,7 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .collapse-btn { position: absolute; top: 18px; right: 12px; }
 
 /* smoother transition for width and internal content */
-.sidebar, .sidebar .brand-logo, .sidebar .nav-item { transition: all .18s cubic-bezier(.2,.9,.2,1); }
+.sidebar, .sidebar .brand-logo, .sidebar .nav-item { transition: all .28s cubic-bezier(.2,.9,.2,1); }
 
 /* mobile overlay: ensure nav items get full paddings and icon visible */
 .sidebar.mobile .nav-links .nav-item { padding-left: 20px; }
@@ -391,7 +400,7 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .sidebar.mobile.open { transform: translateX(0); }
 
 /* Make sure brand + label are visible on mobile overlay */
-.sidebar.mobile .brand-texts { display:block !important; opacity:1; }
+.sidebar.mobile .brand-texts { display:block !important; opacity:1; transform:none; }
 .sidebar.mobile .brand-logo { width:64px; height:auto; padding:6px; }
 
 /* Ensure nav labels appear (desktop collapse hides labels — override for mobile overlay) */
@@ -399,6 +408,7 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .sidebar.mobile .nav-links .nav-item .label {
   display: inline-block !important;
   opacity: 1 !important;
+  transform:none !important;
   margin-left: 8px;
   font-weight:700;
   color: var(--text);
@@ -440,9 +450,21 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
     box-shadow: 0 30px 80px rgba(0,0,0,0.5);
     z-index: 1700;
   }
-  .sidebar.closed:hover .brand-texts { display:flex !important; }
-  .sidebar.closed:hover .nav-item .label,
-  .sidebar.closed:hover .nav-item .link-label { display:inline-block !important; }
+
+  /* reveal brand texts + nav labels smoothly with a tiny delay */
+  .sidebar.closed:hover .brand-texts {
+    opacity:1;
+    transform:none;
+    transition-delay: .08s;
+    display:flex;
+  }
+  .sidebar.closed:hover .nav-item .link-label,
+  .sidebar.closed:hover .nav-item .label {
+    opacity:1;
+    transform:none;
+    transition-delay: .12s;
+    display:inline-block;
+  }
   .sidebar.closed:hover .nav-item { justify-content:flex-start; padding-left:28px; }
 }
 
@@ -460,6 +482,10 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .sidebar.closed .sidebar-footer { left: 8px; right:8px; text-align:center; }
 
 /* Optional smoother/fast expansion */
-.sidebar { transition: width .18s cubic-bezier(.2,.9,.2,1), padding .14s ease; }
+.sidebar { transition: width .28s cubic-bezier(.2,.9,.2,1), padding .18s ease; }
+
+/* ---------- FIX: hide inner collapse button when mobile overlay is active ---------- */
+/* This prevents two close buttons showing on mobile (we use top-right toggle only). */
+.sidebar.mobile .collapse-btn { display:none !important; }
 
 /* End of file */
