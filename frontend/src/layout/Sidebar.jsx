@@ -1,13 +1,14 @@
 // frontend/src/layout/Sidebar.jsx
 import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import logo from "../assets/logo.png"; // ← Vite-friendly import (path you gave)
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [closed, setClosed] = useState(false);
 
-  // Optional: collapse automatically on small screens
+  // collapse automatically on small screens (initial + resize)
   useEffect(() => {
-    const onResize = () => setCollapsed(window.innerWidth <= 980);
+    const onResize = () => setClosed(window.innerWidth <= 980);
     onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
@@ -22,11 +23,11 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className={`sidebar fade-in ${collapsed ? "collapsed" : ""}`} aria-label="Main navigation">
+    <aside className={`sidebar fade-in ${closed ? "closed" : ""}`} aria-label="Main navigation">
       <div className="sidebar-top">
         <div className="brand-row">
-          {/* replace /logo.svg with your uploaded svg/png path in public/ or assets */}
-          <img src="/logo.svg" alt="CrypTechKing" className="brand-logo" />
+          {/* using imported logo from src/assets — keeps Vite happy */}
+          <img src={logo} alt="CrypTechKing logo" className="brand-logo" />
           <div className="brand-texts">
             <div className="brand">CrypTechKing</div>
             <div className="small">Real-time analytics • alpha</div>
@@ -35,10 +36,12 @@ export default function Sidebar() {
 
         <button
           className="collapse-btn"
-          aria-label={collapsed ? "Open menu" : "Collapse menu"}
-          onClick={() => setCollapsed(!collapsed)}
+          aria-label={closed ? "Open menu" : "Collapse menu"}
+          onClick={() => setClosed((s) => !s)}
         >
-          <span className="chev">{collapsed ? "›" : "‹"}</span>
+          <span className="chev" aria-hidden>
+            {closed ? "›" : "‹"}
+          </span>
         </button>
       </div>
 
@@ -51,7 +54,11 @@ export default function Sidebar() {
             end
           >
             <span className="dot" />
-            <span className="link-label">{l.label}</span>
+            <span className="icon" aria-hidden>
+              {/* Optional: replace with inline SVG icons later */}
+              🔹
+            </span>
+            <span className="label link-label">{l.label}</span>
           </NavLink>
         ))}
       </nav>
