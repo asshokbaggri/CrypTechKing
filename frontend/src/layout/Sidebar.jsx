@@ -1,73 +1,91 @@
 // frontend/src/layout/Sidebar.jsx
 import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import logo from "../assets/logo.png"; // ← Vite-friendly import (path you gave)
+import logo from "../assets/logo.png";        // full logo
+import logoMark from "../assets/logo-mark.png"; // small mark for collapsed (optional)
 
 export default function Sidebar() {
-  const [closed, setClosed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  // collapse automatically on small screens (initial + resize)
+  // auto-collapse for smaller screens
   useEffect(() => {
-    const onResize = () => setClosed(window.innerWidth <= 980);
+    const onResize = () => setCollapsed(window.innerWidth <= 980);
     onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
   const links = [
-    { to: "/dashboard", label: "Dashboard" },
-    { to: "/whales", label: "Whales" },
-    { to: "/smartmoney", label: "Smart Money" },
-    { to: "/pump", label: "Pump Scanner" },
-    { to: "/alerts", label: "Alerts" }
+    { to: "/dashboard", label: "Dashboard", icon: "🔥" },
+    { to: "/whales", label: "Whales", icon: "🐳" },
+    { to: "/smartmoney", label: "Smart Money", icon: "🧠" },
+    { to: "/pump", label: "Pump Scanner", icon: "🚀" },
+    { to: "/alerts", label: "Alerts", icon: "⚠️" }
   ];
 
+  const sidebarClass = `sidebar fade-in ${collapsed ? "closed" : ""} ${mobileOpen ? "mobile open" : ""}`;
+
   return (
-    <aside className={`sidebar fade-in ${closed ? "closed" : ""}`} aria-label="Main navigation">
-      <div className="sidebar-top">
-        <div className="brand-row">
-          {/* using imported logo from src/assets — keeps Vite happy */}
-          <img src={logo} alt="CrypTechKing logo" className="brand-logo" />
-          <div className="brand-texts">
-            <div className="brand">CrypTechKing</div>
-            <div className="small">Real-time analytics • alpha</div>
+    <>
+      {/* Mobile toggle button (visible via CSS on small screens) */}
+      <button
+        className="sidebar-toggle"
+        aria-label="Toggle navigation"
+        onClick={() => setMobileOpen(!mobileOpen)}
+      >
+        {/* simple chevron icon */}
+        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+      </button>
+
+      {/* optional backdrop for mobile */}
+      <div className={`sidebar-backdrop ${mobileOpen ? "visible" : ""}`} onClick={() => setMobileOpen(false)} />
+
+      <aside className={sidebarClass} aria-label="Main navigation">
+        <div className="sidebar-top">
+          <div className="brand-row">
+            <img
+              src={collapsed ? (logoMark || logo) : logo}
+              alt="CrypTechKing"
+              className="brand-logo"
+              onError={(e) => { e.target.onerror = null; e.target.src = logo; }}
+            />
+            <div className="brand-texts">
+              <div className="brand">CrypTechKing</div>
+              <div className="small">Real-time analytics • alpha</div>
+            </div>
           </div>
+
+          <button
+            className="collapse-btn"
+            aria-label={collapsed ? "Open menu" : "Collapse menu"}
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            <span className="chev">{collapsed ? "›" : "‹"}</span>
+          </button>
         </div>
 
-        <button
-          className="collapse-btn"
-          aria-label={closed ? "Open menu" : "Collapse menu"}
-          onClick={() => setClosed((s) => !s)}
-        >
-          <span className="chev" aria-hidden>
-            {closed ? "›" : "‹"}
-          </span>
-        </button>
-      </div>
+        <nav className="nav-links" aria-label="primary">
+          {links.map((l) => (
+            <NavLink
+              key={l.to}
+              to={l.to}
+              className={({ isActive }) => (isActive ? "active nav-item" : "nav-item")}
+              end
+              onClick={() => setMobileOpen(false)} // close on mobile after click
+            >
+              <span className="nav-icon" aria-hidden>{l.icon}</span>
+              <span className="link-label">{l.label}</span>
+            </NavLink>
+          ))}
+        </nav>
 
-      <nav className="nav-links" aria-label="primary">
-        {links.map((l) => (
-          <NavLink
-            key={l.to}
-            to={l.to}
-            className={({ isActive }) => (isActive ? "active nav-item" : "nav-item")}
-            end
-          >
-            <span className="dot" />
-            <span className="icon" aria-hidden>
-              {/* Optional: replace with inline SVG icons later */}
-              🔹
-            </span>
-            <span className="label link-label">{l.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+        <div className="sidebar-spacer" />
 
-      <div className="sidebar-spacer" />
-
-      <footer className="sidebar-footer">
-        <div className="copyright">© {new Date().getFullYear()} CrypTechKing</div>
-      </footer>
-    </aside>
+        <footer className="sidebar-footer">
+          <div className="copyright">© {new Date().getFullYear()} CrypTechKing</div>
+        </footer>
+      </aside>
+    </>
   );
 }
