@@ -366,3 +366,58 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .nav-item .label, .nav-item .link-label { color: #eaf2f8; font-weight:700; }
 
 /* final note: tweak accents by editing :root variables above */
+
+/* ===== Mobile overlay: force labels & brand visible ===== */
+.sidebar.mobile {
+  display:flex !important;
+  transform: translateX(-110%);
+  left: 0;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  width: var(--sidebar-w);
+  padding: 22px;
+  z-index: 1600;
+  background: linear-gradient(180deg, rgba(6,8,11,0.95), rgba(10,12,14,0.92));
+  transition: transform .26s cubic-bezier(.2,.9,.2,1);
+}
+.sidebar.mobile.open { transform: translateX(0); }
+
+/* Make sure brand + label are visible on mobile overlay */
+.sidebar.mobile .brand-texts { display:block !important; opacity:1; }
+.sidebar.mobile .brand-logo { width:64px; height:auto; padding:6px; }
+
+/* Ensure nav labels appear (desktop collapse hides labels — override for mobile overlay) */
+.sidebar.mobile .nav-links .nav-item .link-label,
+.sidebar.mobile .nav-links .nav-item .label {
+  display: inline-block !important;
+  opacity: 1 !important;
+  margin-left: 8px;
+  font-weight:700;
+  color: var(--text);
+}
+
+/* Slightly larger touch targets on mobile */
+.sidebar.mobile .nav-links .nav-item {
+  padding: 14px 18px;
+  gap: 14px;
+  align-items: center;
+}
+
+/* Make emojis/icons slightly larger & clearer on mobile overlay */
+.sidebar.mobile .nav-emoji { font-size:22px; width:36px; margin-left:-6px; }
+
+/* backdrop visible state (stronger on mobile) */
+.sidebar-backdrop.visible { opacity: 1; pointer-events: all; background: rgba(0,0,0,0.55); }
+
+/* make toggle visible on mobile (already present) but ensure z-index keeps it on top */
+.sidebar-toggle { z-index: 1800; }
+
+/* minor: ensure footer is readable on overlay*/
+.sidebar.mobile .sidebar-footer { color: var(--muted); bottom: 16px; left: 18px; right: 18px; position: absolute; }
+
+/* If you still see brand text cropped at the top on some phones, add small top padding */
+@media (max-height: 700px) {
+  .sidebar.mobile { padding-top: 36px; }
+}
+
