@@ -1,6 +1,7 @@
+// src/App.jsx
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
-
 import Dashboard from "./pages/Dashboard";
 import Whales from "./pages/Whales";
 import SmartMoney from "./pages/SmartMoney";
@@ -23,4 +24,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
