@@ -602,3 +602,8 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   height: auto;
   display: block;
 }
+
+.sidebar.open .brand-texts {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
