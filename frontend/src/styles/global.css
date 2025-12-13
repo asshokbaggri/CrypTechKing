@@ -624,3 +624,48 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
     text-align: left;
   }
 }
+
+/* ===================================================
+   FINAL DEXTOOLS FEEL FIX
+   Lock icon + logo vertical position (NO JUMP)
+   =================================================== */
+
+@media (min-width: 981px) {
+
+  /* 1️⃣ Lock sidebar top padding in ALL states */
+  .sidebar,
+  .sidebar.closed {
+    padding-top: 28px !important;
+  }
+
+  /* 2️⃣ Reserve brand height even when text hidden */
+  .brand-row {
+    min-height: 56px; /* same height open & closed */
+  }
+
+  .sidebar.closed .brand-texts {
+    visibility: hidden;   /* hide text */
+    display: flex !important;
+    height: auto;
+  }
+
+  /* 3️⃣ Lock nav list start position */
+  .nav-links {
+    margin-top: 12px !important;
+  }
+
+  /* 4️⃣ Kill any vertical movement from hover / active */
+  .nav-links a.nav-item,
+  .nav-links a.nav-item:hover,
+  .nav-links a.nav-item.active {
+    transform: none !important;
+  }
+
+  /* 5️⃣ Ensure emojis never reflow */
+  .nav-icon,
+  .nav-emoji {
+    position: relative;
+    top: 0 !important;
+  }
+}
+
