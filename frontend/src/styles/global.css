@@ -669,17 +669,27 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   width: auto;
   max-width: 180px;
   max-height: 42px;
-  padding: 4px 6px;
+  padding: 0;                 /* ❌ padding hata */
+  background: transparent;    /* ❌ glass patch hata */
+  border-radius: 0;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.45));
 }
 
-/* collapsed → icon-style logo only */
+/* REMOVE this shrink behaviour */
 .sidebar.closed .brand-logo {
-  max-width: 40px;
-  max-height: 40px;
+  max-width: 180px;
+  max-height: 42px;
 }
 
 /* mobile overlay → bigger logo */
 .sidebar.mobile .brand-logo {
   max-width: 200px;
   max-height: 48px;
+}
+
+.brand-row {
+  display: grid;
+  grid-template-columns: 36px 1fr; /* SAME as nav icon column */
+  align-items: center;
+  gap: 12px;
 }
