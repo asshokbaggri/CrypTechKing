@@ -131,7 +131,11 @@ export default function Sidebar() {
         <div className="brand-row">
           <img src={Logo} alt="CrypTechKing" className="brand-logo" />
           <div className="brand-texts">
-            <div className="brand">CrypTechKing</div>
+            <img
+              src={BrandName}
+              alt="CrypTechKing"
+              className="brand-name-img"
+            />
             <div className="small">Real-time analytics • alpha</div>
           </div>
         </div>
