@@ -78,6 +78,16 @@ export default function Sidebar() {
         ref={sidebarRef}
         className={`sidebar ${collapsed ? "closed" : "open"}`}
         aria-label="Main navigation"
+        onMouseEnter={() => {
+          if (window.innerWidth >= DESKTOP_COLLAPSE_BREAK && !lockCollapsed) {
+            setCollapsed(false);
+          }
+        }}
+        onMouseLeave={() => {
+          if (window.innerWidth >= DESKTOP_COLLAPSE_BREAK && !lockCollapsed) {
+            setCollapsed(true);
+          }
+        }}
       >
         <div className="brand-row">
           <img src={Logo} alt="CrypTechKing" className="brand-logo" />
