@@ -522,3 +522,49 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   }
 }
 
+/* ===================================================
+   FINAL FIX — LEFT ALIGN + TAGLINE & FOOTER VISIBLE
+   =================================================== */
+
+@media (min-width: 981px) {
+
+  /* ---------- FIX 1: LEFT ALIGN NAV ITEMS ---------- */
+
+  /* Force left alignment always */
+  .nav-links a.nav-item,
+  .sidebar.closed .nav-item,
+  .sidebar.closed:hover .nav-item {
+    justify-content: flex-start !important;
+    padding-left: 20px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Remove negative icon pull */
+  .nav-icon,
+  .nav-emoji {
+    margin-left: 0 !important;
+    width: 28px;
+    justify-content: center;
+  }
+
+  /* Kill any horizontal movement */
+  .nav-links a.nav-item:hover {
+    transform: none !important;
+  }
+
+  /* ---------- FIX 2: TAGLINE & FOOTER VISIBILITY ---------- */
+
+  /* Keep tagline space even when collapsed */
+  .sidebar.closed .brand-texts {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Ensure footer is visible */
+  .sidebar.closed .sidebar-footer .copyright {
+    display: block !important;
+    opacity: 0.7;
+  }
+}
+
