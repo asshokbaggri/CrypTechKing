@@ -328,9 +328,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 
 /* ---------------- Sidebar fine-tune overrides ---------------- */
 
-/* when collapsed show smaller mark and hide texts */
-.sidebar.closed .brand-texts { display:none !important; }
-
 /* center nav icons when collapsed */
 .sidebar.closed .nav-links .nav-item { justify-content:center; padding-left:0; padding-right:0; }
 .sidebar.closed .nav-links .label, .sidebar.closed .nav-links .link-label { display:none; }
@@ -584,5 +581,34 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .sidebar:not(.closed) .brand-name-img {
   opacity: 1;
   transition: opacity .18s ease;
+}
+
+/* ===============================
+   BRAND NAME IMAGE + TAGLINE FIX
+   =============================== */
+
+/* Default: brand visible */
+.brand-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Desktop collapsed: hide softly (NOT display:none) */
+@media (min-width: 981px) {
+  .sidebar.closed .brand-texts {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .18s ease;
+  }
+
+  /* Hover / expanded → show */
+  .sidebar.closed:hover .brand-texts,
+  .sidebar.open .brand-texts {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
 }
 
