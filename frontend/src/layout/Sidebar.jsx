@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import Logo from "../assets/logo.png"; // adjust if your filename differs
+import BrandName from "../assets/brand-name.png";
 
 export default function Sidebar() {
   const MOBILE_BREAK = 980;
@@ -81,7 +82,11 @@ export default function Sidebar() {
         <div className="brand-row">
           <img src={Logo} alt="CrypTechKing" className="brand-logo" />
           <div className="brand-texts" aria-hidden={collapsed}>
-            <div className="brand">CrypTechKing</div>
+            <img
+              src={BrandName}
+              alt="CrypTechKing"
+              className="brand-name-img"
+            />
             <div className="small">Real-time analytics • alpha</div>
           </div>
         </div>
