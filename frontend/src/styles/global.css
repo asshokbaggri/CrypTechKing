@@ -30,7 +30,20 @@
 
 /* ================= BASELINE ================= */
 * { box-sizing: border-box; }
-html,body,#root { height:100%; margin:0; font-family:var(--font-stack); font-size:var(--base-font-size); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; color:var(--text); }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-stack);
+  font-size: var(--base-font-size);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text);
+}
+
+#root {
+  min-height: 100vh;
+}
 
 /* page background — textured radial highlights */
 body {
@@ -40,18 +53,6 @@ body {
     linear-gradient(180deg, var(--bg-mid), var(--bg-dark));
   min-height:100vh;
   position:relative;
-}
-
-/* subtle diagonal texture overlay */
-body::before {
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:0;
-  background-image: linear-gradient(135deg, rgba(255,255,255,0.004) 1px, transparent 1px);
-  background-size: 10px 10px;
-  opacity:0.6;
 }
 
 /* app root flex layout */
@@ -693,3 +694,35 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .nav-links a.nav-item:hover {
   transform: none !important;
 }
+
+/* ===============================
+   MOBILE SAFETY — BLANK SCREEN FIX
+   =============================== */
+
+@media (max-width: 980px) {
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .app-root {
+    min-height: 100vh;
+    position: relative;
+  }
+
+  .main-area {
+    min-height: 100vh;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Prevent iOS repaint blink */
+  .sidebar,
+  .sidebar.mobile,
+  .sidebar-backdrop {
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+}
+
