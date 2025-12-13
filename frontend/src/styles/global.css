@@ -294,6 +294,7 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 
 /* mobile: transform sidebar into overlay, show toggle */
 @media (max-width: 980px) {
+  .sidebar { display: none; }
   .sidebar-toggle { display:flex; }      /* show toggle button (JS toggles .sidebar.mobile.open) */
   .page-content { padding:18px 16px; }
   .card { flex:1 1 100%; }
