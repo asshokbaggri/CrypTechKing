@@ -132,9 +132,6 @@ body::before {
   max-height:34px;
   object-fit:contain;
   display:block;
-  border-radius:6px;
-  background: rgba(255,255,255,0.01);
-  padding:6px 8px;
   filter: drop-shadow(0 6px 18px rgba(2,6,23,0.5));
   transition: all .18s cubic-bezier(.2,.9,.2,1);
 }
@@ -468,32 +465,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 /* Remove ONLY the inner close button inside sidebar */
 .sidebar .collapse-btn {
   display: none !important;
-}
-
-/* ===================================================
-   DEXTOOLS TRUE FEEL — CSS ONLY HOVER (DESKTOP)
-   =================================================== */
-
-@media (min-width: 981px) {
-
-  /* Sidebar expands on hover WITHOUT state change */
-  .sidebar.closed:hover {
-    width: var(--sidebar-w);
-    box-shadow: 0 30px 80px rgba(0,0,0,0.55);
-    z-index: 1700;
-  }
-
-  /* Kill nav item movement */
-  .nav-links a.nav-item:hover {
-    transform: none !important;
-  }
-
-
-  .sidebar.closed:hover .link-label,
-  .sidebar.closed:hover .brand-texts {
-    opacity: 1;
-    max-width: 200px;
-  }
 }
 
 /* ===================================================
