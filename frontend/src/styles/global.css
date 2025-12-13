@@ -115,8 +115,6 @@ body::before {
 .sidebar.closed { width: var(--sidebar-closed-w); min-width: var(--sidebar-closed-w); overflow:visible; }
 .sidebar.closed .label, .sidebar.closed .small { display:none; }
 .sidebar.closed .brand { font-size:18px; }
-.sidebar.closed .nav-item { justify-content:center; padding-left:0; padding-right:0; }
-.sidebar.closed .brand-logo { width:36px; height:36px; }
 
 /* mobile overlay state */
 .sidebar.mobile { position: fixed; left:0; top:0; bottom:0; height:100vh; transform: translateX(-110%); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
@@ -140,13 +138,9 @@ body::before {
   filter: drop-shadow(0 6px 18px rgba(2,6,23,0.5));
   transition: all .18s cubic-bezier(.2,.9,.2,1);
 }
-/* small logo when collapsed */
-.sidebar.closed .brand-logo { width: 38px; max-height:38px; padding:4px; }
 
 /* brand texts */
-.brand-texts { display:flex; flex-direction:column; }
 .brand { font-size:20px; font-weight:800; letter-spacing:-0.6px; color:var(--text); margin:0; }
-.sidebar .small { color:var(--muted); font-size:12px; margin-top:4px; }
 
 /* collapse button (top-right inside sidebar) */
 .collapse-btn {
@@ -179,7 +173,7 @@ body::before {
   position:relative;
   overflow:visible;
 }
-.nav-links a.nav-item .nav-icon { width:28px; display:flex; align-items:center; justify-content:center; margin-left:-18px; font-size:20px; }
+.nav-links a.nav-item .nav-icon { width:28px; display:flex; align-items:center; justify-content:center; font-size:20px; }
 
 /* hover and active styles */
 .nav-links a.nav-item:hover {
@@ -329,11 +323,10 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 /* ---------------- Sidebar fine-tune overrides ---------------- */
 
 /* center nav icons when collapsed */
-.sidebar.closed .nav-links .nav-item { justify-content:center; padding-left:0; padding-right:0; }
 .sidebar.closed .nav-links .label, .sidebar.closed .nav-links .link-label { display:none; }
 
 /* nav icon style (emoji or svg) */
-.nav-icon, .nav-emoji { font-size:20px; width:28px; display:inline-flex; align-items:center; justify-content:center; margin-left:-18px; }
+.nav-icon, .nav-emoji { font-size:20px; width:28px; display:inline-flex; align-items:center; justify-content:center; }
 
 /* footer pinned so it never gets cut off */
 .sidebar-footer {
@@ -440,7 +433,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   .sidebar.closed:hover .brand-texts { display:flex !important; }
   .sidebar.closed:hover .nav-item .label,
   .sidebar.closed:hover .nav-item .link-label { display:inline-block !important; }
-  .sidebar.closed:hover .nav-item { justify-content:flex-start; padding-left:28px; }
 }
 
 /* Keep icons centered and visible in collapsed state */
@@ -496,12 +488,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
     transform: none !important;
   }
 
-  /* Keep icon column fixed */
-  .sidebar.closed:hover .nav-item {
-    justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
-  }
 
   .sidebar.closed:hover .link-label,
   .sidebar.closed:hover .brand-texts {
@@ -578,34 +564,11 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   gap: 4px;
 }
 
-/* desktop collapsed: hidden */
-@media (min-width: 981px) {
-  .sidebar.closed .brand-texts {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity .18s ease;
-  }
-
-  /* hover or open → show */
-  .sidebar.closed:hover .brand-texts,
-  .sidebar.open .brand-texts {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-  }
-}
-
 /* brand name image */
 .brand-name-img {
   max-width: 160px;
   height: auto;
   display: block;
-}
-
-.sidebar.open .brand-texts {
-  opacity: 1 !important;
-  visibility: visible !important;
 }
 
 /* ===================================================
@@ -673,12 +636,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   background: transparent;    /* ❌ glass patch hata */
   border-radius: 0;
   filter: drop-shadow(0 4px 14px rgba(0,0,0,0.45));
-}
-
-/* REMOVE this shrink behaviour */
-.sidebar.closed .brand-logo {
-  max-width: 180px;
-  max-height: 42px;
 }
 
 /* mobile overlay → bigger logo */
