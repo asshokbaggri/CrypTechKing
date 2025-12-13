@@ -577,3 +577,50 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   }
 }
 
+/* ===================================================
+   FINAL DEXTOOLS LEFT ALIGN FIX (ADD ONLY)
+   Emoji + Text ek seedhi line me
+   =================================================== */
+
+@media (min-width: 981px) {
+
+  /* 🔒 Universal grid for ALL nav items */
+  .nav-links a.nav-item {
+    display: grid !important;
+    grid-template-columns: 32px 1fr; /* icon | text */
+    align-items: center;
+    column-gap: 12px;
+
+    /* SAME padding for all states */
+    padding: 12px 16px !important;
+  }
+
+  /* 🔒 Remove ALL icon offsets */
+  .nav-icon,
+  .nav-emoji {
+    margin: 0 !important;
+    width: 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* 🔒 Active / hover must NOT change layout */
+  .nav-links a.nav-item:hover,
+  .nav-links a.nav-item.active {
+    transform: none !important;
+    padding: 12px 16px !important;
+  }
+
+  /* 🔒 Closed state must NOT recenter items */
+  .sidebar.closed .nav-item {
+    justify-content: unset !important;
+    padding: 12px 16px !important;
+  }
+
+  /* 🔒 Ensure label always starts same X position */
+  .nav-item .link-label {
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left;
+  }
+}
