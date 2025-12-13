@@ -503,15 +503,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
     padding-right: 0;
   }
 
-  /* Reveal text smoothly (no reflow) */
-  .sidebar.closed .link-label,
-  .sidebar.closed .brand-texts {
-    opacity: 0;
-    max-width: 0;
-    overflow: hidden;
-    transition: opacity .18s ease .08s;
-  }
-
   .sidebar.closed:hover .link-label,
   .sidebar.closed:hover .brand-texts {
     opacity: 1;
@@ -551,13 +542,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 
   /* ---------- FIX 2: TAGLINE & FOOTER VISIBILITY ---------- */
 
-  /* Keep tagline space even when collapsed */
-  .sidebar.closed .brand-texts {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-
   /* Ensure footer is visible */
   .sidebar.closed .sidebar-footer .copyright {
     display: block !important;
@@ -584,17 +568,17 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 }
 
 /* ===============================
-   BRAND NAME IMAGE + TAGLINE FIX
+   BRAND NAME IMAGE + TAGLINE (FINAL LOGIC)
    =============================== */
 
-/* Default: brand visible */
+/* default */
 .brand-texts {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-/* Desktop collapsed: hide softly (NOT display:none) */
+/* desktop collapsed: hidden */
 @media (min-width: 981px) {
   .sidebar.closed .brand-texts {
     opacity: 0;
@@ -603,7 +587,7 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
     transition: opacity .18s ease;
   }
 
-  /* Hover / expanded → show */
+  /* hover or open → show */
   .sidebar.closed:hover .brand-texts,
   .sidebar.open .brand-texts {
     opacity: 1;
@@ -612,3 +596,9 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   }
 }
 
+/* brand name image */
+.brand-name-img {
+  max-width: 160px;
+  height: auto;
+  display: block;
+}
