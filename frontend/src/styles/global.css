@@ -294,18 +294,9 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 
 /* mobile: transform sidebar into overlay, show toggle */
 @media (max-width: 980px) {
-  .sidebar { display:none; }             /* hide left column; Sidebar.jsx will render .sidebar.mobile instead */
   .sidebar-toggle { display:flex; }      /* show toggle button (JS toggles .sidebar.mobile.open) */
   .page-content { padding:18px 16px; }
   .card { flex:1 1 100%; }
-}
-
-/* overlay behavior for .sidebar.mobile (used by Sidebar.jsx) */
-@media (max-width: 900px) {
-  .sidebar.mobile { display:flex; transform: translateX(-110%); position:fixed; z-index:1600; }
-  .sidebar.mobile.open { transform: translateX(0); }
-  .sidebar-backdrop { display:block; }
-  .main-area { z-index:1; }
 }
 
 /* desktop compact adjustments when sidebar closed */
@@ -373,7 +364,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 
 /* ===== Mobile overlay: force labels & brand visible ===== */
 .sidebar.mobile {
-  display:flex !important;
   transform: translateX(-110%);
   left: 0;
   top: 0;
@@ -478,37 +468,6 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   display: none !important;
 }
 
-/* ===================================================
-   DEXTOOLS TRUE FEEL — CSS ONLY HOVER (DESKTOP)
-   =================================================== */
-
-@media (min-width: 981px) {
-
-  /* Sidebar expands on hover WITHOUT state change */
-  .sidebar.closed:hover {
-    width: var(--sidebar-w);
-    box-shadow: 0 30px 80px rgba(0,0,0,0.55);
-    z-index: 1700;
-  }
-
-  /* Kill nav item movement */
-  .nav-links a.nav-item:hover {
-    transform: none !important;
-  }
-
-  /* Keep icon column fixed */
-  .sidebar.closed:hover .nav-item {
-    justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .sidebar.closed:hover .link-label,
-  .sidebar.closed:hover .brand-texts {
-    opacity: 1;
-    max-width: 200px;
-  }
-}
 
 /* ===================================================
    FINAL FIX — LEFT ALIGN + TAGLINE & FOOTER VISIBLE
@@ -757,4 +716,26 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 /* KILL ALL SIDE MOVEMENT */
 .nav-links a.nav-item:hover {
   transform: none !important;
+}
+
+/* ================= MOBILE SAFE FIX ================= */
+
+/* Never hide sidebar with display:none on mobile */
+@media (max-width: 980px) {
+  .sidebar {
+    display: flex;
+    transform: translateX(-110%);
+  }
+
+  .sidebar.open,
+  .sidebar.mobile.open {
+    transform: translateX(0);
+  }
+}
+
+/* Prevent mobile repaint blink */
+html, body {
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
 }
