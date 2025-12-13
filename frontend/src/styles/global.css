@@ -568,3 +568,21 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   }
 }
 
+/* Brand name image (text replacement) */
+.brand-name-img {
+  max-width: 160px;
+  height: auto;
+  display: block;
+}
+
+.sidebar.closed .brand-name-img {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.sidebar:not(.closed) .brand-name-img {
+  opacity: 1;
+  transition: opacity .18s ease;
+}
+
