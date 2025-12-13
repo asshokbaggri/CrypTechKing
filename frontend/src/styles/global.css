@@ -481,3 +481,44 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   display: none !important;
 }
 
+/* ===================================================
+   DEXTOOLS TRUE FEEL — CSS ONLY HOVER (DESKTOP)
+   =================================================== */
+
+@media (min-width: 981px) {
+
+  /* Sidebar expands on hover WITHOUT state change */
+  .sidebar.closed:hover {
+    width: var(--sidebar-w);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+    z-index: 1700;
+  }
+
+  /* Kill nav item movement */
+  .nav-links a.nav-item:hover {
+    transform: none !important;
+  }
+
+  /* Keep icon column fixed */
+  .sidebar.closed:hover .nav-item {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Reveal text smoothly (no reflow) */
+  .sidebar.closed .link-label,
+  .sidebar.closed .brand-texts {
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    transition: opacity .18s ease .08s;
+  }
+
+  .sidebar.closed:hover .link-label,
+  .sidebar.closed:hover .brand-texts {
+    opacity: 1;
+    max-width: 200px;
+  }
+}
+
