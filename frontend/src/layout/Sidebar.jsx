@@ -36,19 +36,6 @@ export default function Sidebar() {
     { to: "/alerts", label: "Alerts", emoji: "⚠️" }
   ];
 
-  // handlers for hover behaviour (desktop only)
-  const handleMouseEnter = () => {
-    // only expand on hover if we're on desktop and user hasn't locked collapse via toggle
-    if (window.innerWidth >= DESKTOP_COLLAPSE_BREAK && !lockCollapsed) {
-      setCollapsed(false);
-    }
-  };
-  const handleMouseLeave = () => {
-    if (window.innerWidth >= DESKTOP_COLLAPSE_BREAK && !lockCollapsed) {
-      setCollapsed(true);
-    }
-  };
-
   // manual collapse toggle (click) - this locks state until user clicks again
   const onToggleClick = () => {
     // if mobile overlay, close overlay instead of toggling collapse
@@ -90,8 +77,6 @@ export default function Sidebar() {
         ref={sidebarRef}
         className={`sidebar ${collapsed ? "closed" : "open"}`}
         aria-label="Main navigation"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
       >
         <div className="brand-row">
           <img src={Logo} alt="CrypTechKing" className="brand-logo" />
