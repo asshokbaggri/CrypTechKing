@@ -480,3 +480,82 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
 .sidebar .collapse-btn {
   display: none !important;
 }
+
+/* ===================================================
+   DEXTOOLS STYLE SIDEBAR — SMOOTH LUXURY FIX
+   Desktop only | Safe to paste at bottom
+   =================================================== */
+
+@media (min-width: 1024px) {
+
+  /* Base sidebar */
+  .sidebar {
+    transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    will-change: width;
+  }
+
+  /* Collapsed state */
+  .sidebar.collapsed {
+    width: 64px;
+  }
+
+  /* Hover expand (NO icon movement) */
+  .sidebar.collapsed:hover {
+    width: 220px;
+  }
+
+  /* Sidebar items — FIXED ALIGNMENT */
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    height: 52px;
+    padding-left: 18px;   /* SAME in both states */
+    padding-right: 18px;
+    gap: 14px;
+    white-space: nowrap;
+  }
+
+  /* Icon container (never moves) */
+  .sidebar-icon,
+  .sidebar-item svg,
+  .sidebar-item .emoji {
+    min-width: 22px;
+    width: 22px;
+    height: 22px;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Text hidden by width, not position */
+  .sidebar-text {
+    opacity: 0;
+    transform: translateX(-6px);
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  /* Reveal text on hover */
+  .sidebar.collapsed:hover .sidebar-text {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Brand name same logic */
+  .sidebar-brand-name {
+    opacity: 0;
+    transform: translateX(-6px);
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .sidebar.collapsed:hover .sidebar-brand-name {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
