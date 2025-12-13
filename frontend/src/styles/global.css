@@ -522,3 +522,58 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   }
 }
 
+/* ===================================================
+   DEXTOOLS LEFT ALIGNMENT GRID FIX (ADD ONLY)
+   Fix: icon + text straight line, tagline, footer
+   =================================================== */
+
+@media (min-width: 981px) {
+
+  /* 🔒 1️⃣ Remove negative icon hacks */
+  .nav-icon,
+  .nav-emoji {
+    margin-left: 0 !important;
+  }
+
+  /* 🔒 2️⃣ Force nav-item into fixed grid */
+  .nav-links a.nav-item {
+    display: grid !important;
+    grid-template-columns: 36px auto; /* icon | text */
+    align-items: center;
+    gap: 12px;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  /* Active / hover should NOT shift grid */
+  .nav-links a.nav-item:hover,
+  .nav-links a.nav-item.active {
+    transform: none !important;
+  }
+
+  /* 🔒 3️⃣ Ensure text aligns perfectly */
+  .nav-item .link-label {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 🔒 4️⃣ Brand tagline ALWAYS visible */
+  .sidebar.closed .brand-texts {
+    display: flex !important;
+    opacity: 1 !important;
+  }
+
+  .sidebar.closed .brand-texts .small {
+    display: block !important;
+    opacity: 0.7;
+  }
+
+  /* 🔒 5️⃣ Footer © ALWAYS visible */
+  .sidebar.closed .sidebar-footer,
+  .sidebar.closed .sidebar-footer .copyright {
+    display: block !important;
+    opacity: 0.7;
+    text-align: center;
+  }
+}
+
