@@ -5,9 +5,13 @@ import Navbar from "./Navbar";
 
 export default function AppLayout({ children }) {
   return (
-    <div style={{ padding: 20, color: "white" }}>
-      <h1>TEST RENDER</h1>
-      {children}
+    <div className="app-root">
+      <Sidebar />
+      <div className="main-area">
+        <Navbar />
+        <div className="page-content">{children}</div>
+      </div>
     </div>
   );
 }
+
