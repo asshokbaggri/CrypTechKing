@@ -1,1 +1,806 @@
+/* frontend/src/styles/global.css
+   Unified Global CSS — Dark textured theme + DEXTools-like sidebar + Responsive
+   Replace this file with the contents below.
+*/
+
+:root{
+  /* Colors & accents */
+  --bg-dark: #08080a;
+  --bg-mid: #0b0c10;
+  --panel: rgba(255,255,255,0.03);
+  --glass: rgba(255,255,255,0.035);
+  --glass-strong: rgba(255,255,255,0.06);
+  --muted: #98a5ad;
+  --text: #eaf2f8;
+  --accent-a: #6ce3ff; /* cyan */
+  --accent-b: #8b6cff; /* purple */
+  --accent-c: #43f07b; /* green */
+  --radius: 14px;
+  --shadow-1: 0 8px 28px rgba(2,6,23,0.6);
+  --glass-border: 1px solid rgba(255,255,255,0.04);
+
+  /* Layout widths */
+  --sidebar-w: 240px;
+  --sidebar-closed-w: 78px;
+
+  /* Typography */
+  --font-stack: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --base-font-size: 16px;
+}
+
+/* ================= BASELINE ================= */
+* { box-sizing: border-box; }
+html,body,#root {
+  margin:0;
+  font-family:var(--font-stack);
+  font-size:var(--base-font-size);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color:var(--text);
+}
+
+/* page background — textured radial highlights */
+body {
+  background:
+    radial-gradient(400px 600px at 10% 10%, rgba(138,108,255,0.04), transparent 8%),
+    radial-gradient(500px 700px at 90% 80%, rgba(108,227,255,0.03), transparent 9%),
+    linear-gradient(180deg, var(--bg-mid), var(--bg-dark));
+  min-height:100vh;
+  position:relative;
+}
+
+/* subtle diagonal texture overlay */
+body::before {
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background-image: linear-gradient(135deg, rgba(255,255,255,0.004) 1px, transparent 1px);
+  background-size: 10px 10px;
+  opacity:0.6;
+}
+
+/* app root flex layout */
+.app-root { display:flex; min-height:100vh; align-items:stretch; gap:28px; position:relative; z-index:1; }
+
+/* ================= SIDEBAR / LEFT COLUMN ================= */
+/* Toggle button for mobile/compact (used when overlay is active) */
+/* positioned top-right (DEXTools-style) */
+.sidebar-toggle {
+  position: fixed;
+  right: 12px;   /* show top-right like DEXTools mobile */
+  left: auto;
+  top: 12px;
+  z-index: 1800;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.03);
+  display: none; /* shown on small screens via media query */
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.sidebar-toggle svg { opacity:.95; stroke:rgba(255,255,255,0.9); fill:none; stroke-width:1.1 }
+
+/* backdrop for mobile overlay */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: rgba(0,0,0,0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s;
+}
+.sidebar-backdrop.visible { opacity: 1; pointer-events: all; }
+
+/* Sidebar container
+   NOTE: for desktop we use position:fixed so expanding doesn't push page content.
+*/
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  padding: 28px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  background:
+    linear-gradient(180deg, rgba(6,8,11,0.85), rgba(12,14,18,0.78));
+  border-right: 1px solid rgba(255,255,255,0.02);
+  position: relative;    /* overridden to fixed for desktop below */
+  box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+  backdrop-filter: blur(6px);
+  z-index: 1400;
+  transition: width .22s ease, transform .28s cubic-bezier(.2,.9,.2,1), padding .18s;
+  overflow:visible;
+}
+
+/* closed (compact) sidebar */
+.sidebar.closed { width: var(--sidebar-closed-w); min-width: var(--sidebar-closed-w); overflow:visible; }
+.sidebar.closed .label, .sidebar.closed .small { display:none; }
+.sidebar.closed .brand { font-size:18px; }
+.sidebar.closed .nav-item { justify-content:center; padding-left:0; padding-right:0; }
+.sidebar.closed .brand-logo { width:36px; height:36px; }
+
+/* mobile overlay state */
+.sidebar.mobile { position: fixed; left:0; top:0; bottom:0; height:100vh; transform: translateX(-110%); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+.sidebar.mobile.open { transform: translateX(0); }
+
+/* top / brand area: we group logo + brand text so we can hide text on collapse */
+.brand-row {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  min-height:48px;
+}
+.brand-logo {
+  width:160px;
+  max-height:34px;
+  object-fit:contain;
+  display:block;
+  border-radius:6px;
+  background: rgba(255,255,255,0.01);
+  padding:6px 8px;
+  filter: drop-shadow(0 6px 18px rgba(2,6,23,0.5));
+  transition: all .18s cubic-bezier(.2,.9,.2,1);
+}
+/* small logo when collapsed */
+.sidebar.closed .brand-logo { width: 38px; max-height:38px; padding:4px; }
+
+/* brand texts */
+.brand-texts { display:flex; flex-direction:column; }
+.brand { font-size:20px; font-weight:800; letter-spacing:-0.6px; color:var(--text); margin:0; }
+.sidebar .small { color:var(--muted); font-size:12px; margin-top:4px; }
+
+/* collapse button (top-right inside sidebar) */
+.collapse-btn {
+  position:absolute;
+  right:10px;
+  top:14px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.03);
+  color: var(--muted);
+  cursor: pointer;
+  padding:6px 8px;
+  border-radius:8px;
+  backdrop-filter: blur(4px);
+  transition: transform .12s ease;
+}
+.collapse-btn:hover { color:var(--text); transform: translateX(-2px); }
+
+/* nav list (DEXTools-like) */
+.nav-links { display:flex; flex-direction:column; gap:8px; margin-top:8px; align-items:stretch; }
+.nav-links a.nav-item {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 12px 12px 28px;
+  border-radius:10px;
+  color: #d1dbe3;
+  font-weight:700;
+  text-decoration:none;
+  transition: transform .14s ease, background .14s ease, color .14s ease;
+  position:relative;
+  overflow:visible;
+}
+.nav-links a.nav-item .nav-icon { width:28px; display:flex; align-items:center; justify-content:center; margin-left:-18px; font-size:20px; }
+
+/* hover and active styles */
+.nav-links a.nav-item:hover {
+  transform: translateX(8px);
+  background: linear-gradient(90deg, rgba(124,108,255,0.06), rgba(108,227,255,0.03));
+  color:var(--text);
+  box-shadow: 0 12px 30px rgba(2,6,23,0.6);
+}
+.nav-links a.nav-item.active {
+  background: linear-gradient(90deg, rgba(124,108,255,0.09), rgba(108,227,255,0.03));
+  color:var(--text);
+  transform:none;
+}
+.nav-links a.nav-item.active::before {
+  content:"";
+  position:absolute;
+  left:-6px;
+  top:8px;
+  bottom:8px;
+  width:6px;
+  border-radius:8px;
+  background: linear-gradient(180deg, var(--accent-a), var(--accent-b));
+  box-shadow: 0 8px 20px rgba(124,108,255,0.12);
+}
+
+/* ensure nav items look right when sidebar collapsed */
+.sidebar.closed .nav-item { justify-content:center; padding-left:0; padding-right:0; }
+.sidebar.closed .nav-item .label { display:none; }
+
+/* spacer keeps footer pinned to bottom */
+.sidebar-spacer { flex:1; }
+
+/* sidebar footer — anchored & ellipsis in compact mode */
+.sidebar-footer { margin-top:8px; font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ================= TOP NAVBAR ================= */
+.navbar { height:72px; display:flex; align-items:center; justify-content:space-between; padding:0 28px; background:transparent; }
+.top-brand { display:flex; gap:18px; align-items:center; }
+.top-brand h2 { margin:0; font-size:18px; font-weight:800; letter-spacing:-0.6px; }
+.live-badge {
+  padding:8px 12px;
+  border-radius:999px;
+  background: linear-gradient(90deg, rgba(108,227,255,0.08), rgba(124,108,255,0.06));
+  color:var(--text);
+  font-weight:700;
+  border:1px solid rgba(255,255,255,0.03);
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+}
+
+/* ================= MAIN CONTENT ================= */
+/* IMPORTANT: main-area gets a left margin on desktop so fixed sidebar doesn't hide content */
+.main-area { flex:1; display:flex; flex-direction:column; min-height:100vh; padding-bottom:40px; z-index:1; transition: margin-left .18s ease; }
+.page-content { padding:24px 36px; }
+
+/* hero/title */
+.page-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:14px; }
+h1.hero { font-size:34px; margin:0; letter-spacing:-1px; }
+
+/* stat row cards */
+.row { display:flex; gap:18px; margin:18px 0; flex-wrap:wrap; }
+.card {
+  position:relative;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  border-radius:12px;
+  padding:18px;
+  min-width:230px;
+  flex:1 1 240px;
+  border: var(--glass-border);
+  box-shadow: var(--shadow-1);
+  transition: transform .16s ease, box-shadow .16s ease;
+  backdrop-filter: blur(6px);
+}
+.card:hover { transform: translateY(-6px); box-shadow: 0 26px 60px rgba(2,6,23,0.65); }
+.card.accent::before {
+  content:"";
+  position:absolute;
+  left:-10px;
+  top:14px;
+  height:calc(100% - 28px);
+  width:8px;
+  border-radius:9px;
+  background: linear-gradient(180deg,var(--accent-a),var(--accent-b));
+  box-shadow: 0 12px 30px rgba(124,108,255,0.12);
+}
+
+/* table / transactions card */
+.table-card { margin-top:20px; border-radius:12px; overflow:hidden; border:var(--glass-border); background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.02)); padding-bottom:6px; }
+.table-header { padding:22px 28px; font-size:20px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:12px; }
+.table { width:100%; border-collapse:collapse; color:var(--text); }
+.table th, .table td { padding:18px 28px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.02); font-weight:700; color:#dbe9f2; }
+.table tr:last-child td { border-bottom:none; }
+.empty-note { padding:28px; color:var(--muted) }
+
+/* badges & small UI */
+.badge { padding:6px 10px; border-radius:8px; background: rgba(255,255,255,0.02); color:var(--accent-a); font-weight:800; }
+
+/* focus accessibility */
+a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); outline-offset:2px; border-radius:6px; }
+
+/* micro-interactions */
+.fade-in { animation:fadeIn .32s ease both; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+
+/* responsive rules */
+/* tablet / small desktop */
+@media (max-width: 1200px) {
+  .page-content { padding:20px 28px; }
+  .navbar { padding:0 20px; }
+}
+
+/* mobile: transform sidebar into overlay, show toggle */
+@media (max-width: 980px) {
+  .sidebar { display: none; }
+  .sidebar-toggle { display:flex; }      /* show toggle button (JS toggles .sidebar.mobile.open) */
+  .page-content { padding:18px 16px; }
+  .card { flex:1 1 100%; }
+}
+
+/* overlay behavior for .sidebar.mobile (used by Sidebar.jsx) */
+@media (max-width: 900px) {
+  .sidebar.mobile { display:flex; transform: translateX(-110%); position:fixed; z-index:1600; }
+  .sidebar.mobile.open { transform: translateX(0); }
+  .sidebar-backdrop { display:block; }
+  .main-area { z-index:1; }
+}
+
+/* desktop compact adjustments when sidebar closed */
+@media (min-width: 981px) {
+  /* Make the sidebar fixed so expanding it overlays instead of pushing content */
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; height:100vh; }
+  /* keep main content offset to closed width so fixed sidebar doesn't cover it */
+  .main-area { margin-left: calc(var(--sidebar-closed-w) + 28px); } /* +28 = gap in .app-root */
+  .page-content { padding-left: 20px; }
+  /* collapsed default */
+  .sidebar.closed { width: var(--sidebar-closed-w); padding-left:10px; padding-right:10px; }
+  /* Hide the collapse button on desktop (cleaner look) */
+  .collapse-btn { display: none; }
+}
+
+/* helpers */
+.h-icon { margin-right:10px; font-size:20px; vertical-align:middle; }
+.center-row { display:flex; align-items:center; gap:12px; }
+.small-muted { color:var(--muted); font-size:13px; }
+
+/* ---------------- Sidebar fine-tune overrides ---------------- */
+
+/* center nav icons when collapsed */
+.sidebar.closed .nav-links .nav-item { justify-content:center; padding-left:0; padding-right:0; }
+.sidebar.closed .nav-links .label, .sidebar.closed .nav-links .link-label { display:none; }
+
+/* nav icon style (emoji or svg) */
+.nav-icon, .nav-emoji { font-size:20px; width:28px; display:inline-flex; align-items:center; justify-content:center; margin-left:-18px; }
+
+/* footer pinned so it never gets cut off */
+.sidebar-footer {
+  margin-top: auto;
+  font-size:12px;
+  color:var(--muted);
+  padding-top:12px;
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  background: transparent;
+}
+
+/* hide copyright text in collapsed mode */
+.sidebar.closed .sidebar-footer .copyright { display:none; }
+
+/* overlay specifics: slightly stronger backdrop when open */
+.sidebar.mobile.open { box-shadow: 0 30px 80px rgba(0,0,0,0.6); }
+.sidebar-backdrop.visible { display:block; }
+
+/* compact chevron location tweak */
+.collapse-btn { position: absolute; top: 18px; right: 12px; }
+
+/* smoother transition for width and internal content */
+.sidebar, .sidebar .brand-logo, .sidebar .nav-item { transition: all .18s cubic-bezier(.2,.9,.2,1); }
+
+/* mobile overlay: ensure nav items get full paddings and icon visible */
+.sidebar.mobile .nav-links .nav-item { padding-left: 20px; }
+
+/* contrast hint for dark logos (if you need to invert) */
+.brand-logo.outline { filter: drop-shadow(0 2px 0 rgba(255,255,255,0.02)) drop-shadow(0 8px 30px rgba(0,0,0,0.55)); }
+
+/* small content helpers */
+.link-label { display:inline-block; }
+.nav-item .label, .nav-item .link-label { color: #eaf2f8; font-weight:700; }
+
+/* ===== Mobile overlay: force labels & brand visible ===== */
+.sidebar.mobile {
+  display:flex !important;
+  transform: translateX(-110%);
+  left: 0;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  width: var(--sidebar-w);
+  padding: 22px;
+  z-index: 1600;
+  background: linear-gradient(180deg, rgba(6,8,11,0.95), rgba(10,12,14,0.92));
+  transition: transform .26s cubic-bezier(.2,.9,.2,1);
+}
+.sidebar.mobile.open { transform: translateX(0); }
+
+/* Make sure brand + label are visible on mobile overlay */
+.sidebar.mobile .brand-texts { display:block !important; opacity:1; }
+.sidebar.mobile .brand-logo { width:64px; height:auto; padding:6px; }
+
+/* Ensure nav labels appear (desktop collapse hides labels — override for mobile overlay) */
+.sidebar.mobile .nav-links .nav-item .link-label,
+.sidebar.mobile .nav-links .nav-item .label {
+  display: inline-block !important;
+  opacity: 1 !important;
+  margin-left: 8px;
+  font-weight:700;
+  color: var(--text);
+}
+
+/* Slightly larger touch targets on mobile */
+.sidebar.mobile .nav-links .nav-item {
+  padding: 14px 18px;
+  gap: 14px;
+  align-items: center;
+}
+
+/* Make emojis/icons slightly larger & clearer on mobile overlay */
+.sidebar.mobile .nav-emoji { font-size:22px; width:36px; margin-left:-6px; }
+
+/* backdrop visible state (stronger on mobile) */
+.sidebar-backdrop.visible { opacity: 1; pointer-events: all; background: rgba(0,0,0,0.55); }
+
+/* make toggle visible on mobile (already present) but ensure z-index keeps it on top */
+.sidebar-toggle { z-index: 1800; }
+
+/* minor: ensure footer is readable on overlay*/
+.sidebar.mobile .sidebar-footer { color: var(--muted); bottom: 16px; left: 18px; right: 18px; position: absolute; }
+
+/* If you still see brand text cropped at the top on some phones, add small top padding */
+@media (max-height: 700px) {
+  .sidebar.mobile { padding-top: 36px; }
+}
+
+/* ---------------- Desktop hover-to-expand behaviour (overlay) ---------------- */
+/* Expand the collapsed sidebar on hover for desktop (gives premium feel).
+   Because sidebar is fixed and main-area has margin-left, content won't shift.
+*/
+@media (min-width: 981px) {
+  .sidebar.closed:hover {
+    width: var(--sidebar-w);
+    padding-left: 20px;
+    padding-right: 20px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    z-index: 1700;
+  }
+  .sidebar.closed:hover .brand-texts { display:flex !important; }
+  .sidebar.closed:hover .nav-item .label,
+  .sidebar.closed:hover .nav-item .link-label { display:inline-block !important; }
+  .sidebar.closed:hover .nav-item { justify-content:flex-start; padding-left:28px; }
+}
+
+/* Keep icons centered and visible in collapsed state */
+/* === FIX: make sure emojis/icons are correctly centered in closed state === */
+.sidebar.closed .nav-emoji,
+.sidebar.closed .nav-icon {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;
+  height:36px;
+  font-size:20px;
+  margin-left: 0;     /* remove negative offset that pulled icons off-screen */
+  margin-right: 0;
+  position: relative; /* keep in normal flow so they align */
+}
+
+/* ensure nav item content doesn't jump: force consistent padding/width */
+.sidebar.closed .nav-links .nav-item {
+  padding-left: 6px;  /* small left padding so icon column doesn't hit the edge */
+  padding-right: 6px;
+  justify-content:center;
+}
+
+/* Footer in collapsed mode: hide long text, keep space for small icon if you add later */
+.sidebar.closed .sidebar-footer { left: 8px; right:8px; text-align:center; }
+
+/* Optional smoother/fast expansion */
+.sidebar { transition: width .28s cubic-bezier(.2,.9,.2,1), padding .18s ease, box-shadow .22s ease; }
+
+/* End of file */
+
+/* Remove ONLY the inner close button inside sidebar */
+.sidebar .collapse-btn {
+  display: none !important;
+}
+
+/* ===================================================
+   DEXTOOLS TRUE FEEL — CSS ONLY HOVER (DESKTOP)
+   =================================================== */
+
+@media (min-width: 981px) {
+
+  /* Sidebar expands on hover WITHOUT state change */
+  .sidebar.closed:hover {
+    width: var(--sidebar-w);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+    z-index: 1700;
+  }
+
+  /* Kill nav item movement */
+  .nav-links a.nav-item:hover {
+    transform: none !important;
+  }
+
+  /* Keep icon column fixed */
+  .sidebar.closed:hover .nav-item {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .sidebar.closed:hover .link-label,
+  .sidebar.closed:hover .brand-texts {
+    opacity: 1;
+    max-width: 200px;
+  }
+}
+
+/* ===================================================
+   FINAL FIX — LEFT ALIGN + TAGLINE & FOOTER VISIBLE
+   =================================================== */
+
+@media (min-width: 981px) {
+
+  /* ---------- FIX 1: LEFT ALIGN NAV ITEMS ---------- */
+
+  /* Force left alignment always */
+  .nav-links a.nav-item,
+  .sidebar.closed .nav-item,
+  .sidebar.closed:hover .nav-item {
+    justify-content: flex-start !important;
+    padding-left: 20px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Remove negative icon pull */
+  .nav-icon,
+  .nav-emoji {
+    margin-left: 0 !important;
+    width: 28px;
+    justify-content: center;
+  }
+
+  /* Kill any horizontal movement */
+  .nav-links a.nav-item:hover {
+    transform: none !important;
+  }
+
+  /* ---------- FIX 2: TAGLINE & FOOTER VISIBILITY ---------- */
+
+  /* Ensure footer is visible */
+  .sidebar.closed .sidebar-footer .copyright {
+    display: block !important;
+    opacity: 0.7;
+  }
+}
+
+/* Brand name image (text replacement) */
+.brand-name-img {
+  max-width: 160px;
+  height: auto;
+  display: block;
+}
+
+.sidebar.closed .brand-name-img {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.sidebar:not(.closed) .brand-name-img {
+  opacity: 1;
+  transition: opacity .18s ease;
+}
+
+/* ===============================
+   BRAND NAME IMAGE + TAGLINE (FINAL LOGIC)
+   =============================== */
+
+/* default */
+.brand-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* desktop collapsed: hidden */
+@media (min-width: 981px) {
+  .sidebar.closed .brand-texts {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .18s ease;
+  }
+
+  /* hover or open → show */
+  .sidebar.closed:hover .brand-texts,
+  .sidebar.open .brand-texts {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+/* brand name image */
+.brand-name-img {
+  max-width: 160px;
+  height: auto;
+  display: block;
+}
+
+.sidebar.open .brand-texts {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* ===================================================
+   DEXTOOLS FINAL — ICONS NEVER MOVE
+   =================================================== */
+
+/* 1. FIXED GRID FOR NAV ITEMS */
+.nav-links a.nav-item {
+  display: grid !important;
+  grid-template-columns: 36px 1fr; /* icon column FIXED */
+  align-items: center;
+  padding: 12px 16px !important;
+  gap: 12px;
+  transform: none !important;
+}
+
+/* 2. ICON NEVER MOVES */
+.nav-icon,
+.nav-emoji {
+  width: 36px !important;
+  height: 36px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
+  font-size: 20px;
+}
+
+/* 3. TEXT HIDES WITHOUT AFFECTING LAYOUT */
+.sidebar.closed .link-label {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity .18s ease;
+}
+
+/* 4. TEXT REAPPEARS SMOOTHLY */
+.sidebar.open .link-label,
+.sidebar.closed:hover .link-label {
+  opacity: 1;
+  max-width: 200px;
+}
+
+/* 5. KILL ALL HORIZONTAL MOVEMENT */
+.nav-links a.nav-item:hover {
+  transform: none !important;
+}
+
+/* 6. CLOSED SIDEBAR — SAME GRID (NO CENTERING) */
+.sidebar.closed .nav-item {
+  justify-content: unset !important;
+  padding-left: 16px !important;
+}
+
+/* ===================================================
+   BRAND LOGO SIZE — DESKTOP & MOBILE
+   =================================================== */
+
+.brand-logo {
+  width: auto;
+  max-width: 180px;
+  max-height: 42px;
+  padding: 0;                 /* ❌ padding hata */
+  background: transparent;    /* ❌ glass patch hata */
+  border-radius: 0;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.45));
+}
+
+/* REMOVE this shrink behaviour */
+.sidebar.closed .brand-logo {
+  max-width: 180px;
+  max-height: 42px;
+}
+
+/* mobile overlay → bigger logo */
+.sidebar.mobile .brand-logo {
+  max-width: 200px;
+  max-height: 48px;
+}
+
+/* ===================================================
+   DEXTOOLS — FIXED ICON SPINE (NO JUMP EVER)
+   =================================================== */
+
+/* SAME COLUMN FOR LOGO & NAV ICONS */
+.brand-row {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding-left: 16px;
+}
+
+/* LOGO LOCKED — NEVER RESIZES */
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  filter: none;
+}
+
+/* SIDEBAR OPEN/CLOSE — LOGO SIZE SAME */
+.sidebar.closed .brand-logo,
+.sidebar.open .brand-logo {
+  width: 36px;
+  height: 36px;
+}
+
+/* NAV ITEMS — SAME GRID AS BRAND */
+.nav-links a.nav-item {
+  display: grid !important;
+  grid-template-columns: 36px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px !important;
+  transform: none !important;
+}
+
+/* ICON NEVER MOVES */
+.nav-icon,
+.nav-emoji {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
+  font-size: 20px;
+}
+
+/* LABEL ONLY FADES — NO LAYOUT CHANGE */
+.sidebar.closed .link-label {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar.open .link-label,
+.sidebar.closed:hover .link-label {
+  opacity: 1;
+  max-width: 200px;
+}
+
+/* KILL ALL SIDE MOVEMENT */
+.nav-links a.nav-item:hover {
+  transform: none !important;
+}
+
+/* ===============================
+   iOS SAFARI — BLANK SCREEN FIX (FINAL)
+   =============================== */
+@supports (-webkit-touch-callout: none) {
+
+  /* Root height bug */
+  html, body {
+    height: auto !important;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
+    height: auto !important;
+    overflow: visible;
+  }
+
+  /* iOS fixed + pseudo-element render bug */
+  body::before {
+    position: absolute !important;
+  }
+
+  /* iOS + backdrop-filter = blank screen */
+  .sidebar,
+  .sidebar.mobile,
+  .sidebar-backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Prevent flex root collapse */
+  .app-root {
+    min-height: 100%;
+    height: auto;
+  }
+}
 
