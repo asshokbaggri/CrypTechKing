@@ -759,12 +759,12 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   transform: none !important;
 }
 
-/* ===================================================
-   iOS SAFARI HARD FIX — PREVENT BLANK SCREEN
-   =================================================== */
+/* ===============================
+   iOS SAFARI — BLANK SCREEN FIX (FINAL)
+   =============================== */
 @supports (-webkit-touch-callout: none) {
 
-  /* Stop iOS flex + 100vh collapse */
+  /* Root height bug */
   html, body {
     height: auto !important;
     min-height: 100%;
@@ -774,24 +774,26 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   #root {
     min-height: 100vh;
     height: auto !important;
+    overflow: visible;
   }
 
-  /* Disable backdrop-filter only on iOS (major crash reason) */
+  /* iOS fixed + pseudo-element render bug */
+  body::before {
+    position: absolute !important;
+  }
+
+  /* iOS + backdrop-filter = blank screen */
   .sidebar,
-  .sidebar.mobile {
+  .sidebar.mobile,
+  .sidebar-backdrop {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
 
-  /* Prevent fixed + transform crash */
-  .sidebar {
-    will-change: auto !important;
-  }
-
-  /* Ensure main content always paints */
-  .main-area {
-    position: relative;
-    z-index: 1;
+  /* Prevent flex root collapse */
+  .app-root {
+    min-height: 100%;
+    height: auto;
   }
 }
 
