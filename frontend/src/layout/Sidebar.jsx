@@ -97,6 +97,7 @@ export default function Sidebar() {
               alt="CrypTechKing"
               className="brand-name-img"
             />
+            <div className="small">Real-time analytics • alpha</div>
           </div>
         </div>
 
@@ -145,6 +146,7 @@ export default function Sidebar() {
               alt="CrypTechKing"
               className="brand-name-img"
             />
+            <div className="small">Real-time analytics • alpha</div>
           </div>
         </div>
 
