@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Whales from "./pages/Whales";
@@ -10,7 +10,7 @@ import Alerts from "./pages/Alerts";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <AppLayout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -21,6 +21,6 @@ export default function App() {
           <Route path="/alerts" element={<Alerts />} />
         </Routes>
       </AppLayout>
-    </BrowserRouter>
+    </Router>
   );
 }
