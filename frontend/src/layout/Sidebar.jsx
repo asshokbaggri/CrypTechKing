@@ -132,11 +132,11 @@ export default function Sidebar() {
       </aside>
 
       {/* Mobile overlay sidebar (same markup but .mobile class) */}
-      {/* <aside
+      <aside
         className={`sidebar mobile ${mobileOpen ? "open" : ""}`}
         aria-hidden={!mobileOpen}
         onClick={(e) => e.stopPropagation()}
-      > */}
+      >
         <div className="brand-row">
           <img src={Logo} alt="CrypTechKing" className="brand-logo" />
           <div className="brand-texts">
