@@ -1,29 +1,45 @@
 // frontend/src/layout/Sidebar.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import Logo from "../assets/logo.png"; // adjust if your filename differs
+import Logo from "../assets/logo.png";
 import BrandName from "../assets/brand-name.png";
 
 export default function Sidebar() {
-  const MOBILE_BREAK = 980;
-  const DESKTOP_COLLAPSE_BREAK = 981; // >= this value we use collapsed-by-default behavior
 
-  const [collapsed, setCollapsed] = useState(true); // collapsed by default for desktop (emoji-only)
+  /* ======================
+     SAFE DEVICE CHECKS
+  ====================== */
+  const isMobile = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 980px)").matches;
+
+  const isDesktop = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(min-width: 981px)").matches;
+
+  /* ======================
+     STATE
+  ====================== */
+  const [collapsed, setCollapsed] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [lockCollapsed, setLockCollapsed] = useState(false); // if user explicitly toggles, lock the state
-  const sidebarRef = useRef(null);
+  const [mounted, setMounted] = useState(false);
 
-  // On mount set initial collapsed based on width (collapsed on wide screens by default)
+  /* ======================
+     INITIAL MOUNT (iOS SAFE)
+  ====================== */
   useEffect(() => {
-    // iOS-safe: decide only ONCE after mount
-    if (window.matchMedia(`(min-width: ${DESKTOP_COLLAPSE_BREAK}px)`).matches) {
+    setMounted(true);
+
+    if (isDesktop()) {
       setCollapsed(true);
     } else {
       setCollapsed(false);
     }
   }, []);
 
-  // List of links with emojis (shows emoji in collapsed state)
+  /* ======================
+     NAV LINKS
+  ====================== */
   const links = [
     { to: "/dashboard", label: "Dashboard", emoji: "🔥" },
     { to: "/whales", label: "Whales", emoji: "🐳" },
@@ -32,148 +48,118 @@ export default function Sidebar() {
     { to: "/alerts", label: "Alerts", emoji: "⚠️" }
   ];
 
-  // manual collapse toggle (click) - this locks state until user clicks again
+  /* ======================
+     TOGGLE HANDLER
+  ====================== */
   const onToggleClick = () => {
-    // if mobile overlay, close overlay instead of toggling collapse
-    if (window.innerWidth <= MOBILE_BREAK) {
-      setMobileOpen((s) => !s);
+    if (isMobile()) {
+      setMobileOpen((v) => !v);
       return;
     }
-    // desktop: toggle and lock
-    setCollapsed((s) => {
-      const newVal = !s;
-      setLockCollapsed(true); // lock so hover doesn't override — user explicitly set preference
-      // small timeout: if user toggles back to the other state quickly, we reset lock
-      return newVal;
-    });
+    setCollapsed((v) => !v);
   };
+
+  /* ======================
+     BLOCK RENDER UNTIL SAFE
+     (PREVENT iOS BLANK)
+  ====================== */
+  if (!mounted) return null;
 
   return (
     <>
-      {/* Mobile toggle button (top-right) */}
+      {/* ================= MOBILE TOGGLE ================= */}
       <button
         className="sidebar-toggle"
         aria-label={mobileOpen ? "Close menu" : "Open menu"}
-        onClick={() => setMobileOpen((s) => !s)}
+        onClick={() => setMobileOpen((v) => !v)}
       >
-        <span style={{ fontSize: 18, color: "var(--text)", fontWeight: 800 }}>
+        <span style={{ fontSize: 18, fontWeight: 800 }}>
           {mobileOpen ? "✕" : "≡"}
         </span>
       </button>
 
-      {/* backdrop when mobile overlay open */}
-      <div
-        className={`sidebar-backdrop ${mobileOpen ? "visible" : ""}`}
-        onClick={() => setMobileOpen(false)}
-        aria-hidden={!mobileOpen}
-      />
-
-      {/* Desktop/regular sidebar */}
-      <aside
-        ref={sidebarRef}
-        className={`sidebar ${collapsed ? "closed" : "open"}`}
-        aria-label="Main navigation"
-        onMouseEnter={() => {
-          if (window.innerWidth >= DESKTOP_COLLAPSE_BREAK && !lockCollapsed) {
-            setCollapsed(false);
-          }
-        }}
-        onMouseLeave={() => {
-          if (window.innerWidth >= DESKTOP_COLLAPSE_BREAK && !lockCollapsed) {
-            setCollapsed(true);
-          }
-        }}
-      >
-        <div className="brand-row">
-          <img src={Logo} alt="CrypTechKing" className="brand-logo" />
-          <div className="brand-texts" aria-hidden={collapsed}>
-            <img
-              src={BrandName}
-              alt="CrypTechKing"
-              className="brand-name-img"
-            />
-          </div>
-        </div>
-
-        <button
-          className="collapse-btn"
-          aria-label={collapsed ? "Open menu" : "Collapse menu"}
-          onClick={onToggleClick}
-        >
-          <span className="chev">{collapsed ? "›" : "‹"}</span>
-        </button>
-
-        <nav className="nav-links" aria-label="primary">
-          {links.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              className={({ isActive }) => (isActive ? "active nav-item" : "nav-item")}
-              end
-            >
-              <span className="nav-icon nav-emoji" aria-hidden="true">
-                {l.emoji}
-              </span>
-              <span className="link-label">{l.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="sidebar-spacer" />
-
-        <footer className="sidebar-footer">
-          <div className="copyright">© {new Date().getFullYear()} CrypTechKing</div>
-        </footer>
-      </aside>
-
-      {/* Mobile overlay sidebar (same markup but .mobile class) */}
-      <aside
-        className={`sidebar mobile ${mobileOpen ? "open" : ""}`}
-        aria-hidden={!mobileOpen}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="brand-row">
-          <img src={Logo} alt="CrypTechKing" className="brand-logo" />
-          <div className="brand-texts">
-            <img
-              src={BrandName}
-              alt="CrypTechKing"
-              className="brand-name-img"
-            />
-          </div>
-        </div>
-
-        <button
-          className="collapse-btn"
-          aria-label="Close menu"
+      {/* ================= MOBILE BACKDROP ================= */}
+      {mobileOpen && (
+        <div
+          className="sidebar-backdrop visible"
           onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* ================= DESKTOP SIDEBAR ================= */}
+      {isDesktop() && (
+        <aside
+          className={`sidebar ${collapsed ? "closed" : "open"}`}
+          onMouseEnter={() => setCollapsed(false)}
+          onMouseLeave={() => setCollapsed(true)}
         >
-          <span style={{ fontSize: 18, color: "var(--text)", fontWeight: 800 }}>✕</span>
-        </button>
+          <div className="brand-row">
+            <img src={Logo} alt="CrypTechKing" className="brand-logo" />
+            {!collapsed && (
+              <div className="brand-texts">
+                <img src={BrandName} alt="CrypTechKing" className="brand-name-img" />
+              </div>
+            )}
+          </div>
 
-        <nav className="nav-links" aria-label="mobile primary">
-          {links.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) => (isActive ? "active nav-item" : "nav-item")}
-              end
-            >
-              <span className="nav-icon nav-emoji" aria-hidden="true">
-                {l.emoji}
-              </span>
-              <span className="link-label">{l.label}</span>
-            </NavLink>
-          ))}
-        </nav>
+          <nav className="nav-links">
+            {links.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                className={({ isActive }) =>
+                  isActive ? "active nav-item" : "nav-item"
+                }
+                end
+              >
+                <span className="nav-icon nav-emoji">{l.emoji}</span>
+                {!collapsed && <span className="link-label">{l.label}</span>}
+              </NavLink>
+            ))}
+          </nav>
 
-        <div className="sidebar-spacer" />
+          <div className="sidebar-spacer" />
 
-        <footer className="sidebar-footer">
-          <div className="copyright">© {new Date().getFullYear()} CrypTechKing</div>
-        </footer>
-      </aside>
+          <footer className="sidebar-footer">
+            © {new Date().getFullYear()} CrypTechKing
+          </footer>
+        </aside>
+      )}
+
+      {/* ================= MOBILE SIDEBAR ================= */}
+      {isMobile() && mobileOpen && (
+        <aside className="sidebar mobile open">
+          <div className="brand-row">
+            <img src={Logo} alt="CrypTechKing" className="brand-logo" />
+            <div className="brand-texts">
+              <img src={BrandName} alt="CrypTechKing" className="brand-name-img" />
+            </div>
+          </div>
+
+          <nav className="nav-links">
+            {links.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  isActive ? "active nav-item" : "nav-item"
+                }
+                end
+              >
+                <span className="nav-icon nav-emoji">{l.emoji}</span>
+                <span className="link-label">{l.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="sidebar-spacer" />
+
+          <footer className="sidebar-footer">
+            © {new Date().getFullYear()} CrypTechKing
+          </footer>
+        </aside>
+      )}
     </>
   );
 }
