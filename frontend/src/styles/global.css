@@ -30,7 +30,14 @@
 
 /* ================= BASELINE ================= */
 * { box-sizing: border-box; }
-html,body,#root { height:100%; margin:0; font-family:var(--font-stack); font-size:var(--base-font-size); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; color:var(--text); }
+html,body,#root {
+  margin:0;
+  font-family:var(--font-stack);
+  font-size:var(--base-font-size);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color:var(--text);
+}
 
 /* page background — textured radial highlights */
 body {
