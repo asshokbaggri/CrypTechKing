@@ -759,9 +759,40 @@ a:focus, button:focus, input:focus { outline: 2px solid rgba(108,227,255,0.18); 
   transform: none !important;
 }
 
-/* iOS SAFARI HOTFIX — ADD AT VERY END */
+/* ===================================================
+   iOS SAFARI HARD FIX — PREVENT BLANK SCREEN
+   =================================================== */
 @supports (-webkit-touch-callout: none) {
-  body::before { position: absolute !important; }
-  html, body { height: auto !important; }
-  #root { min-height: 100vh; }
+
+  /* Stop iOS flex + 100vh collapse */
+  html, body {
+    height: auto !important;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
+    height: auto !important;
+  }
+
+  /* Disable backdrop-filter only on iOS (major crash reason) */
+  .sidebar,
+  .sidebar.mobile {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Prevent fixed + transform crash */
+  .sidebar {
+    will-change: auto !important;
+  }
+
+  /* Ensure main content always paints */
+  .main-area {
+    position: relative;
+    z-index: 1;
+  }
 }
+
+
