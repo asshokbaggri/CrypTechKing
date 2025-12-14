@@ -15,17 +15,12 @@ export default function Sidebar() {
 
   // On mount set initial collapsed based on width (collapsed on wide screens by default)
   useEffect(() => {
-    const handleResizeInit = () => {
-      if (window.innerWidth >= DESKTOP_COLLAPSE_BREAK) {
-        setCollapsed(true);
-      } else {
-        // On mobile/tablet, sidebar not shown as collapsed column; keep expanded flag false
-        setCollapsed(false);
-      }
-    };
-    handleResizeInit();
-    window.addEventListener("resize", handleResizeInit);
-    return () => window.removeEventListener("resize", handleResizeInit);
+    // iOS-safe: decide only ONCE after mount
+    if (window.matchMedia(`(min-width: ${DESKTOP_COLLAPSE_BREAK}px)`).matches) {
+      setCollapsed(true);
+    } else {
+      setCollapsed(false);
+    }
   }, []);
 
   // List of links with emojis (shows emoji in collapsed state)
