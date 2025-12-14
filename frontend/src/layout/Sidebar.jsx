@@ -132,7 +132,7 @@ export default function Sidebar() {
       </aside>
 
       {/* Mobile overlay sidebar (same markup but .mobile class) */}
-      <aside
+      {/* <aside
         className={`sidebar mobile ${mobileOpen ? "open" : ""}`}
         aria-hidden={!mobileOpen}
         onClick={(e) => e.stopPropagation()}
@@ -178,7 +178,7 @@ export default function Sidebar() {
         <footer className="sidebar-footer">
           <div className="copyright">© {new Date().getFullYear()} CrypTechKing</div>
         </footer>
-      </aside>
+      </aside> */}
     </>
   );
 }
