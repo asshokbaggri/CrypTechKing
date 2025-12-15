@@ -1,3 +1,4 @@
+// backend/src/app.js
 import express from "express";
 import cors from "cors";
 import webhookRoutes from "./routes/webhook.routes.js";
@@ -6,11 +7,15 @@ const app = express();
 
 app.use(cors());
 
-// IMPORTANT: raw body only for webhooks
-app.use("/webhooks", express.raw({ type: "application/json" }));
-
-// normal APIs (future)
-app.use(express.json());
+// ⚠️ VERY IMPORTANT
+// Webhook needs RAW body, rest needs JSON
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith("/webhooks")) {
+    next(); // DO NOT touch body
+  } else {
+    express.json()(req, res, next);
+  }
+});
 
 app.use("/webhooks", webhookRoutes);
 
