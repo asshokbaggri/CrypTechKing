@@ -3,26 +3,45 @@ import ethWS from "../services/alchemy/eth.ws.js";
 import { ethers } from "ethers";
 import { processWhaleTx } from "../services/whale.service.js";
 
+const MIN_ETH = 50; // whale threshold
+let running = false;
+
 export function startEthWhaleListener() {
-  ethWS.ws.on("pending", async (txHash) => {
+  if (running) return;
+  running = true;
+
+  ethWS.on("block", async (blockNumber) => {
     try {
-      const tx = await ethWS.core.getTransaction(txHash);
-      if (!tx || !tx.value) return;
+      const block = await ethWS.getBlock(blockNumber, true);
+      if (!block || !block.transactions) return;
 
-      const ethValue = Number(ethers.formatEther(tx.value));
-      if (ethValue < 50) return; // quick filter (≈ $100k)
+      for (const tx of block.transactions) {
+        if (!tx.value || tx.value === 0n) continue;
 
-      await processWhaleTx({
-        chain: "ETH",
-        hash: tx.hash,
-        from: tx.from,
-        to: tx.to,
-        value: ethValue,
-      });
+        const ethValue = Number(ethers.formatEther(tx.value));
+        if (ethValue < MIN_ETH) continue;
+
+        await processWhaleTx({
+          chain: "ETH",
+          hash: tx.hash,
+          from: tx.from,
+          to: tx.to,
+          value: ethValue,
+          block: blockNumber,
+        });
+      }
     } catch (err) {
-      console.error("ETH WS Error:", err.message);
+      console.error("ETH Whale Listener Error:", err.message);
     }
   });
 
-  console.log("🐋 ETH Whale Listener ACTIVE");
+  ethWS._websocket?.on("error", (err) => {
+    console.error("ETH WS error:", err.message);
+  });
+
+  ethWS._websocket?.on("close", () => {
+    console.warn("ETH WS closed — waiting for restart");
+  });
+
+  console.log("🐋 ETH Whale Listener ACTIVE (block-based)");
 }
