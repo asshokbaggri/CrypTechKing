@@ -1,20 +1,23 @@
-// backend/src/routes/webhook.routes.js
 import express from "express";
 import crypto from "crypto";
 
 const router = express.Router();
 
+/**
+ * Alchemy Webhook
+ * URL: /webhooks/alchemy
+ */
 router.post(
   "/alchemy",
-  express.raw({ type: "application/json" }),
+  express.raw({ type: "*/*" }),
   (req, res) => {
-    console.log("🔥 WEBHOOK HIT FROM ALCHEMY");
+    console.log("🔥 ALCHEMY WEBHOOK HIT");
 
     const signature = req.headers["x-alchemy-signature"];
     const secret = process.env.ALCHEMY_WEBHOOK_SECRET;
 
     if (!signature || !secret) {
-      console.log("❌ Missing signature or secret");
+      console.log("❌ Missing signature/secret");
       return res.status(401).send("Unauthorized");
     }
 
@@ -23,14 +26,16 @@ router.post(
     const digest = hmac.digest("hex");
 
     if (digest !== signature) {
-      console.log("❌ Signature mismatch");
+      console.log("❌ Invalid signature");
       return res.status(401).send("Invalid signature");
     }
 
-    const payload = JSON.parse(req.body.toString());
-    console.log("✅ VERIFIED EVENT:", payload.event?.activity?.length);
+    const event = JSON.parse(req.body.toString());
 
-    // ACK immediately
+    console.log("✅ VERIFIED EVENT RECEIVED");
+    console.log(JSON.stringify(event, null, 2));
+
+    // ACK FAST
     res.status(200).json({ received: true });
   }
 );
