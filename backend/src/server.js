@@ -2,12 +2,33 @@ import app from "./app.js";
 import { connectDB } from "./config/db.js";
 import { ENV } from "./config/env.js";
 
-async function startServer() {
-  await connectDB();
+const PORT = ENV.PORT || 8080;
 
-  app.listen(ENV.PORT, () => {
-    console.log(`🚀 Server running on port ${ENV.PORT}`);
-  });
+async function startServer() {
+  try {
+    await connectDB();
+    console.log("✅ MongoDB connected");
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Failed to start server:", err.message);
+    process.exit(1);
+  }
 }
 
 startServer();
+
+/* ================================
+   Graceful shutdown (CRITICAL)
+================================ */
+process.on("SIGTERM", () => {
+  console.log("🛑 SIGTERM received. Shutting down gracefully...");
+  process.exit(0);
+});
+
+process.on("SIGINT", () => {
+  console.log("🛑 SIGINT received. Shutting down...");
+  process.exit(0);
+});
