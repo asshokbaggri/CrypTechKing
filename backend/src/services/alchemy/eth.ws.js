@@ -1,15 +1,12 @@
+// services/alchemy/eth.ws.js
 import { WebSocketProvider } from "ethers";
 
-const provider = new WebSocketProvider(
-  process.env.ALCHEMY_ETH_WS
-);
+const ETH_WS_URL = process.env.ALCHEMY_ETH_WS;
 
-provider._websocket.on("error", (err) => {
-  console.error("ETH WS error", err.message);
-});
+if (!ETH_WS_URL) {
+  throw new Error("❌ ALCHEMY_ETH_WS missing");
+}
 
-provider._websocket.on("close", () => {
-  console.warn("ETH WS closed");
-});
+const provider = new WebSocketProvider(ETH_WS_URL);
 
 export default provider;
