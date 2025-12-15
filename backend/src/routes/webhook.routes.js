@@ -1,73 +1,66 @@
 import express from "express";
 import crypto from "crypto";
+import { processWhaleTx } from "../services/whale.service.js";
 
 const router = express.Router();
 
 /**
- * Alchemy webhook endpoint
+ * Alchemy Webhook Endpoint
  */
 router.post(
   "/alchemy",
   express.raw({ type: "application/json" }),
   (req, res) => {
-    try {
-      const signature = req.headers["x-alchemy-signature"];
-      const payload = req.body;
+    const signature = req.headers["x-alchemy-signature"];
+    const payload = req.body;
+    const secret = process.env.ALCHEMY_WEBHOOK_SECRET;
 
-      const secret = process.env.ALCHEMY_WEBHOOK_SECRET;
-
-      if (!signature || !secret) {
-        return res.status(401).send("Unauthorized");
-      }
-
-      // 🔐 Verify signature
-      const hmac = crypto.createHmac("sha256", secret);
-      hmac.update(payload);
-      const digest = hmac.digest("hex");
-
-      if (digest !== signature) {
-        return res.status(401).send("Invalid signature");
-      }
-
-      const event = JSON.parse(payload.toString());
-
-      // ✅ ACK immediately (VERY IMPORTANT)
-      res.status(200).json({ received: true });
-
-      // 🔥 Async processing (NO BLOCKING)
-      handleAlchemyEvent(event);
-    } catch (err) {
-      console.error("Webhook Error:", err.message);
-      res.status(500).send("Server error");
+    if (!signature || !secret) {
+      return res.status(401).send("Unauthorized");
     }
+
+    // 🔐 Verify signature
+    const hmac = crypto.createHmac("sha256", secret);
+    hmac.update(payload);
+    const digest = hmac.digest("hex");
+
+    if (digest !== signature) {
+      return res.status(401).send("Invalid signature");
+    }
+
+    // ✅ ACK immediately (Alchemy requirement)
+    res.status(200).json({ received: true });
+
+    // 🔥 Async non-blocking processing
+    handleAlchemyEvent(payload);
   }
 );
 
 export default router;
 
 /**
- * Business logic (separate, safe)
+ * Business logic (async, safe)
  */
-async function handleAlchemyEvent(event) {
+async function handleAlchemyEvent(payload) {
   try {
+    const event = JSON.parse(payload.toString());
     if (!event?.event?.activity) return;
 
     for (const tx of event.event.activity) {
-      const valueEth = Number(tx.value || 0) / 1e18;
+      const ethValue = Number(tx.value || 0) / 1e18;
+      if (ethValue < 50) continue;
 
-      if (valueEth < 50) continue; // whale filter
-
-      console.log("🐋 Whale TX", {
-        hash: tx.hash,
-        from: tx.fromAddress,
-        to: tx.toAddress,
-        value: valueEth,
+      await processWhaleTx({
+        chain: "ETH",
+        tx: {
+          hash: tx.hash,
+          from: tx.fromAddress,
+          to: tx.toAddress,
+          value: ethValue,
+          blockNumber: tx.blockNum,
+          timestamp: tx.metadata?.blockTimestamp
+        }
       });
-
-      // TODO:
-      // - Save to MongoDB
-      // - Send Telegram
-      // - Push frontend socket
     }
   } catch (err) {
     console.error("Alchemy Event Error:", err.message);
