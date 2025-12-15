@@ -4,22 +4,18 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 const app = express();
 
-/* ---------- Middlewares ---------- */
 app.use(cors());
 
-/**
- * 🔥 VERY IMPORTANT
- * - Webhook needs RAW body
- * - JSON middleware MUST be AFTER webhook
- */
-app.use("/webhooks", webhookRoutes);
-
-// Normal APIs
+// 🔥 VERY IMPORTANT — webhook BEFORE json
+app.use("/webhooks", express.raw({ type: "application/json" }));
 app.use(express.json());
 
-/* ---------- Health ---------- */
+// Routes
+app.use("/webhooks", webhookRoutes);
+
+// Health
 app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+  res.json({ ok: true });
 });
 
 export default app;
