@@ -4,24 +4,26 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 const app = express();
 
-/* ---------- Middlewares ---------- */
 app.use(cors());
 
-// Conditional body parser
-app.use((req, res, next) => {
-  if (req.originalUrl.startsWith("/webhooks")) {
-    next(); // raw body for webhooks
-  } else {
-    express.json()(req, res, next);
-  }
-});
+/**
+ * ⚠️ VERY IMPORTANT
+ * - Webhook routes MUST get RAW body
+ * - Normal APIs get JSON
+ */
+app.use("/webhooks", express.raw({ type: "application/json" }));
+app.use(express.json());
 
 /* ---------- Webhooks ---------- */
 app.use("/webhooks", webhookRoutes);
 
 /* ---------- Health ---------- */
 app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+  res.json({
+    status: "ok",
+    service: "CrypTechKing Backend",
+    time: new Date().toISOString(),
+  });
 });
 
 /* ---------- Root ---------- */
