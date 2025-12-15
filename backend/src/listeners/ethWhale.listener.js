@@ -1,19 +1,18 @@
-// listeners/ethWhale.listener.js
 import ethWS from "../services/alchemy/eth.ws.js";
 import { ethers } from "ethers";
 import { processWhaleTx } from "../services/whale.service.js";
 
-const MIN_ETH = 50; // whale threshold
-let running = false;
+const MIN_ETH = 50;
+let started = false;
 
 export function startEthWhaleListener() {
-  if (running) return;
-  running = true;
+  if (started) return;
+  started = true;
 
   ethWS.on("block", async (blockNumber) => {
     try {
       const block = await ethWS.getBlock(blockNumber, true);
-      if (!block || !block.transactions) return;
+      if (!block?.transactions) return;
 
       for (const tx of block.transactions) {
         if (!tx.value || tx.value === 0n) continue;
@@ -31,17 +30,9 @@ export function startEthWhaleListener() {
         });
       }
     } catch (err) {
-      console.error("ETH Whale Listener Error:", err.message);
+      console.error("ETH Whale Error:", err.message);
     }
   });
 
-  ethWS._websocket?.on("error", (err) => {
-    console.error("ETH WS error:", err.message);
-  });
-
-  ethWS._websocket?.on("close", () => {
-    console.warn("ETH WS closed — waiting for restart");
-  });
-
-  console.log("🐋 ETH Whale Listener ACTIVE (block-based)");
+  console.log("🐋 ETH Whale Listener ACTIVE (STABLE)");
 }
