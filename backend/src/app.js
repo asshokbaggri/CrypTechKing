@@ -6,29 +6,16 @@ const app = express();
 
 app.use(cors());
 
-/**
- * ⚠️ VERY IMPORTANT
- * - Webhook routes MUST get RAW body
- * - Normal APIs get JSON
- */
+// IMPORTANT: raw body only for webhooks
 app.use("/webhooks", express.raw({ type: "application/json" }));
+
+// normal APIs (future)
 app.use(express.json());
 
-/* ---------- Webhooks ---------- */
 app.use("/webhooks", webhookRoutes);
 
-/* ---------- Health ---------- */
 app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    service: "CrypTechKing Backend",
-    time: new Date().toISOString(),
-  });
-});
-
-/* ---------- Root ---------- */
-app.get("/", (req, res) => {
-  res.send("🚀 CrypTechKing API running");
+  res.json({ status: "ok" });
 });
 
 export default app;
