@@ -11,6 +11,7 @@ router.post(
   "/alchemy",
   express.raw({ type: "application/json" }),
   (req, res) => {
+    console.log("🔥 WEBHOOK HIT from Alchemy");
     try {
       const signature = req.headers["x-alchemy-signature"];
       const secret = process.env.ALCHEMY_WEBHOOK_SECRET;
