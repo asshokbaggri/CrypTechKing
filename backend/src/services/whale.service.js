@@ -8,10 +8,7 @@ export async function processWhaleTx({ chain, tx, usdValue }) {
     await WhaleTx.create(data);
     console.log(`🐋 Whale TX saved → ${chain} | ${data.value}`);
   } catch (err) {
-    if (err.code === 11000) {
-      // duplicate tx → ignore silently
-      return;
-    }
+    if (err.code === 11000) return;
     console.error("❌ Whale Save Error:", err.message);
   }
 }
