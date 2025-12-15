@@ -1,17 +1,20 @@
+// services/whale.service.js
 import WhaleTx from "../models/WhaleTx.model.js";
 
-const getLatestWhales = async (limit = 20) => {
-  return WhaleTx.find()
-    .sort({ timestamp: -1 })
-    .limit(limit)
-    .lean();
-};
+export async function processWhaleTx(data) {
+  const exists = await WhaleTx.findOne({ hash: data.hash });
+  if (exists) return;
 
-const saveWhaleTx = async (tx) => {
-  return WhaleTx.create(tx);
-};
+  await WhaleTx.create({
+    chain: data.chain,
+    hash: data.hash,
+    from: data.from,
+    to: data.to,
+    value: data.value,
+    timestamp: new Date(),
+  });
 
-export default {
-  getLatestWhales,
-  saveWhaleTx,
-};
+  console.log(
+    `🐳 ${data.chain} Whale: ${data.value} → ${data.to?.slice(0, 6)}`
+  );
+}
