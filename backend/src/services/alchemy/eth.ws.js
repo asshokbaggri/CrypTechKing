@@ -1,5 +1,5 @@
 // eth.ws.js
-import { Alchemy, Network } from "alchemy-sdk";
+import { WebSocketProvider } from "ethers";
 
 export default new Alchemy({
   apiKey: process.env.ALCHEMY_ETH_WS,
