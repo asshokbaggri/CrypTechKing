@@ -1,7 +1,7 @@
-// polygon.ws.js
-import { Alchemy, Network } from "alchemy-sdk";
+import { WebSocketProvider } from "ethers";
 
-export default new Alchemy({
-  apiKey: process.env.ALCHEMY_POLYGON_WS,
-  network: Network.MATIC_MAINNET,
-});
+const provider = new WebSocketProvider(
+  process.env.ALCHEMY_POLYGON_WS
+);
+
+export default provider;
