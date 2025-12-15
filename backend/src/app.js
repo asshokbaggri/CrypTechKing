@@ -8,27 +8,27 @@ const app = express();
 app.use(cors());
 
 /**
- * IMPORTANT:
- * - Webhooks need RAW body
- * - Normal APIs need JSON
+ * IMPORTANT
+ * - Alchemy webhook = RAW BODY
+ * - Normal APIs = JSON
  */
 app.use((req, res, next) => {
-  if (req.originalUrl.startsWith("/webhooks")) {
-    next(); // raw body allowed
+  if (req.originalUrl.startsWith("/webhook")) {
+    next(); // raw body handled in route
   } else {
     express.json()(req, res, next);
   }
 });
 
-/* ---------- Webhooks ---------- */
-app.use("/webhooks", webhookRoutes);
+/* ---------- Webhook Routes ---------- */
+app.use("/webhook", webhookRoutes);
 
-/* ---------- Health Check ---------- */
+/* ---------- Health ---------- */
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
     service: "CrypTechKing Backend",
-    time: new Date().toISOString()
+    time: new Date().toISOString(),
   });
 });
 
