@@ -4,18 +4,17 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 const app = express();
 
+/**
+ * IMPORTANT: Webhook body parser
+ */
+app.use(express.json({ limit: "5mb" }));
+
 app.use(cors());
 
-// 🔥 VERY IMPORTANT — webhook BEFORE json
-app.use("/webhooks", express.raw({ type: "application/json" }));
-app.use(express.json());
-
-// Routes
 app.use("/webhooks", webhookRoutes);
 
-// Health
-app.get("/health", (req, res) => {
-  res.json({ ok: true });
+app.get("/", (req, res) => {
+  res.send("CrypTechKing Backend Live 🚀");
 });
 
 export default app;
