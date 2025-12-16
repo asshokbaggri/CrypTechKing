@@ -4,57 +4,52 @@ import { ENV } from "../config/env.js";
 
 const router = express.Router();
 
-// Raw body middleware sirf alchemy route ke liye
-router.use("/alchemy", express.raw({ type: "application/json" }));
+// Sirf alchemy webhook ke liye raw body
+router.post("/alchemy", express.raw({ type: "application/json" }), (req, res) => {
+  console.log("WEBHOOK HIT HO GAYA!");  // Yeh Deploy Logs mein dikhega
 
-router.post("/alchemy", (req, res) => {
-  const signature = req.headers["x-alchemy-signature"];
-
-  if (!signature) {
-    console.error("❌ Missing Alchemy signature");
-    return res.status(401).send("Missing signature");
-  }
-
-  const rawBody = req.body;
-
-  if (!Buffer.isBuffer(rawBody)) {
-    console.error("❌ Body is not a raw buffer!");
-    return res.status(500).send("Invalid body format");
-  }
-
-  let expectedSignature;
   try {
-    expectedSignature = crypto
-      .createHmac("sha256", ENV.ALCHEMY_WEBHOOK_SECRET)
+    const signature = req.headers["x-alchemy-signature"];
+
+    if (!signature) {
+      console.log("No signature header");
+      return res.status(401).send("No signature");
+    }
+
+    const rawBody = req.body;
+
+    if (!Buffer.isBuffer(rawBody)) {
+      console.log("Body is not Buffer:", typeof rawBody);
+      return res.status(500).send("Body not raw");
+    }
+
+    console.log("Raw body length:", rawBody.length);
+
+    const expectedSignature = crypto
+      .createHmac("sha256", ENV.ALCHEMY_WEBHOOK_SECRET.trim())
       .update(rawBody)
       .digest("hex");
-  } catch (err) {
-    console.error("❌ Error generating signature:", err);
-    return res.status(500).send("Signature generation failed");
+
+    console.log("Signature check - received:", signature);
+    console.log("Signature check - expected:", expectedSignature);
+
+    if (signature !== expectedSignature) {
+      console.log("Invalid signature");
+      return res.status(401).send("Invalid signature");
+    }
+
+    const payload = JSON.parse(rawBody.toString("utf-8"));
+
+    console.log("ALCHEMY WEBHOOK SUCCESSFULLY RECEIVED!");
+    console.log("Payload:", JSON.stringify(payload, null, 2));
+
+    return res.status(200).json({ success: true });
+
+  } catch (error) {
+    console.error("UNHANDLED ERROR IN WEBHOOK:", error.message);
+    console.error(error.stack);
+    return res.status(500).send("Internal error");
   }
-
-  if (signature !== expectedSignature) {
-    console.error("❌ Invalid Alchemy signature - possible fake request!");
-    console.log("Received signature:", signature);
-    console.log("Expected signature:", expectedSignature);
-    return res.status(401).send("Invalid signature");  // Yaha return kar ke bahar nikal jao
-  }
-
-  // Ab signature valid hai → safely parse
-  let payload;
-  try {
-    payload = JSON.parse(rawBody.toString("utf8"));
-  } catch (err) {
-    console.error("❌ Failed to parse JSON payload:", err);
-    return res.status(400).send("Invalid JSON");
-  }
-
-  console.log("✅ ALCHEMY WEBHOOK RECEIVED & VERIFIED SUCCESSFULLY!");
-  console.log(JSON.stringify(payload, null, 2));
-
-  // Yaha par apna actual logic daal dena (DB save etc.)
-
-  return res.status(200).json({ ok: true });
 });
 
 export default router;
