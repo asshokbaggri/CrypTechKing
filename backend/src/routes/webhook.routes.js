@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/alchemy", (req, res) => {
   try {
-    const signature = req.headers["x-Alchemy-signature"];
+    const signature = req.headers["X-Alchemy-Signature"];
     if (!signature) {
       console.error("❌ Missing Alchemy signature");
       return res.sendStatus(401);
