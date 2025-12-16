@@ -1,21 +1,40 @@
+// backend/src/routes/webhook.routes.js
+
 import express from "express";
+import crypto from "crypto";
 
 const router = express.Router();
 
-/**
- * Alchemy Webhook Receiver
- */
-router.post("/alchemy", async (req, res) => {
+router.post("/alchemy", (req, res) => {
   try {
-    console.log("🔥 ALCHEMY WEBHOOK HIT");
-    console.log(JSON.stringify(req.body, null, 2));
+    const signature = req.headers["x-alchemy-signature"];
+    const rawBody = req.body; // Buffer
+    const secret = process.env.ALCHEMY_WEBHOOK_SECRET;
 
-    // IMPORTANT: Always respond FAST
+    if (!signature || !secret) {
+      console.error("❌ Missing signature or secret");
+      return res.status(401).send("Unauthorized");
+    }
+
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(rawBody)
+      .digest("hex");
+
+    if (signature !== expectedSignature) {
+      console.error("❌ Signature mismatch");
+      return res.status(401).send("Invalid signature");
+    }
+
+    const payload = JSON.parse(rawBody.toString("utf8"));
+
+    console.log("🔥 ALCHEMY WEBHOOK RECEIVED");
+    console.log(JSON.stringify(payload, null, 2));
+
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error("❌ Webhook Error:", err.message);
-    return res.status(200).json({ success: false }); 
-    // 👆 STILL 200 so Alchemy stops retrying
+    console.error("❌ Webhook error:", err);
+    return res.status(500).send("Webhook error");
   }
 });
 
