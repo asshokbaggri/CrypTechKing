@@ -4,13 +4,12 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 const app = express();
 
-// ❗❗ IMPORTANT ORDER
-app.use(cors());
+// MUST BE FIRST
+app.use("/webhooks/alchemy", express.raw({ type: "application/json" }));
 
-// Normal JSON for ALL routes
+app.use(cors());
 app.use(express.json());
 
-// Routes (RAW middleware will be inside router)
 app.use("/webhooks", webhookRoutes);
 
 export default app;
