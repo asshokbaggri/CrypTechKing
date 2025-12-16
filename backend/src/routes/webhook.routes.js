@@ -7,33 +7,35 @@ const router = express.Router();
 router.post("/alchemy", (req, res) => {
   try {
     const signature = req.headers["x-alchemy-signature"];
-
     if (!signature) {
       console.error("❌ Missing Alchemy signature");
-      return res.status(200).send("OK"); // STILL 200
+      return res.sendStatus(401);
     }
 
-    const computedSignature = crypto
+    const rawBody = req.body; // Buffer (VERY IMPORTANT)
+
+    const expectedSignature = crypto
       .createHmac("sha256", ENV.ALCHEMY_WEBHOOK_SECRET)
-      .update(req.body)
+      .update(rawBody)
       .digest("hex");
 
-    if (computedSignature !== signature) {
-      console.error("❌ Invalid webhook signature");
-      return res.status(200).send("OK"); // STILL 200
+    if (signature !== expectedSignature) {
+      console.error("❌ Invalid Alchemy signature");
+      return res.sendStatus(401);
     }
 
-    const payload = JSON.parse(req.body.toString());
+    // ✅ Signature OK
+    const payload = JSON.parse(rawBody.toString());
 
     console.log("✅ Alchemy Webhook Received");
-    console.log("Event:", payload?.event?.activityType || "unknown");
+    console.log(payload?.event?.activity?.[0] || payload);
 
-    // 👉 YAHAN APNA LOGIC DAALNA (DB / alerts / whatever)
+    // 🔥 ALWAYS ACKNOWLEDGE
+    return res.sendStatus(200);
 
-    return res.status(200).send("OK");
   } catch (err) {
-    console.error("🔥 Webhook crash:", err.message);
-    return res.status(200).send("OK"); // NEVER 500
+    console.error("🔥 Webhook crash:", err);
+    return res.sendStatus(500);
   }
 });
 
