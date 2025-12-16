@@ -6,13 +6,13 @@ const app = express();
 
 app.use(cors());
 
-// ← Yeh line pehle rakhna zaroori hai (raw body ke liye)
-app.use("/webhooks/alchemy", express.raw({ type: "application/json" }));
+// ⚠️ IMPORTANT: Yeh line hata do completely
+// app.use("/webhooks/alchemy", express.raw({ type: "application/json" }));
 
-// Baaki routes ke liye normal json parsing
+// Normal json parsing baaki sab ke liye
 app.use(express.json());
 
-// Ab webhook router mount karo
+// Webhook routes mount karo
 app.use("/webhooks", webhookRoutes);
 
 export default app;
