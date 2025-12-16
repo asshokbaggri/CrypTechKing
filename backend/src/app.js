@@ -4,11 +4,10 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 const app = express();
 
-// MUST BE FIRST
-app.use("/webhooks/alchemy", express.raw({ type: "application/json" }));
-
 app.use(cors());
-app.use(express.json());
+// ❌ यहाँ से app.use("/webhooks/alchemy", express.raw({ type: "application/json" })); हटाएँ
+
+app.use(express.json()); // Global JSON parser (सिर्फ आपके बाकी API के लिए)
 
 app.use("/webhooks", webhookRoutes);
 
