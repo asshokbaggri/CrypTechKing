@@ -4,34 +4,20 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 const app = express();
 
-/* =================================================
-   ALCHEMY WEBHOOK — RAW BODY (VERY IMPORTANT)
-   MUST be BEFORE express.json()
-================================================= */
+/**
+ * ⚠️ ALCHEMY WEBHOOK
+ * RAW BODY MUST COME FIRST
+ */
 app.use(
   "/webhooks/alchemy",
-  express.raw({ type: "application/json" })
+  express.raw({ type: "*/*" })
 );
 
-/* ---------- Normal Middlewares ---------- */
+// Normal middleware (AFTER webhook)
 app.use(cors());
 app.use(express.json());
 
-/* ---------- Routes ---------- */
+// Routes
 app.use("/webhooks", webhookRoutes);
-
-/* ---------- Health Check ---------- */
-app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    service: "CrypTechKing Backend",
-    time: new Date().toISOString()
-  });
-});
-
-/* ---------- Root ---------- */
-app.get("/", (req, res) => {
-  res.send("🚀 CrypTechKing API running");
-});
 
 export default app;
