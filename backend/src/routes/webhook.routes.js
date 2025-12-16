@@ -9,29 +9,31 @@ router.post("/alchemy", (req, res) => {
     const signature = req.headers["x-alchemy-signature"];
 
     if (!signature) {
-      console.error("❌ Missing signature");
-      return res.status(400).send("Missing signature");
+      console.error("❌ Missing Alchemy signature");
+      return res.status(200).send("OK"); // STILL 200
     }
 
     const computedSignature = crypto
       .createHmac("sha256", ENV.ALCHEMY_WEBHOOK_SECRET)
       .update(req.body)
-      .digest("base64"); // 🔥 VERY IMPORTANT
+      .digest("hex");
 
     if (computedSignature !== signature) {
-      console.error("❌ Invalid signature");
-      return res.status(401).send("Invalid signature");
+      console.error("❌ Invalid webhook signature");
+      return res.status(200).send("OK"); // STILL 200
     }
 
     const payload = JSON.parse(req.body.toString());
 
-    console.log("🔥 ALCHEMY WEBHOOK RECEIVED");
-    console.log(payload);
+    console.log("✅ Alchemy Webhook Received");
+    console.log("Event:", payload?.event?.activityType || "unknown");
 
-    return res.status(200).json({ success: true });
+    // 👉 YAHAN APNA LOGIC DAALNA (DB / alerts / whatever)
+
+    return res.status(200).send("OK");
   } catch (err) {
-    console.error("❌ Webhook error:", err);
-    return res.status(500).send("Webhook failed");
+    console.error("🔥 Webhook crash:", err.message);
+    return res.status(200).send("OK"); // NEVER 500
   }
 });
 
