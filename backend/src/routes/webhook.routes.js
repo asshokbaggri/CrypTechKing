@@ -6,44 +6,41 @@ const router = express.Router();
 
 router.post("/alchemy", (req, res) => {
   try {
-    const signature = req.headers["x-alchemy-signature"];
+    if (!ENV.ALCHEMY_WEBHOOK_SECRET) {
+      console.error("❌ ALCHEMY_WEBHOOK_SECRET missing");
+      return res.sendStatus(500);
+    }
 
+    const signature = req.headers["x-alchemy-signature"];
     if (!signature) {
       console.error("❌ Missing Alchemy signature");
       return res.sendStatus(401);
     }
 
-    if (!ENV.ALCHEMY_WEBHOOK_SECRET) {
-      console.error("❌ Missing ALCHEMY_WEBHOOK_SECRET");
-      return res.sendStatus(500);
-    }
-
     const rawBody = req.body; // Buffer
 
-    // ✅ ALCHEMY USES BASE64 (NOT HEX)
-    const expectedSignature = crypto
+    const expected = crypto
       .createHmac("sha256", ENV.ALCHEMY_WEBHOOK_SECRET)
       .update(rawBody)
-      .digest("base64");
+      .digest("hex");
 
-    if (signature !== expectedSignature) {
+    if (!crypto.timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expected)
+    )) {
       console.error("❌ Invalid Alchemy signature");
-      console.log("Expected:", expectedSignature);
-      console.log("Received:", signature);
       return res.sendStatus(401);
     }
 
-    // ✅ Signature OK
     const payload = JSON.parse(rawBody.toString());
 
-    console.log("✅ Alchemy Webhook Received");
+    console.log("✅ Alchemy webhook OK");
     console.log(payload?.event?.activity?.[0] || payload);
 
-    // 🔥 ALWAYS ACKNOWLEDGE FAST
     return res.sendStatus(200);
 
   } catch (err) {
-    console.error("🔥 Webhook crash:", err);
+    console.error("🔥 Webhook error:", err);
     return res.sendStatus(500);
   }
 });
