@@ -9,7 +9,8 @@ async function startServer() {
     await connectDB();
     console.log("✅ MongoDB connected");
 
-    app.listen(PORT, () => {
+    // ← YE CHANGE: '0.0.0.0' add kar do (all interfaces par listen karega)
+    app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   } catch (err) {
