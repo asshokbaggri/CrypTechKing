@@ -4,16 +4,20 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 const app = express();
 
-/* 🔥 ALCHEMY WEBHOOK — RAW BODY ONLY */
-app.use(
-  "/webhooks/alchemy",
-  express.raw({ type: "application/json" })
-);
-
-// normal APIs
 app.use(cors());
-app.use(express.json());
 
+// 🔥 FIX: Global middleware jo sirf non-webhook routes ke liye JSON parse karega
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith("/webhooks")) {
+    // Webhook route hai? Toh skip karo, isse webhook.routes handle karega
+    next();
+  } else {
+    // Normal API hai? Toh JSON parse karo
+    express.json()(req, res, next);
+  }
+});
+
+// Routes mount karna
 app.use("/webhooks", webhookRoutes);
 
 export default app;
