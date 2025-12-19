@@ -4,19 +4,20 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 const app = express();
 
-/**
- * ❗ VERY IMPORTANT
- * Raw body ONLY for Alchemy
- */
-app.post(
-  "/webhooks/alchemy",
-  express.raw({ type: "*/*" })
+app.use(cors());
+
+// Global JSON parser with raw body save (Alchemy official way)
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      // Save raw body as string for signature verification
+      req.alchemyRawBody = buf.toString("utf8");
+    },
+    type: "application/json",
+  })
 );
 
-// ❗ JSON middleware AFTER webhook
-app.use(cors());
-app.use(express.json());
-
+// Mount webhook routes
 app.use("/webhooks", webhookRoutes);
 
 export default app;
