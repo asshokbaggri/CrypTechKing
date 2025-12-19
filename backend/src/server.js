@@ -9,7 +9,7 @@ async function startServer() {
     await connectDB();
     console.log("✅ MongoDB connected");
 
-    // ← YE CHANGE: '0.0.0.0' add kar do (all interfaces par listen karega)
+    // ← YEH CHANGE: "0.0.0.0" add kiya
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
@@ -21,9 +21,6 @@ async function startServer() {
 
 startServer();
 
-/* ================================
-   Graceful shutdown (CRITICAL)
-================================ */
 process.on("SIGTERM", () => {
   console.log("🛑 SIGTERM received. Shutting down gracefully...");
   process.exit(0);
