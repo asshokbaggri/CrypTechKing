@@ -4,16 +4,18 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 const app = express();
 
-app.use(cors());
+/**
+ * ❗ VERY IMPORTANT
+ * Raw body ONLY for Alchemy
+ */
+app.post(
+  "/webhooks/alchemy",
+  express.raw({ type: "*/*" })
+);
 
-// 🔥 FIX: Webhook routes ko JSON parser se bachao
-app.use((req, res, next) => {
-  if (req.originalUrl.startsWith("/webhooks")) {
-    next(); // Webhook hai toh seedha aage bhejo
-  } else {
-    express.json()(req, res, next); // Baki sab ke liye JSON parse karo
-  }
-});
+// ❗ JSON middleware AFTER webhook
+app.use(cors());
+app.use(express.json());
 
 app.use("/webhooks", webhookRoutes);
 
