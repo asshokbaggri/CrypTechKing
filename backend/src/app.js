@@ -6,12 +6,12 @@ const app = express();
 
 app.use(cors());
 
-// 🔥 Step 1: Webhook ke liye JSON parser ko bypass karo
+// 🔥 FIX: Webhook routes ko JSON parser se bachao
 app.use((req, res, next) => {
   if (req.originalUrl.startsWith("/webhooks")) {
-    next();
+    next(); // Webhook hai toh seedha aage bhejo
   } else {
-    express.json()(req, res, next);
+    express.json()(req, res, next); // Baki sab ke liye JSON parse karo
   }
 });
 
