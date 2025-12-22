@@ -1,6 +1,6 @@
-import HalvingCountdown from "../components/HalvingCountdown";
-import HalvingStats from "../components/HalvingStats";
-import { getHalvingData } from "../lib/bitcoin";
+import HalvingCountdown from "./components/HalvingCountdown";
+import HalvingStats from "./components/HalvingStats";
+import { getHalvingData } from "./lib/bitcoin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,6 @@ export default async function Page() {
       <p>Live blockchain-powered halving tracker</p>
 
       <HalvingCountdown seconds={data.secondsLeft} />
-
       <HalvingStats
         currentBlock={data.currentBlock}
         blocksLeft={data.blocksLeft}
