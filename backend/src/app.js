@@ -5,24 +5,28 @@ import { ENV } from "./config/env.js";
 const app = express();
 
 /* ============================
-   ALCHEMY WEBHOOK (CRITICAL)
+   ALCHEMY WEBHOOK (FINAL)
    ============================ */
 app.post(
   "/webhooks/alchemy",
   express.raw({
-    type: "application/json",
-    verify: (req, res, buf) => {
-      req.rawBody = buf; // 💥 THIS IS THE KEY
-    },
+    type: "*/*",          // 🔥 IMPORTANT (NOT application/json)
+    limit: "2mb",
+    inflate: true,        // gzip support
   }),
   (req, res) => {
     try {
+      console.log("🔥 WEBHOOK HIT"); // <-- MUST APPEAR
+
       const signature = req.headers["x-alchemy-signature"];
-      if (!signature) return res.sendStatus(401);
+      if (!signature) {
+        console.error("❌ Missing signature");
+        return res.sendStatus(401);
+      }
 
       const expectedSignature = crypto
         .createHmac("sha256", ENV.ALCHEMY_WEBHOOK_SECRET)
-        .update(req.rawBody)
+        .update(req.body)
         .digest("hex");
 
       if (signature !== expectedSignature) {
@@ -30,21 +34,21 @@ app.post(
         return res.sendStatus(401);
       }
 
-      const payload = JSON.parse(req.rawBody.toString());
+      const payload = JSON.parse(req.body.toString());
 
-      console.log("✅ ALCHEMY WEBHOOK VERIFIED");
+      console.log("✅ ALCHEMY VERIFIED");
       console.log(payload?.event?.activity?.[0] || payload);
 
       return res.sendStatus(200);
     } catch (err) {
-      console.error("🔥 Webhook crash:", err);
+      console.error("🔥 WEBHOOK ERROR:", err);
       return res.sendStatus(500);
     }
   }
 );
 
 /* ============================
-   NORMAL APIs (AFTER)
+   NORMAL APIs
    ============================ */
 app.use(express.json());
 
