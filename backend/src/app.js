@@ -4,17 +4,18 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 const app = express();
 
-/* 🔥 ALCHEMY WEBHOOK — RAW BODY (ALL CONTENT TYPES) */
+/* 🔥 CAPTURE RAW BODY FOR ALCHEMY */
 app.use(
-  "/webhooks/alchemy",
-  express.raw({
-    type: "*/*" // 🔥 THIS IS THE FIX
+  express.json({
+    verify: (req, res, buf) => {
+      if (req.originalUrl === "/webhooks/alchemy") {
+        req.rawBody = buf; // 👈 THIS IS THE KEY
+      }
+    }
   })
 );
 
-// normal APIs
 app.use(cors());
-app.use(express.json());
 
 app.use("/webhooks", webhookRoutes);
 
