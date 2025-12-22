@@ -6,21 +6,36 @@ export default function HalvingCountdown({ seconds }: { seconds: number }) {
   const [time, setTime] = useState(seconds);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(t => t - 1);
+    const i = setInterval(() => {
+      setTime(t => (t > 0 ? t - 1 : 0));
     }, 1000);
-    return () => clearInterval(interval);
+    return () => clearInterval(i);
   }, []);
 
-  const d = Math.floor(time / 86400);
-  const h = Math.floor((time % 86400) / 3600);
-  const m = Math.floor((time % 3600) / 60);
-  const s = time % 60;
+  const days = Math.floor(time / 86400);
+  const hours = Math.floor((time % 86400) / 3600);
+  const minutes = Math.floor((time % 3600) / 60);
+  const secs = time % 60;
 
   return (
-    <div className="card">
+    <div className="card hero">
       <h2>⏳ Bitcoin Halving Countdown</h2>
-      <h1>{d}d {h}h {m}m {s}s</h1>
+
+      <div className="timer">
+        <TimeBox label="Days" value={days} />
+        <TimeBox label="Hours" value={hours} />
+        <TimeBox label="Min" value={minutes} />
+        <TimeBox label="Sec" value={secs} />
+      </div>
+    </div>
+  );
+}
+
+function TimeBox({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="time-box">
+      <div className="time">{String(value).padStart(2, "0")}</div>
+      <div className="label">{label}</div>
     </div>
   );
 }
