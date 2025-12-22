@@ -16,6 +16,7 @@ export default async function Page() {
       <HalvingStats
         currentBlock={data.currentBlock}
         blocksLeft={data.blocksLeft}
+        secondsLeft={data.secondsLeft}
       />
     </main>
   );
