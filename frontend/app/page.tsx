@@ -1,6 +1,6 @@
-import HalvingCountdown from "@/components/HalvingCountdown";
-import HalvingStats from "@/components/HalvingStats";
-import { getHalvingData } from "@/lib/bitcoin";
+import HalvingCountdown from "../components/HalvingCountdown";
+import HalvingStats from "../components/HalvingStats";
+import { getHalvingData } from "../lib/bitcoin";
 
 export const dynamic = "force-dynamic";
 
