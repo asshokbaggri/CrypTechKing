@@ -6,12 +6,14 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
   background: #0b0f14;
   color: #e5e7eb;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
+  line-height: 1.45;
 }
 
 /* =========================================================
@@ -21,95 +23,52 @@ body {
 .page {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 24px 16px 64px;
+  padding: 32px 20px 80px;
 }
 
 /* =========================================================
-   TYPOGRAPHY
-========================================================= */
-
-h1 {
-  font-size: 32px;
-  font-weight: 700;
-  margin: 0 0 6px;
-}
-
-h2 {
-  font-size: 22px;
-  font-weight: 600;
-  margin: 0 0 12px;
-}
-
-h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 8px;
-}
-
-p {
-  margin: 0 0 12px;
-  color: #9ca3af;
-  line-height: 1.55;
-}
-
-/* =========================================================
-   ZONES (LAYOUT ARCHITECTURE)
+   ZONES (STRUCTURE)
 ========================================================= */
 
 .zone {
-  margin-top: 48px;
+  margin-bottom: 64px;
 }
-
-.zone-command {
-  margin-top: 0;
-}
-
-.zone-context,
-.zone-reference {
-  border-top: 1px solid #1f2937;
-  padding-top: 40px;
-}
-
-/* =========================================================
-   ZONE HEADER
-========================================================= */
 
 .zone-header {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+}
+
+.zone-header h1 {
+  font-size: 34px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
 }
 
 .zone-header p {
-  font-size: 15px;
+  margin: 0;
   color: #9ca3af;
+  font-size: 15px;
 }
 
 /* =========================================================
-   COMMAND CENTER STRIP
+   COMMAND CENTER
 ========================================================= */
+
+.zone-command {
+  margin-bottom: 72px;
+}
 
 .control-strip {
   display: grid;
   gap: 20px;
 }
 
-/* Desktop: Countdown big + side panels */
-@media (min-width: 1024px) {
+/* Desktop layout */
+@media (min-width: 1100px) {
   .control-strip {
-    grid-template-columns: 2.2fr 1fr 1fr;
+    grid-template-columns: 1.4fr 1fr 1fr;
     align-items: stretch;
   }
-}
-
-/* =========================================================
-   CONTROL BLOCKS
-========================================================= */
-
-.control-primary {
-  display: flex;
-}
-
-.control-secondary {
-  display: flex;
 }
 
 /* =========================================================
@@ -120,8 +79,13 @@ p {
   background: #111827;
   border: 1px solid #1f2937;
   border-radius: 10px;
-  padding: 16px;
-  width: 100%;
+  padding: 18px;
+}
+
+.card h2,
+.card h3 {
+  margin: 0 0 12px 0;
+  font-weight: 600;
 }
 
 /* =========================================================
@@ -131,7 +95,7 @@ p {
 .timer {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 12px;
   margin-top: 14px;
 }
 
@@ -150,20 +114,14 @@ p {
 }
 
 .label {
+  margin-top: 4px;
   font-size: 11px;
   color: #9ca3af;
-  margin-top: 4px;
-}
-
-/* Mobile: countdown slightly tighter */
-@media (max-width: 480px) {
-  .time {
-    font-size: 22px;
-  }
+  letter-spacing: 0.4px;
 }
 
 /* =========================================================
-   STATS / PROGRESS
+   STATS + PROGRESS
 ========================================================= */
 
 .progress-wrap {
@@ -190,31 +148,6 @@ p {
 }
 
 /* =========================================================
-   CONTENT SECTIONS
-========================================================= */
-
-.context-block,
-.reference-block {
-  max-width: 960px;
-  margin-bottom: 40px;
-}
-
-/* =========================================================
-   GRID (INFO / MARKET)
-========================================================= */
-
-.grid {
-  display: grid;
-  gap: 14px;
-}
-
-@media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* =========================================================
    MARKET STATS
 ========================================================= */
 
@@ -232,14 +165,44 @@ p {
   color: #ef4444;
 }
 
-.note {
-  font-size: 12px;
-  color: #9ca3af;
-  margin-top: 8px;
+/* =========================================================
+   CONTENT ZONES (TEXT SECTIONS)
+========================================================= */
+
+.zone-context,
+.zone-reference {
+  border-top: 1px solid #1f2937;
+  padding-top: 40px;
+}
+
+.context-block,
+.reference-block {
+  margin-bottom: 40px;
+}
+
+.context-block h2,
+.reference-block h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
 }
 
 /* =========================================================
-   TABLE (HISTORY)
+   INFO GRID (INTRO / WHY)
+========================================================= */
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* =========================================================
+   TABLE (HALVING HISTORY)
 ========================================================= */
 
 .table-wrap {
@@ -254,36 +217,47 @@ table {
 
 th {
   text-align: left;
-  padding: 10px;
+  padding: 12px;
   color: #9ca3af;
   border-bottom: 1px solid #1f2937;
 }
 
 td {
-  padding: 10px;
+  padding: 12px;
   border-bottom: 1px solid #1f2937;
   color: #e5e7eb;
 }
 
 /* =========================================================
-   MOBILE POLISH
+   FAQ
+========================================================= */
+
+.note {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+/* =========================================================
+   MOBILE REFINEMENTS
 ========================================================= */
 
 @media (max-width: 768px) {
-  h1 {
+
+  .zone-header h1 {
     font-size: 26px;
   }
 
-  h2 {
+  .timer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .big {
     font-size: 20px;
   }
 
-  .zone {
-    margin-top: 36px;
+  .card {
+    padding: 16px;
   }
 
-  .context-block,
-  .reference-block {
-    margin-bottom: 32px;
-  }
 }
