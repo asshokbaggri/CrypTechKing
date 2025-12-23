@@ -2,8 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* -------- Global Theme -------- */
+:root {
+  --bg: #0b0f14;
+  --card: #121821;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #16c784; /* green */
+}
+
+html,
 body {
-  background-color: #0b0f14;
-  color: #e5e7eb;
+  background-color: var(--bg);
+  color: var(--text);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* -------- Helpers -------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.accent {
+  color: var(--accent);
 }
