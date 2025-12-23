@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { calculateHalving } from "../../../../lib/halving";
+import { calculateHalving } from "@/lib/halving";
 
 export const revalidate = 15;
 
