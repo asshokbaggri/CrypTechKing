@@ -14,7 +14,7 @@ export default async function StatCards() {
   ).toDateString();
 
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       <Card title="Predicted Date" value={estimatedDate} />
       <Card title="Blocks Remaining" value={data.remainingBlocks.toLocaleString()} />
       <Card title="Seconds Remaining" value={data.remainingSeconds.toLocaleString()} />
@@ -25,8 +25,8 @@ export default async function StatCards() {
 
 function Card({ title, value }: { title: string; value: string }) {
   return (
-    <div className="bg-[#121821] p-5 rounded-xl">
-      <p className="text-sm text-gray-400 mb-1">{title}</p>
+    <div className="card p-5">
+      <p className="text-sm muted mb-1">{title}</p>
       <p className="text-xl font-semibold">{value}</p>
     </div>
   );
