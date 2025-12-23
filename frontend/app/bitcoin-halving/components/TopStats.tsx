@@ -1,20 +1,31 @@
-async function getData() {
-  const res = await fetch("/api/halving", { cache: "no-store" });
-  return res.json();
-}
+"use client";
+import { useEffect, useState } from "react";
 
-export default async function TopStats() {
-  const d = await getData();
+type Data = {
+  remainingBlocks: number;
+  remainingSeconds: number;
+};
+
+export default function TopStats() {
+  const [data, setData] = useState<Data | null>(null);
+
+  useEffect(() => {
+    fetch("/api/halving")
+      .then((r) => r.json())
+      .then(setData);
+  }, []);
+
+  if (!data) return null;
 
   const date = new Date(
-    Date.now() + d.remainingSeconds * 1000
+    Date.now() + data.remainingSeconds * 1000
   ).toDateString();
 
   return (
     <section className="section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Stat title="Predicted Date" value={date} />
-      <Stat title="Blocks Remaining" value={d.remainingBlocks.toLocaleString()} />
-      <Stat title="Seconds Remaining" value={d.remainingSeconds.toLocaleString()} />
+      <Stat title="Blocks Remaining" value={data.remainingBlocks.toLocaleString()} />
+      <Stat title="Seconds Remaining" value={data.remainingSeconds.toLocaleString()} />
       <Stat title="Target Block" value="1,050,000" />
     </section>
   );
