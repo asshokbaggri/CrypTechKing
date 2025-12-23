@@ -8,28 +8,22 @@ type CountdownData = {
 export default function Countdown() {
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
 
-  // fetch once from server
   useEffect(() => {
     fetch("/api/halving")
       .then((res) => res.json())
-      .then((data: CountdownData) => {
-        setSecondsLeft(data.remainingSeconds);
-      });
+      .then((data: CountdownData) => setSecondsLeft(data.remainingSeconds));
   }, []);
 
-  // local ticking (derived, not fetched)
   useEffect(() => {
     if (secondsLeft === null) return;
-
-    const timer = setInterval(() => {
-      setSecondsLeft((prev) => (prev && prev > 0 ? prev - 1 : 0));
+    const t = setInterval(() => {
+      setSecondsLeft((p) => (p && p > 0 ? p - 1 : 0));
     }, 1000);
-
-    return () => clearInterval(timer);
+    return () => clearInterval(t);
   }, [secondsLeft]);
 
   if (secondsLeft === null) {
-    return <div className="opacity-70">Loading countdown...</div>;
+    return <div className="muted text-center">Loading countdown…</div>;
   }
 
   const days = Math.floor(secondsLeft / 86400);
@@ -38,10 +32,10 @@ export default function Countdown() {
   const seconds = secondsLeft % 60;
 
   return (
-    <section className="bg-[#121821] rounded-xl p-6 text-center mb-12">
-      <h2 className="text-gray-400 mb-4">Estimated Time Remaining</h2>
+    <section className="card p-8 text-center">
+      <h2 className="muted mb-6">Estimated Time Remaining</h2>
 
-      <div className="grid grid-cols-4 gap-4 text-3xl font-bold">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-4xl font-bold">
         <TimeBox label="Days" value={days} />
         <TimeBox label="Hours" value={hours} />
         <TimeBox label="Minutes" value={minutes} />
@@ -51,12 +45,11 @@ export default function Countdown() {
   );
 }
 
-/* 👇 Helper component (OUTSIDE Countdown) */
 function TimeBox({ label, value }: { label: string; value: number }) {
   return (
     <div>
       <div>{value}</div>
-      <div className="text-sm text-gray-400 font-normal">{label}</div>
+      <div className="text-sm muted font-normal">{label}</div>
     </div>
   );
 }
