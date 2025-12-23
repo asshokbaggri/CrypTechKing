@@ -1,4 +1,7 @@
-export const metadata = {
+import type { Metadata } from "next";
+import "./globals.css";
+
+export const metadata: Metadata = {
   title: "Bitcoin Halving Countdown 2028 | CrypTechKing",
   description:
     "Live Bitcoin halving countdown with real-time blockchain data, market stats, and historical insights.",
@@ -6,16 +9,7 @@ export const metadata = {
     title: "Bitcoin Halving Countdown 2028",
     description:
       "Track the next Bitcoin halving with live countdown, price data, and halving history.",
-    url: "https://cryptechking.vercel.app",
-    siteName: "CrypTechKing",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "Bitcoin Halving Countdown"
-      }
-    ],
+    images: ["/og.png"],
     type: "website"
   },
   twitter: {
@@ -26,3 +20,15 @@ export const metadata = {
     images: ["/og.png"]
   }
 };
+
+export default function RootLayout({
+  children
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
