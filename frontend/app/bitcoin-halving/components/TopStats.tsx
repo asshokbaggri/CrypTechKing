@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import BTCPriceLive from "./BTCPriceLive";
 
 type Data = {
   remainingBlocks: number;
@@ -22,20 +23,23 @@ export default function TopStats() {
   ).toDateString();
 
   return (
-    <section className="section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <section className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       <Stat title="Predicted Date" value={date} />
+      <Stat title="Est. Time Remaining" value={`${Math.floor(data.remainingSeconds / 86400)} Days`} />
       <Stat title="Blocks Remaining" value={data.remainingBlocks.toLocaleString()} />
-      <Stat title="Seconds Remaining" value={data.remainingSeconds.toLocaleString()} />
-      <Stat title="Target Block" value="1,050,000" />
+      <div className="card p-6 text-center">
+        <p className="text-xs text-gray-400 mb-2">Bitcoin Price</p>
+        <BTCPriceLive />
+      </div>
     </section>
   );
 }
 
 function Stat({ title, value }: { title: string; value: string }) {
   return (
-    <div className="card p-5 text-center">
-      <p className="text-xs text-gray-400 mb-1">{title}</p>
-      <p className="text-xl font-semibold text-green-400">{value}</p>
+    <div className="card p-6 text-center">
+      <p className="text-xs text-gray-400 mb-2">{title}</p>
+      <p className="text-2xl font-semibold text-green-400">{value}</p>
     </div>
   );
 }
