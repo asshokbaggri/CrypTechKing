@@ -15,25 +15,52 @@ export default async function Page() {
   const data = await getHalvingData();
 
   return (
-    <main style={{ padding: "40px", maxWidth: 900, margin: "auto" }}>
-      <h1>🚀 Bitcoin Halving Countdown</h1>
-      <p>Live blockchain-powered halving tracker</p>
+    <main className="page">
 
-      <HalvingCountdown seconds={data.secondsLeft} />
+      {/* ================= HERO DASHBOARD ================= */}
+      <section className="hero-grid">
 
-      <HalvingStats
-        currentBlock={data.currentBlock}
-        blocksLeft={data.blocksLeft}
-        secondsLeft={data.secondsLeft}
-      />
+        {/* LEFT : Countdown */}
+        <div className="hero-left">
+          <h1>🚀 Bitcoin Halving Countdown</h1>
+          <p>Live blockchain-powered halving tracker</p>
 
-      {/* Phase 2 sections */}
-      <HalvingIntro />
-      <HalvingWhy />
-      <HalvingHistory />
-      <BitcoinMarket />
-      <HalvingFAQ />
+          <HalvingCountdown seconds={data.secondsLeft} />
+        </div>
+
+        {/* RIGHT : Stats + Market */}
+        <div className="hero-right">
+          <HalvingStats
+            currentBlock={data.currentBlock}
+            blocksLeft={data.blocksLeft}
+            secondsLeft={data.secondsLeft}
+          />
+
+          <BitcoinMarket />
+        </div>
+
+      </section>
+
+      {/* ================= CONTENT SECTIONS ================= */}
+      <section className="section">
+        <HalvingIntro />
+      </section>
+
+      <section className="section">
+        <HalvingWhy />
+      </section>
+
+      <section className="section">
+        <HalvingHistory />
+      </section>
+
+      <section className="section">
+        <HalvingFAQ />
+      </section>
+
+      {/* SEO only */}
       <FAQSchema />
+
     </main>
   );
 }
