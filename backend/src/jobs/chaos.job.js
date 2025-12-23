@@ -1,12 +1,15 @@
 import checkWhales from '../services/whale.service.js';
+import checkVolumeSpike from '../services/volume.service.js';
 import analyzeWithAI from '../ai/interpreter.js';
 import postToX from '../services/twitter.service.js';
 
 export default async function runChaosJob() {
-  const whaleEvent = await checkWhales();
-  if (!whaleEvent) return;
+  const whale = await checkWhales();
+  const volume = await checkVolumeSpike();
 
-  const aiInsight = await analyzeWithAI(whaleEvent);
+  const event = whale || volume;
+  if (!event) return;
 
-  await postToX(aiInsight);
+  const insight = await analyzeWithAI(event);
+  await postToX(insight);
 }
