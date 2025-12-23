@@ -7,7 +7,7 @@ import FAQ from "./components/FAQ";
 
 export default function Page() {
   return (
-    <main className="p-6 max-w-7xl mx-auto">
+    <main className="max-w-7xl mx-auto px-4 md:px-6 py-10 space-y-14">
       <Hero />
       <BTCPriceLive />
       <StatCards />
