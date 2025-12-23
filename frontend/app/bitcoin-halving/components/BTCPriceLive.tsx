@@ -18,11 +18,12 @@ export default function BTCPriceLive() {
   }, []);
 
   return (
-    <div className="text-center">
-      <p className="text-sm text-gray-400 mb-2">Bitcoin Price</p>
-      <p className="text-4xl font-semibold text-green-400">
-        ${price?.toLocaleString()} <span className="text-sm">● Live</span>
+    <section className="text-center">
+      <p className="text-sm muted mb-2">Bitcoin Price</p>
+      <p className="text-4xl md:text-5xl font-semibold accent">
+        ${price?.toLocaleString() ?? "..."}{" "}
+        <span className="text-sm font-normal">● Live</span>
       </p>
-    </div>
+    </section>
   );
 }
