@@ -2,28 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-/* -------- Global Theme -------- */
+/* =======================
+   GLOBAL THEME
+======================= */
 :root {
   --bg: #0b0f14;
   --card: #121821;
+  --card-2: #0f141c;
   --border: rgba(255, 255, 255, 0.08);
   --text: #e5e7eb;
   --muted: #9ca3af;
-  --accent: #16c784; /* green */
+  --accent: #16c784;
 }
 
 html,
 body {
-  background-color: var(--bg);
+  background: radial-gradient(
+    1200px 600px at 50% -200px,
+    #1a2230 0%,
+    var(--bg) 60%
+  );
   color: var(--text);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* -------- Helpers -------- */
+/* =======================
+   HELPERS
+======================= */
 .card {
-  background: var(--card);
+  background: linear-gradient(180deg, var(--card), var(--card-2));
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
 }
 
 .muted {
