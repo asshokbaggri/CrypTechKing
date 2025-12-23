@@ -49,13 +49,14 @@ export default function Countdown() {
       </div>
     </section>
   );
+}
 
-  function TimeBox({ label, value }: { label: string; value: number }) {
-    return (
-      <div>
-        <div>{value}</div>
-        <div className="text-sm text-gray-400 font-normal">{label}</div>
-      </div>
-    );
-  }
-
+/* 👇 Helper component (OUTSIDE Countdown) */
+function TimeBox({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <div>{value}</div>
+      <div className="text-sm text-gray-400 font-normal">{label}</div>
+    </div>
+  );
+}
