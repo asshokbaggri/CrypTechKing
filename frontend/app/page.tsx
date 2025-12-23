@@ -6,6 +6,8 @@ import HalvingIntro from "./components/HalvingIntro";
 import HalvingWhy from "./components/HalvingWhy";
 import HalvingHistory from "./components/HalvingHistory";
 import BitcoinMarket from "./components/BitcoinMarket";
+import HalvingFAQ from "./components/HalvingFAQ";
+import FAQSchema from "./components/FAQSchema";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +32,8 @@ export default async function Page() {
       <HalvingWhy />
       <HalvingHistory />
       <BitcoinMarket />
+      <HalvingFAQ />
+      <FAQSchema />
     </main>
   );
 }
