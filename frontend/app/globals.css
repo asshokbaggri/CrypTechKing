@@ -1,6 +1,6 @@
-/* ===============================
+/* =========================================================
    RESET & BASE
-================================ */
+========================================================= */
 
 * {
   box-sizing: border-box;
@@ -14,107 +14,137 @@ body {
   font-size: 14px;
 }
 
-/* ===============================
+/* =========================================================
    PAGE WRAPPER
-================================ */
+========================================================= */
 
 .page {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 28px 20px 60px;
+  padding: 24px 16px 64px;
 }
 
-/* ===============================
-   HEADINGS & TEXT
-================================ */
+/* =========================================================
+   TYPOGRAPHY
+========================================================= */
 
 h1 {
   font-size: 32px;
   font-weight: 700;
-  margin: 0 0 6px 0;
+  margin: 0 0 6px;
 }
 
 h2 {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
-  margin: 0 0 14px 0;
+  margin: 0 0 12px;
 }
 
 h3 {
   font-size: 16px;
   font-weight: 600;
-  margin: 0 0 8px 0;
+  margin: 0 0 8px;
 }
 
 p {
-  margin: 0 0 12px 0;
+  margin: 0 0 12px;
   color: #9ca3af;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-/* ===============================
-   HERO DASHBOARD GRID
-================================ */
+/* =========================================================
+   ZONES (LAYOUT ARCHITECTURE)
+========================================================= */
 
-.hero-grid {
+.zone {
+  margin-top: 48px;
+}
+
+.zone-command {
+  margin-top: 0;
+}
+
+.zone-context,
+.zone-reference {
+  border-top: 1px solid #1f2937;
+  padding-top: 40px;
+}
+
+/* =========================================================
+   ZONE HEADER
+========================================================= */
+
+.zone-header {
+  margin-bottom: 24px;
+}
+
+.zone-header p {
+  font-size: 15px;
+  color: #9ca3af;
+}
+
+/* =========================================================
+   COMMAND CENTER STRIP
+========================================================= */
+
+.control-strip {
   display: grid;
   gap: 20px;
-  margin-bottom: 40px;
 }
 
-@media (min-width: 900px) {
-  .hero-grid {
-    grid-template-columns: 1.4fr 1fr;
+/* Desktop: Countdown big + side panels */
+@media (min-width: 1024px) {
+  .control-strip {
+    grid-template-columns: 2.2fr 1fr 1fr;
+    align-items: stretch;
   }
 }
 
-.hero-left {
+/* =========================================================
+   CONTROL BLOCKS
+========================================================= */
+
+.control-primary {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
 }
 
-.hero-right {
-  display: grid;
-  gap: 14px;
+.control-secondary {
+  display: flex;
 }
 
-/* ===============================
+/* =========================================================
    CARDS (CORE UI)
-================================ */
+========================================================= */
 
 .card {
   background: #111827;
   border: 1px solid #1f2937;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 16px;
+  width: 100%;
 }
 
-.card h3 {
-  margin-bottom: 10px;
-}
-
-/* ===============================
+/* =========================================================
    COUNTDOWN TIMER
-================================ */
+========================================================= */
 
 .timer {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .time-box {
   background: #0b1220;
   border: 1px solid #1f2937;
-  border-radius: 6px;
-  padding: 12px 6px;
+  border-radius: 8px;
+  padding: 14px 6px;
   text-align: center;
 }
 
 .time {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
   color: #f9fafb;
 }
@@ -122,15 +152,22 @@ p {
 .label {
   font-size: 11px;
   color: #9ca3af;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
-/* ===============================
+/* Mobile: countdown slightly tighter */
+@media (max-width: 480px) {
+  .time {
+    font-size: 22px;
+  }
+}
+
+/* =========================================================
    STATS / PROGRESS
-================================ */
+========================================================= */
 
 .progress-wrap {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .progress-label {
@@ -152,19 +189,19 @@ p {
   background: #f7931a;
 }
 
-/* ===============================
-   SECTIONS (CONTENT)
-================================ */
+/* =========================================================
+   CONTENT SECTIONS
+========================================================= */
 
-.section {
-  margin-top: 48px;
-  padding-top: 24px;
-  border-top: 1px solid #1f2937;
+.context-block,
+.reference-block {
+  max-width: 960px;
+  margin-bottom: 40px;
 }
 
-/* ===============================
-   GRID (INFO CARDS)
-================================ */
+/* =========================================================
+   GRID (INFO / MARKET)
+========================================================= */
 
 .grid {
   display: grid;
@@ -177,9 +214,33 @@ p {
   }
 }
 
-/* ===============================
+/* =========================================================
+   MARKET STATS
+========================================================= */
+
+.big {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f9fafb;
+}
+
+.green {
+  color: #22c55e;
+}
+
+.red {
+  color: #ef4444;
+}
+
+.note {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+/* =========================================================
    TABLE (HISTORY)
-================================ */
+========================================================= */
 
 .table-wrap {
   overflow-x: auto;
@@ -204,31 +265,25 @@ td {
   color: #e5e7eb;
 }
 
-/* ===============================
-   MARKET STATS
-================================ */
+/* =========================================================
+   MOBILE POLISH
+========================================================= */
 
-.big {
-  font-size: 22px;
-  font-weight: 700;
-  color: #f9fafb;
+@media (max-width: 768px) {
+  h1 {
+    font-size: 26px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  .zone {
+    margin-top: 36px;
+  }
+
+  .context-block,
+  .reference-block {
+    margin-bottom: 32px;
+  }
 }
-
-.green {
-  color: #22c55e;
-}
-
-.red {
-  color: #ef4444;
-}
-
-/* ===============================
-   FAQ
-================================ */
-
-.note {
-  font-size: 12px;
-  color: #9ca3af;
-  margin-top: 8px;
-}
-
