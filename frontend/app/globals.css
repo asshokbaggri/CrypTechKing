@@ -1,5 +1,5 @@
 /* ===============================
-   GLOBAL
+   RESET & BASE
 ================================ */
 
 * {
@@ -8,167 +8,167 @@
 
 body {
   margin: 0;
-  background:
-    radial-gradient(1200px circle at top, rgba(247,147,26,0.12), transparent 60%),
-    linear-gradient(180deg, #0b0b0f, #07080f);
-  color: #fff;
-  font-family: Inter, system-ui, sans-serif;
-  animation: fadeIn 0.6s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+  background: #0b0f14;
+  color: #e5e7eb;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
 }
 
 /* ===============================
-   CARDS
+   PAGE WRAPPER
+================================ */
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+}
+
+/* ===============================
+   HEADINGS & TEXT
+================================ */
+
+h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 14px 0;
+}
+
+h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+p {
+  margin: 0 0 12px 0;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+/* ===============================
+   HERO DASHBOARD GRID
+================================ */
+
+.hero-grid {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+@media (min-width: 900px) {
+  .hero-grid {
+    grid-template-columns: 1.4fr 1fr;
+  }
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hero-right {
+  display: grid;
+  gap: 14px;
+}
+
+/* ===============================
+   CARDS (CORE UI)
 ================================ */
 
 .card {
-  background: linear-gradient(180deg, #151826, #0f111a);
-  border-radius: 18px;
-  padding: 22px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.04),
-    0 12px 40px rgba(0,0,0,0.6);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.06),
-    0 20px 60px rgba(247,147,26,0.25);
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 16px;
 }
 
 .card h3 {
-  margin-top: 14px;
+  margin-bottom: 10px;
 }
 
 /* ===============================
-   HERO
-================================ */
-
-.hero {
-  margin-bottom: 32px;
-  padding: 32px;
-  border-radius: 26px;
-  background:
-    radial-gradient(800px circle at top, rgba(247,147,26,0.18), transparent 60%),
-    linear-gradient(180deg, #141625, #0b0d16);
-  box-shadow: 0 0 80px rgba(247,147,26,0.2);
-}
-
-.hero h1 {
-  font-size: clamp(32px, 5vw, 48px);
-  letter-spacing: -0.02em;
-}
-
-.hero p {
-  opacity: 0.75;
-}
-
-/* ===============================
-   TIMER
+   COUNTDOWN TIMER
 ================================ */
 
 .timer {
-  display: flex;
-  gap: 14px;
-  margin-top: 18px;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .time-box {
-  flex: 1;
-  background: linear-gradient(180deg, #141625, #0b0d16);
-  border-radius: 16px;
-  padding: 18px 8px;
+  background: #0b1220;
+  border: 1px solid #1f2937;
+  border-radius: 6px;
+  padding: 12px 6px;
   text-align: center;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.04),
-    0 8px 30px rgba(0,0,0,0.6);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.time-box:hover {
-  transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 14px 40px rgba(247,147,26,0.35);
 }
 
 .time {
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f9fafb;
 }
 
 .label {
-  font-size: 12px;
-  opacity: 0.65;
-  letter-spacing: 0.04em;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
 }
 
 /* ===============================
-   PROGRESS
+   STATS / PROGRESS
 ================================ */
 
 .progress-wrap {
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .progress-label {
   font-size: 12px;
+  color: #9ca3af;
   margin-bottom: 6px;
-  opacity: 0.75;
 }
 
 .progress-bar {
   width: 100%;
-  height: 10px;
-  background: #1f2233;
-  border-radius: 10px;
+  height: 8px;
+  background: #1f2937;
+  border-radius: 6px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    #f7931a,
-    #ffb347,
-    #f7931a
-  );
-  background-size: 200% 100%;
-  animation: shimmer 3s linear infinite;
-}
-
-@keyframes shimmer {
-  from { background-position: 0% 0; }
-  to { background-position: 200% 0; }
+  background: #f7931a;
 }
 
 /* ===============================
-   SECTIONS
+   SECTIONS (CONTENT)
 ================================ */
 
 .section {
-  margin-top: 72px;
+  margin-top: 48px;
   padding-top: 24px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-
-.section h2 {
-  margin-bottom: 18px;
-  font-size: 26px;
+  border-top: 1px solid #1f2937;
 }
 
 /* ===============================
-   GRID
+   GRID (INFO CARDS)
 ================================ */
 
 .grid {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 @media (min-width: 768px) {
@@ -178,7 +178,7 @@ body {
 }
 
 /* ===============================
-   TABLE
+   TABLE (HISTORY)
 ================================ */
 
 .table-wrap {
@@ -188,41 +188,47 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
-}
-
-th, td {
-  padding: 12px;
-  text-align: left;
-}
-
-th {
-  opacity: 0.65;
   font-size: 13px;
 }
 
-tr {
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+th {
+  text-align: left;
+  padding: 10px;
+  color: #9ca3af;
+  border-bottom: 1px solid #1f2937;
+}
+
+td {
+  padding: 10px;
+  border-bottom: 1px solid #1f2937;
+  color: #e5e7eb;
 }
 
 /* ===============================
-   TEXT HELPERS
+   MARKET STATS
 ================================ */
 
-.note {
-  margin-top: 10px;
-  font-size: 12px;
-  opacity: 0.6;
-}
-
 .big {
-  font-size: 26px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f9fafb;
 }
 
 .green {
-  color: #2ecc71;
+  color: #22c55e;
 }
 
 .red {
-  color: #e74c3c;
+  color: #ef4444;
 }
+
+/* ===============================
+   FAQ
+================================ */
+
+.note {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
