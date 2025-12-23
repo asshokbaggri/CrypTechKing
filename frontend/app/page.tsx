@@ -1,11 +1,12 @@
+import { getHalvingData } from "./lib/bitcoin";
+
 import HalvingCountdown from "./components/HalvingCountdown";
 import HalvingStats from "./components/HalvingStats";
-import { getHalvingData } from "./lib/bitcoin";
+import BitcoinMarket from "./components/BitcoinMarket";
 
 import HalvingIntro from "./components/HalvingIntro";
 import HalvingWhy from "./components/HalvingWhy";
 import HalvingHistory from "./components/HalvingHistory";
-import BitcoinMarket from "./components/BitcoinMarket";
 import HalvingFAQ from "./components/HalvingFAQ";
 import FAQSchema from "./components/FAQSchema";
 
@@ -17,48 +18,72 @@ export default async function Page() {
   return (
     <main className="page">
 
-      {/* ================= HERO DASHBOARD ================= */}
-      <section className="hero-grid">
+      {/* ==================================================
+          ZONE 1 — COMMAND CENTER (NO SCROLL IDEALLY)
+          ================================================== */}
+      <section className="zone zone-command">
 
-        {/* LEFT : Countdown */}
-        <div className="hero-left">
-          <h1>🚀 Bitcoin Halving Countdown</h1>
+        <header className="zone-header">
+          <h1>Bitcoin Halving Countdown</h1>
           <p>Live blockchain-powered halving tracker</p>
+        </header>
 
-          <HalvingCountdown seconds={data.secondsLeft} />
+        {/* MAIN CONTROL STRIP */}
+        <div className="control-strip">
+          
+          {/* BIG PRIMARY — COUNTDOWN */}
+          <div className="control-primary">
+            <HalvingCountdown seconds={data.secondsLeft} />
+          </div>
+
+          {/* SECONDARY — NETWORK STATS */}
+          <div className="control-secondary">
+            <HalvingStats
+              currentBlock={data.currentBlock}
+              blocksLeft={data.blocksLeft}
+              secondsLeft={data.secondsLeft}
+            />
+          </div>
+
+          {/* SECONDARY — MARKET */}
+          <div className="control-secondary">
+            <BitcoinMarket />
+          </div>
+
+        </div>
+      </section>
+
+      {/* ==================================================
+          ZONE 2 — CONTEXT (EXPLANATION)
+          ================================================== */}
+      <section className="zone zone-context">
+
+        <div className="context-block">
+          <HalvingIntro />
         </div>
 
-        {/* RIGHT : Stats + Market */}
-        <div className="hero-right">
-          <HalvingStats
-            currentBlock={data.currentBlock}
-            blocksLeft={data.blocksLeft}
-            secondsLeft={data.secondsLeft}
-          />
-
-          <BitcoinMarket />
+        <div className="context-block">
+          <HalvingWhy />
         </div>
 
       </section>
 
-      {/* ================= CONTENT SECTIONS ================= */}
-      <section className="section">
-        <HalvingIntro />
+      {/* ==================================================
+          ZONE 3 — REFERENCE (DATA / HISTORY)
+          ================================================== */}
+      <section className="zone zone-reference">
+
+        <div className="reference-block">
+          <HalvingHistory />
+        </div>
+
+        <div className="reference-block">
+          <HalvingFAQ />
+        </div>
+
       </section>
 
-      <section className="section">
-        <HalvingWhy />
-      </section>
-
-      <section className="section">
-        <HalvingHistory />
-      </section>
-
-      <section className="section">
-        <HalvingFAQ />
-      </section>
-
-      {/* SEO only */}
+      {/* SEO ONLY */}
       <FAQSchema />
 
     </main>
