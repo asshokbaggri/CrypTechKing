@@ -2,13 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* =======================
-   GLOBAL THEME
-======================= */
 :root {
   --bg: #0b0f14;
   --card: #121821;
-  --card-2: #0f141c;
   --border: rgba(255, 255, 255, 0.08);
   --text: #e5e7eb;
   --muted: #9ca3af;
@@ -18,28 +14,22 @@
 html,
 body {
   background: radial-gradient(
-    1200px 600px at 50% -200px,
-    #1a2230 0%,
-    var(--bg) 60%
-  );
+      1200px 600px at 50% -10%,
+      rgba(22, 199, 132, 0.12),
+      transparent 60%
+    ),
+    var(--bg);
   color: var(--text);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* =======================
-   HELPERS
-======================= */
+/* reusable */
 .card {
-  background: linear-gradient(180deg, var(--card), var(--card-2));
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
 }
 
-.muted {
-  color: var(--muted);
-}
-
-.accent {
-  color: var(--accent);
+.section {
+  @apply max-w-7xl mx-auto px-4;
 }
