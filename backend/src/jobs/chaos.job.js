@@ -2,6 +2,8 @@ import checkWhales from '../services/whale.service.js';
 import postToX from '../services/twitter.service.js';
 import { formatWhaleTweet } from '../utils/formatTweet.js';
 import { canPostWhale } from '../utils/whaleMemory.js';
+import Alert from '../models/Alert.js';
+
 
 export default async function runChaosJob() {
   const whale = await checkWhales();
@@ -36,6 +38,16 @@ export default async function runChaosJob() {
       tweetText +
       `\n\n👀 Institutions don’t move silently.`;
   }
+
+  // 💾 Save approved alert to MongoDB
+  await Alert.create({
+    type: whale.type || 'WHALE_TRANSFER',
+    coin: whale.symbol.toUpperCase(),
+    usd: whale.amountUSD,
+    text: tweetText,
+  });
+
+  console.log('💾 Alert saved to MongoDB');
 
   await postToX(tweetText);
 }
