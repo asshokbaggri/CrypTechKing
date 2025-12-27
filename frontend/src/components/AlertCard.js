@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import XIcon from './icons/XIcon'
 
 export default function AlertCard({ alert }) {
   const [isNew, setIsNew] = useState(true)
@@ -9,6 +10,18 @@ export default function AlertCard({ alert }) {
     const timer = setTimeout(() => setIsNew(false), 8000)
     return () => clearTimeout(timer)
   }, [])
+
+  const tweetText = `
+🚨 MEGA WHALE ALERT 🚨
+
+${alert.text}
+
+💰 Value: $${Number(alert.usd).toLocaleString()}
+
+🔗 Live alerts: https://cryptechking.vercel.app
+
+#Crypto #WhaleAlert #${alert.coin}
+  `.trim()
 
   return (
     <div
@@ -34,15 +47,17 @@ export default function AlertCard({ alert }) {
         ${Number(alert.usd).toLocaleString()}
       </p>
 
-      {/* SHARE BUTTON */}
+      {/* SHARE ON X */}
       <a
         href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-          alert.text
+          tweetText
         )}`}
         target="_blank"
-        className="inline-block mt-3 text-blue-400 hover:underline text-sm"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 mt-3 text-blue-400 hover:text-blue-300 text-sm"
       >
-        🐦 Share on X
+        <XIcon size={14} />
+        Share on X
       </a>
     </div>
   )
