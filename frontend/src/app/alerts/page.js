@@ -1,4 +1,4 @@
-imporimport { getAlerts } from '@/lib/api'
+import { getAlerts } from '@/lib/api'
 import AlertCard from '@/components/AlertCard'
 
 export default async function AlertsPage() {
