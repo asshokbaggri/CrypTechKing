@@ -2,7 +2,8 @@ import { getAlerts } from '@/lib/api'
 import AlertCard from '@/components/AlertCard'
 
 export default async function AlertsPage() {
-  const alerts = await getAlerts();
+  const res = await getAlerts();   // ✅ FIXED
+  const alerts = res?.data || [];
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
