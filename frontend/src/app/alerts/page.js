@@ -10,10 +10,10 @@ export default function AlertsPage() {
 
   async function loadAlerts() {
     try {
-      const res = await getAlerts()
+      const res = await getAlerts()   // ✅ CORRECT
       setAlerts(res.data || [])
     } catch (err) {
-      console.error(err)
+      console.error('Failed to load alerts', err)
     } finally {
       setLoading(false)
     }
@@ -21,19 +21,17 @@ export default function AlertsPage() {
 
   useEffect(() => {
     loadAlerts()
-    const interval = setInterval(loadAlerts, 30000) // 🔄 30 sec
+    const interval = setInterval(loadAlerts, 30000)
     return () => clearInterval(interval)
   }, [])
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-center gap-2 mb-6">
+      <div className="flex items-center justify-center gap-3 mb-6">
         <span className="animate-pulse bg-red-500 text-white px-3 py-1 rounded-full text-sm">
-          🔴 LIVE
+          LIVE
         </span>
-        <h1 className="text-3xl font-bold">
-          Live Whale Alerts
-        </h1>
+        <h1 className="text-3xl font-bold">Live Whale Alerts</h1>
       </div>
 
       {loading ? (
