@@ -1,23 +1,21 @@
 export default function AlertCard({ alert }) {
-  const usd = (alert.usd / 1_000_000).toFixed(2);
-
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-yellow-500 transition">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-yellow-400">
-          🐳 {alert.coin} Whale Alert
-        </h3>
-        <span className="text-sm text-zinc-400">
-          ${usd}M
+    <div className="border border-gray-800 rounded-lg p-4 bg-zinc-900">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm text-gray-400">
+          {new Date(alert.createdAt).toLocaleString()}
+        </span>
+        <span className="text-xs bg-red-600 px-2 py-1 rounded">
+          {alert.type}
         </span>
       </div>
 
-      <p className="text-zinc-300 mt-2 text-sm">
-        {alert.text}
+      <p className="text-lg font-semibold mb-1">
+        {alert.coin.toUpperCase()} • ${alert.usd.toLocaleString()}
       </p>
 
-      <p className="text-xs text-zinc-500 mt-3">
-        {new Date(alert.createdAt).toLocaleString()}
+      <p className="text-gray-300 text-sm">
+        {alert.text}
       </p>
     </div>
   );
