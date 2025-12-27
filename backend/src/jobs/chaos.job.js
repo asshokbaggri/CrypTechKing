@@ -1,21 +1,20 @@
 import checkWhales from '../services/whale.service.js';
 import postToX from '../services/twitter.service.js';
+import { formatWhaleTweet } from '../utils/formatTweet.js';
 
 export default async function runChaosJob() {
   const whale = await checkWhales();
+
   if (!whale) {
-    console.log('⏸ No significant whale activity');
+    console.log('ℹ️ No significant whale activity');
     return;
   }
 
-  console.log('🐋 Whale Detected:', whale);
+  console.log('🐳 Whale Detected:', whale);
 
-  const tweet = `🚨 CrypTechKing Alert
+  // ✅ FORMAT TWEET USING YOUR FORMATTER
+  const tweetText = formatWhaleTweet(whale);
 
-${whale.symbol.toUpperCase()} whale transfer detected.
-~$${(whale.amountUSD / 1e6).toFixed(1)}M moved.
-
-Smart money doesn’t move randomly 👀`;
-
-  await postToX(tweet);
+  // ✅ SEND TO X
+  await postToX(tweetText);
 }
