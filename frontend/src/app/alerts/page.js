@@ -1,5 +1,5 @@
-import { getAlerts } from '../../lib/api';
-import AlertCard from '../../components/AlertCard';
+imporimport { getAlerts } from '@/lib/api'
+import AlertCard from '@/components/AlertCard'
 
 export default async function AlertsPage() {
   const res = await fetchAlerts();
