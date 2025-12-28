@@ -1,4 +1,7 @@
+// backend/src/services/twitter.service.js
+
 import { TwitterApi } from 'twitter-api-v2';
+import XPost from '../models/XPost.js';
 
 const client = new TwitterApi({
   appKey: process.env.X_API_KEY,
@@ -7,23 +10,36 @@ const client = new TwitterApi({
   accessSecret: process.env.X_ACCESS_SECRET,
 });
 
-let lastPostTime = 0;
-const COOLDOWN_MS = 60 * 60 * 1000; // ⏳ 1 hour
+const COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
 
 export default async function postToX(text) {
-  const now = Date.now();
-
-  if (now - lastPostTime < COOLDOWN_MS) {
-    console.log('⏳ X cooldown active — skipping tweet');
-    return;
-  }
-
   try {
+    const record = await XPost.findOne();
+
+    const now = Date.now();
+
+    // ⏳ Cooldown check
+    if (record && now - record.lastPostedAt.getTime() < COOLDOWN_MS) {
+      console.log('⏳ X cooldown active (DB) — skipping tweet');
+      return;
+    }
+
+    // 🐦 Post tweet
     await client.v2.tweet(text);
-    lastPostTime = Date.now();
     console.log('🐦 X ULTRA tweet posted');
+
+    // 💾 Save / update cooldown timestamp
+    if (record) {
+      record.lastPostedAt = new Date();
+      await record.save();
+    } else {
+      await XPost.create({ lastPostedAt: new Date() });
+    }
+
   } catch (err) {
-    console.error('❌ X post error:', err?.data || err.message);
-    lastPostTime = Date.now(); // fail-safe
+    console.error(
+      '❌ X post error:',
+      err?.data?.detail || err?.data || err.message
+    );
   }
 }
