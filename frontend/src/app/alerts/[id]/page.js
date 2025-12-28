@@ -3,13 +3,13 @@ import { notFound } from 'next/navigation';
 async function getAlert(id) {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE}/alerts/${id}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/alerts/${id}`,
       { cache: 'no-store' }
     );
 
     if (!res.ok) return null;
     return res.json();
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -20,7 +20,7 @@ export default async function AlertDetail({ params }) {
 
   if (!alert) return notFound();
 
-  // 🧠 SAFE FALLBACKS (no undefined access)
+  // 🧠 SAFE FALLBACKS
   const coin = alert.coin || 'TOKEN';
   const usd =
     typeof alert.usd === 'number'
@@ -30,7 +30,7 @@ export default async function AlertDetail({ params }) {
   const amountToken =
     typeof alert.amountToken === 'number'
       ? `${alert.amountToken.toLocaleString()} ${coin}`
-      : null;
+      : '—';
 
   const tier = alert.tier || 'WHALE';
   const blockchain = alert.blockchain || 'unknown';
@@ -40,7 +40,7 @@ export default async function AlertDetail({ params }) {
     ? new Date(alert.createdAt).toLocaleString()
     : '—';
 
-  // 🧠 Explorer links (safe)
+  // 🔗 Explorer links (safe)
   const explorerMap = {
     ethereum: (tx) => `https://etherscan.io/tx/${tx}`,
     tron: (tx) => `https://tronscan.org/#/transaction/${tx}`,
@@ -54,7 +54,6 @@ export default async function AlertDetail({ params }) {
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
-      {/* Header */}
       <h1 className="text-2xl font-bold mb-2">
         {coin} Whale Alert
       </h1>
@@ -64,15 +63,12 @@ export default async function AlertDetail({ params }) {
       </p>
 
       <div className="rounded-xl border border-gray-700 p-5 space-y-4">
-
-        {/* Main text */}
         {alert.text && (
           <p className="text-gray-300 leading-relaxed">
             {alert.text}
           </p>
         )}
 
-        {/* Core stats */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-gray-500">Value (USD)</span>
@@ -81,7 +77,7 @@ export default async function AlertDetail({ params }) {
 
           <div>
             <span className="text-gray-500">Token Amount</span>
-            <p>{amountToken || '—'}</p>
+            <p>{amountToken}</p>
           </div>
 
           <div>
@@ -100,7 +96,6 @@ export default async function AlertDetail({ params }) {
           </div>
         </div>
 
-        {/* Explorer */}
         {explorerUrl && (
           <a
             href={explorerUrl}
