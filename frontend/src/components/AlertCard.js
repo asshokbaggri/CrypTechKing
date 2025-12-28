@@ -12,20 +12,35 @@ export default function AlertCard({ alert }) {
     return () => clearTimeout(timer)
   }, [])
 
-  const usdValue = Number(alert.usd)
+  // 🧠 SAFE values (no crash)
+  const usdValue = typeof alert.usd === 'number' ? alert.usd : 0
+  const tokenAmount =
+    typeof alert.amountToken === 'number' ? alert.amountToken : null
+
+  const coin = alert.coin || 'TOKEN'
+  const blockchain = alert.blockchain || ''
+  const from = alert.from || 'unknown'
+  const to = alert.to || 'unknown'
+
+  // 🐳 Tier detection (UI-only)
   const isUltra = usdValue >= 50_000_000
   const isMega = usdValue >= 25_000_000 && usdValue < 50_000_000
+
+  // 🧠 Smart summary line
+  const summaryLine = tokenAmount
+    ? `${Number(tokenAmount).toLocaleString()} ${coin} ($${usdValue.toLocaleString()})`
+    : `$${usdValue.toLocaleString()}`
 
   const tweetText = `
 🚨 ${isUltra ? 'ULTRA' : isMega ? 'MEGA' : ''} WHALE ALERT 🚨
 
-${alert.text}
-
-💰 Value: $${usdValue.toLocaleString()}
+${summaryLine}
+${from} → ${to}
+${blockchain.toUpperCase()}
 
 🔗 Live alerts: https://cryptechking.vercel.app
 
-#Crypto #WhaleAlert #${alert.coin}
+#Crypto #WhaleAlert #${coin}
   `.trim()
 
   return (
@@ -45,11 +60,11 @@ ${alert.text}
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="font-semibold text-base sm:text-lg">
-              {alert.coin}
+              {coin}
             </h3>
 
             <p className="text-sm text-gray-400 mt-1">
-              ${usdValue.toLocaleString()}
+              {summaryLine}
             </p>
           </div>
 
@@ -60,10 +75,17 @@ ${alert.text}
           )}
         </div>
 
-        {/* Alert Text */}
-        <p className="text-gray-300 text-sm mt-3 leading-relaxed">
-          {alert.text}
+        {/* From → To */}
+        <p className="text-xs sm:text-sm text-gray-400 mt-2">
+          {from} → {to}
         </p>
+
+        {/* Blockchain */}
+        {blockchain && (
+          <p className="text-[11px] uppercase tracking-wide text-gray-500 mt-1">
+            {blockchain}
+          </p>
+        )}
 
         {/* Footer */}
         <div className="flex items-center justify-between mt-4">
@@ -83,7 +105,7 @@ ${alert.text}
               : 'Whale Alert'}
           </span>
 
-          {/* SHARE ON X (no redirect to detail page) */}
+          {/* SHARE ON X */}
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
               tweetText
