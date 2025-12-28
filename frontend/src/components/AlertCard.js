@@ -7,16 +7,20 @@ export default function AlertCard({ alert }) {
   const [isNew, setIsNew] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsNew(false), 8000)
+    const timer = setTimeout(() => setIsNew(false), 6000)
     return () => clearTimeout(timer)
   }, [])
 
+  const usdValue = Number(alert.usd)
+  const isUltra = usdValue >= 50_000_000
+  const isMega = usdValue >= 25_000_000 && usdValue < 50_000_000
+
   const tweetText = `
-🚨 MEGA WHALE ALERT 🚨
+🚨 ${isUltra ? 'ULTRA' : isMega ? 'MEGA' : ''} WHALE ALERT 🚨
 
 ${alert.text}
 
-💰 Value: $${Number(alert.usd).toLocaleString()}
+💰 Value: $${usdValue.toLocaleString()}
 
 🔗 Live alerts: https://cryptechking.vercel.app
 
@@ -25,40 +29,71 @@ ${alert.text}
 
   return (
     <div
-      className={`border rounded-xl p-4 transition-all ${
-        isNew
-          ? 'border-yellow-400 shadow-lg shadow-yellow-500/30 animate-pulse'
-          : 'border-gray-700'
-      }`}
+      className={`rounded-xl border p-4 sm:p-5 transition-all
+        ${
+          isUltra
+            ? 'border-red-500 shadow-lg shadow-red-500/20'
+            : isMega
+            ? 'border-yellow-400 shadow-lg shadow-yellow-500/20'
+            : 'border-gray-700'
+        }
+      `}
     >
-      <div className="flex justify-between items-start">
-        <h3 className="font-semibold text-lg">{alert.coin}</h3>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="font-semibold text-base sm:text-lg">
+            {alert.coin}
+          </h3>
+
+          <p className="text-sm text-gray-400 mt-1">
+            ${usdValue.toLocaleString()}
+          </p>
+        </div>
 
         {isNew && (
-          <span className="text-xs bg-yellow-400 text-black px-2 py-1 rounded">
+          <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-1 rounded-full">
             NEW
           </span>
         )}
       </div>
 
-      <p className="text-gray-300 mt-2">{alert.text}</p>
-
-      <p className="text-sm text-gray-400 mt-2">
-        ${Number(alert.usd).toLocaleString()}
+      {/* Alert Text */}
+      <p className="text-gray-300 text-sm mt-3 leading-relaxed">
+        {alert.text}
       </p>
 
-      {/* SHARE ON X */}
-      <a
-        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-          tweetText
-        )}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 mt-3 text-blue-400 hover:text-blue-300 text-sm"
-      >
-        <XIcon size={14} />
-        Share on X
-      </a>
+      {/* Footer */}
+      <div className="flex items-center justify-between mt-4">
+        <span
+          className={`text-xs font-medium ${
+            isUltra
+              ? 'text-red-400'
+              : isMega
+              ? 'text-yellow-400'
+              : 'text-gray-500'
+          }`}
+        >
+          {isUltra
+            ? '🔥 ULTRA WHALE'
+            : isMega
+            ? '🐳 MEGA WHALE'
+            : 'Whale Alert'}
+        </span>
+
+        {/* Share */}
+        <a
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+            tweetText
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-blue-400 hover:text-blue-300"
+        >
+          <XIcon size={14} />
+          Share
+        </a>
+      </div>
     </div>
   )
 }
