@@ -1,3 +1,5 @@
+// backend/src/jobs/chaos.job.js
+
 import checkWhales from '../services/whale.service.js';
 import postToX from '../services/twitter.service.js';
 import { formatWhaleTweet } from '../utils/formatTweet.js';
@@ -35,7 +37,7 @@ export default async function runChaosJob() {
 
   console.log(`🐳 Approved ${tier}:`, whale);
 
-  // 🧠 Format text
+  // 🧠 Format stored text (UI-safe, no dependency)
   let text = formatWhaleTweet(whale, tier);
 
   if (tier === 'MEGA_WHALE') {
@@ -52,11 +54,11 @@ export default async function runChaosJob() {
       `\n\n🚀 Market-moving transfer detected.`;
   }
 
-  // 💾 ALWAYS save to DB
+  // 💾 SAVE TO DB (Phase 6.1 additions are OPTIONAL & SAFE)
   await Alert.create({
     type: whale.type || 'WHALE_TRANSFER',
 
-    coin: whale.symbol.toUpperCase(),
+    coin: whale.symbol?.toUpperCase(),
     usd: whale.amountUSD,
     tier,
 
@@ -65,12 +67,16 @@ export default async function runChaosJob() {
     blockchain: whale.blockchain,
     from: whale.from,
     to: whale.to,
-    txid: whale.txid
+    txid: whale.txid,
+
+    // 🧠 Phase 6.1 intelligence (NEW, non-breaking)
+    amountToken: whale.amountToken ?? null,
+    tokenSymbol: whale.tokenSymbol ?? whale.symbol
   });
 
-  console.log('💾 Alert saved to MongoDB');
+  console.log('💾 Alert saved to MongoDB (Phase 6.1)');
 
-  // 🐦 X = ULTRA ONLY
+  // 🐦 X = ULTRA ONLY (unchanged logic)
   if (tier === 'ULTRA_WHALE') {
     console.log('🐦 Posting ULTRA whale to X');
     await postToX(text);
