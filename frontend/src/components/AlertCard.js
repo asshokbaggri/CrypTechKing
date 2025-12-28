@@ -8,40 +8,52 @@ export default function AlertCard({ alert }) {
   const [isNew, setIsNew] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsNew(false), 6000)
-    return () => clearTimeout(timer)
+    const t = setTimeout(() => setIsNew(false), 6000)
+    return () => clearTimeout(t)
   }, [])
 
-  // 🧠 SAFE values (no crash)
-  const usdValue = typeof alert.usd === 'number' ? alert.usd : 0
-  const tokenAmount =
-    typeof alert.amountToken === 'number' ? alert.amountToken : null
+  const usd = Number(alert.usd || 0)
 
-  const coin = alert.coin || 'TOKEN'
-  const blockchain = alert.blockchain || ''
+  const isUltra = usd >= 50_000_000
+  const isMega = usd >= 25_000_000 && usd < 50_000_000
+
+  const tierLabel = isUltra
+    ? 'ULTRA WHALE'
+    : isMega
+    ? 'MEGA WHALE'
+    : 'WHALE ALERT'
+
+  const tierEmoji = isUltra
+    ? '🔥🔥'
+    : isMega
+    ? '🚨🚨'
+    : '🐳'
+
   const from = alert.from || 'unknown'
   const to = alert.to || 'unknown'
+  const chain = alert.blockchain
+    ? alert.blockchain.toUpperCase()
+    : 'BLOCKCHAIN'
 
-  // 🐳 Tier detection (UI-only)
-  const isUltra = usdValue >= 50_000_000
-  const isMega = usdValue >= 25_000_000 && usdValue < 50_000_000
+  const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
 
-  // 🧠 Smart summary line
-  const summaryLine = tokenAmount
-    ? `${Number(tokenAmount).toLocaleString()} ${coin} ($${usdValue.toLocaleString()})`
-    : `$${usdValue.toLocaleString()}`
-
+  // ✅ FINAL X SHARE TEXT
   const tweetText = `
-🚨 ${isUltra ? 'ULTRA' : isMega ? 'MEGA' : ''} WHALE ALERT 🚨
+${tierEmoji} ${tierLabel} — ${alert.coin}
 
-${summaryLine}
-${from} → ${to}
-${blockchain.toUpperCase()}
+$${usd.toLocaleString()}
+Transferred on ${chain}
 
-🔗 Live alerts: https://cryptechking.vercel.app
+From: ${from}
+To: ${to}
 
-#Crypto #WhaleAlert #${coin}
-  `.trim()
+👀 Large on-chain movement detected
+
+🔗 Full details:
+${detailUrl}
+
+#Crypto #WhaleAlert #${alert.coin}
+`.trim()
 
   return (
     <Link href={`/alerts/${alert._id}`} className="block">
@@ -60,11 +72,10 @@ ${blockchain.toUpperCase()}
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="font-semibold text-base sm:text-lg">
-              {coin}
+              {alert.coin}
             </h3>
-
             <p className="text-sm text-gray-400 mt-1">
-              {summaryLine}
+              ${usd.toLocaleString()}
             </p>
           </div>
 
@@ -75,17 +86,10 @@ ${blockchain.toUpperCase()}
           )}
         </div>
 
-        {/* From → To */}
-        <p className="text-xs sm:text-sm text-gray-400 mt-2">
-          {from} → {to}
+        {/* Compact Text */}
+        <p className="text-gray-300 text-sm mt-3 leading-relaxed line-clamp-3">
+          {alert.text}
         </p>
-
-        {/* Blockchain */}
-        {blockchain && (
-          <p className="text-[11px] uppercase tracking-wide text-gray-500 mt-1">
-            {blockchain}
-          </p>
-        )}
 
         {/* Footer */}
         <div className="flex items-center justify-between mt-4">
@@ -98,14 +102,10 @@ ${blockchain.toUpperCase()}
                 : 'text-gray-500'
             }`}
           >
-            {isUltra
-              ? '🔥 ULTRA WHALE'
-              : isMega
-              ? '🐳 MEGA WHALE'
-              : 'Whale Alert'}
+            {tierEmoji} {tierLabel}
           </span>
 
-          {/* SHARE ON X */}
+          {/* X SHARE */}
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
               tweetText
