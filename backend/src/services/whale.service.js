@@ -7,7 +7,7 @@ export default async function checkWhales() {
     const res = await axios.get(BASE_URL, {
       params: {
         api_key: process.env.WHALE_ALERT_API_KEY,
-        min_value: Number(process.env.WHALE_THRESHOLD) || 5000000,
+        min_value: Number(process.env.WHALE_THRESHOLD) || 10_000_000,
         limit: 1
       }
     });
@@ -22,8 +22,8 @@ export default async function checkWhales() {
       blockchain: tx.blockchain,
       symbol: tx.symbol,
       amountUSD: tx.amount_usd,
-      from: tx.from.owner_type,
-      to: tx.to.owner_type,
+      from: tx.from?.owner_type,
+      to: tx.to?.owner_type,
       txid: tx.hash
     };
   } catch (err) {
