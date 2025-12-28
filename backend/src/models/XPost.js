@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 const XPostSchema = new mongoose.Schema({
-  postedAt: {
+  lastPostedAt: {
     type: Date,
-    default: Date.now
+    required: true
   }
 });
 
