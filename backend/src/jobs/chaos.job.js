@@ -55,11 +55,13 @@ export default async function runChaosJob() {
   // 💾 ALWAYS save to DB
   await Alert.create({
     type: whale.type || 'WHALE_TRANSFER',
+
     coin: whale.symbol.toUpperCase(),
     usd: whale.amountUSD,
-    amountToken: whale.amountToken, // ✅
-    text,
     tier,
+
+    text,
+
     blockchain: whale.blockchain,
     from: whale.from,
     to: whale.to,
