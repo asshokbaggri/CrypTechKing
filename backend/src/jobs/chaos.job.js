@@ -4,7 +4,8 @@ import { formatWhaleTweet } from '../utils/formatTweet.js';
 import { canPostWhale } from '../utils/whaleMemory.js';
 import Alert from '../models/Alert.js';
 
-const ULTRA_X_THRESHOLD = 50_000_000; // 🔥 X ONLY
+const MIN_WHALE_USD = 10_000_000;
+const ULTRA_WHALE_USD = 50_000_000;
 
 export default async function runChaosJob() {
   const whale = await checkWhales();
@@ -14,9 +15,9 @@ export default async function runChaosJob() {
     return;
   }
 
-  // ❌ Ignore small transfers
-  if (whale.amountUSD < 10_000_000) {
-    console.log('🪙 Whale below $10M ignored');
+  // ❌ HARD FILTER
+  if (whale.amountUSD < MIN_WHALE_USD) {
+    console.log('🪙 Whale below threshold ignored');
     return;
   }
 
@@ -27,33 +28,45 @@ export default async function runChaosJob() {
     return;
   }
 
-  console.log('🐳 Approved WHALE:', whale);
+  // 🧠 Tier detection
+  let tier = 'WHALE';
+  if (whale.amountUSD >= ULTRA_WHALE_USD) tier = 'ULTRA_WHALE';
+  else if (whale.amountUSD >= 25_000_000) tier = 'MEGA_WHALE';
 
-  // 🧠 Format alert text
-  let alertText = formatWhaleTweet(whale);
+  console.log(`🐳 Approved ${tier}:`, whale);
 
-  // 🚨 ULTRA formatting
-  if (whale.amountUSD >= ULTRA_X_THRESHOLD) {
-    alertText =
-      `🚨🚨 ULTRA WHALE ALERT 🚨🚨\n\n` +
-      alertText +
+  // 🧠 Format text
+  let text = formatWhaleTweet(whale, tier);
+
+  if (tier === 'MEGA_WHALE') {
+    text =
+      `🚨🚨 MEGA WHALE ALERT 🚨🚨\n\n` +
+      text +
       `\n\n👀 Institutions don’t move silently.`;
   }
 
-  // 💾 Save to Mongo (ALWAYS)
+  if (tier === 'ULTRA_WHALE') {
+    text =
+      `🔥🔥 ULTRA WHALE ALERT 🔥🔥\n\n` +
+      text +
+      `\n\n🚀 Market-moving transfer detected.`;
+  }
+
+  // 💾 ALWAYS save to DB
   await Alert.create({
     type: whale.type || 'WHALE_TRANSFER',
     coin: whale.symbol.toUpperCase(),
     usd: whale.amountUSD,
-    text: alertText,
+    text,
+    tier
   });
 
   console.log('💾 Alert saved to MongoDB');
 
-  // 🐦 X POST — ULTRA ONLY
-  if (whale.amountUSD >= ULTRA_X_THRESHOLD) {
+  // 🐦 X = ULTRA ONLY
+  if (tier === 'ULTRA_WHALE') {
     console.log('🐦 Posting ULTRA whale to X');
-    await postToX(alertText);
+    await postToX(text);
   } else {
     console.log('🛑 X skipped (not ULTRA)');
   }
