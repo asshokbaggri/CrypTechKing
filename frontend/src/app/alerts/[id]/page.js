@@ -1,101 +1,86 @@
-import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation'
 
 async function getAlert(id) {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/alerts/${id}`,
-      { cache: 'no-store' }
-    );
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/alerts/${id}`,
+    { cache: 'no-store' }
+  )
 
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
+  if (!res.ok) return null
+  return res.json()
 }
 
 export default async function AlertDetail({ params }) {
-  const res = await getAlert(params.id);
-  const alert = res?.data;
+  const res = await getAlert(params.id)
+  const alert = res?.data
 
-  if (!alert) return notFound();
+  if (!alert) return notFound()
 
-  // 🧠 SAFE FALLBACKS
-  const coin = alert.coin || 'TOKEN';
-  const usd =
-    typeof alert.usd === 'number'
-      ? `$${alert.usd.toLocaleString()}`
-      : '—';
-
-  const amountToken =
-    typeof alert.amountToken === 'number'
-      ? `${alert.amountToken.toLocaleString()} ${coin}`
-      : '—';
-
-  const tier = alert.tier || 'WHALE';
-  const blockchain = alert.blockchain || 'unknown';
-  const from = alert.from || 'unknown';
-  const to = alert.to || 'unknown';
-  const time = alert.createdAt
-    ? new Date(alert.createdAt).toLocaleString()
-    : '—';
-
-  // 🔗 Explorer links (safe)
   const explorerMap = {
-    ethereum: (tx) => `https://etherscan.io/tx/${tx}`,
-    tron: (tx) => `https://tronscan.org/#/transaction/${tx}`,
-    bitcoin: (tx) => `https://www.blockchain.com/btc/tx/${tx}`,
-    ripple: (tx) => `https://livenet.xrpl.org/transactions/${tx}`
-  };
+    ethereum: `https://etherscan.io/tx/${alert.txid}`,
+    tron: `https://tronscan.org/#/transaction/${alert.txid}`,
+    bitcoin: `https://www.blockchain.com/btc/tx/${alert.txid}`,
+    ripple: `https://livenet.xrpl.org/transactions/${alert.txid}`
+  }
 
-  const explorerFn = explorerMap[blockchain.toLowerCase()];
-  const explorerUrl =
-    explorerFn && alert.txid ? explorerFn(alert.txid) : null;
+  const explorerUrl = explorerMap[alert.blockchain]
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-2">
-        {coin} Whale Alert
+      <h1 className="text-2xl font-bold mb-5">
+        {alert.coin} Whale Alert
       </h1>
 
-      <p className="text-sm text-gray-500 mb-6">
-        {tier.replace('_', ' ')} • {blockchain.toUpperCase()}
-      </p>
+      <div className="rounded-xl border border-gray-700 p-5 space-y-5">
 
-      <div className="rounded-xl border border-gray-700 p-5 space-y-4">
-        {alert.text && (
-          <p className="text-gray-300 leading-relaxed">
-            {alert.text}
-          </p>
-        )}
+        {/* MAIN TEXT */}
+        <p className="text-gray-300 leading-relaxed">
+          {alert.text}
+        </p>
 
+        {/* GRID */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-gray-500">Value (USD)</span>
-            <p>{usd}</p>
+            <p>${Number(alert.usd).toLocaleString()}</p>
+          </div>
+
+          {alert.amountToken && (
+            <div>
+              <span className="text-gray-500">Amount</span>
+              <p>
+                {Number(alert.amountToken).toLocaleString()} {alert.coin}
+              </p>
+            </div>
+          )}
+
+          <div>
+            <span className="text-gray-500">Tier</span>
+            <p>{alert.tier}</p>
           </div>
 
           <div>
-            <span className="text-gray-500">Token Amount</span>
-            <p>{amountToken}</p>
+            <span className="text-gray-500">Blockchain</span>
+            <p className="capitalize">{alert.blockchain}</p>
           </div>
 
           <div>
             <span className="text-gray-500">From</span>
-            <p>{from}</p>
+            <p>{alert.from || 'unknown'}</p>
           </div>
 
           <div>
             <span className="text-gray-500">To</span>
-            <p>{to}</p>
+            <p>{alert.to || 'unknown'}</p>
           </div>
 
           <div className="col-span-2">
             <span className="text-gray-500">Time</span>
-            <p>{time}</p>
+            <p>{new Date(alert.createdAt).toLocaleString()}</p>
           </div>
         </div>
 
+        {/* EXPLORER */}
         {explorerUrl && (
           <a
             href={explorerUrl}
@@ -103,10 +88,10 @@ export default async function AlertDetail({ params }) {
             rel="noopener noreferrer"
             className="inline-block text-blue-400 hover:underline text-sm"
           >
-            View Transaction ↗
+            View on Blockchain Explorer ↗
           </a>
         )}
       </div>
     </main>
-  );
+  )
 }
