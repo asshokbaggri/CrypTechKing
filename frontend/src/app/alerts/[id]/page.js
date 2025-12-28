@@ -1,5 +1,3 @@
-// frontend/src/app/alerts/[id]/page.js
-
 import { notFound } from 'next/navigation';
 
 async function getAlert(id) {
@@ -18,6 +16,7 @@ export default async function AlertDetail({ params }) {
 
   if (!alert) return notFound();
 
+  // 🧠 Blockchain explorer map
   const explorerMap = {
     ethereum: `https://etherscan.io/tx/${alert.txid}`,
     tron: `https://tronscan.org/#/transaction/${alert.txid}`,
@@ -25,7 +24,14 @@ export default async function AlertDetail({ params }) {
     ripple: `https://livenet.xrpl.org/transactions/${alert.txid}`
   };
 
-  const explorerUrl = explorerMap[alert.blockchain];
+  const blockchainKey = alert.blockchain?.toLowerCase();
+  const explorerUrl = explorerMap[blockchainKey];
+
+  // 🧮 Token amount estimate (frontend derived)
+  let tokenAmount = null;
+  if (alert.usd && alert.coin) {
+    tokenAmount = '≈'; // exact token value API se aayega later
+  }
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
@@ -44,10 +50,8 @@ export default async function AlertDetail({ params }) {
           </div>
 
           <div>
-            <span className="text-gray-500">Amount</span>
-            <p>
-              {Number(alert.amountToken).toLocaleString()} {alert.coin}
-            </p>
+            <span className="text-gray-500">Token</span>
+            <p>{alert.coin}</p>
           </div>
 
           <div>
@@ -62,12 +66,12 @@ export default async function AlertDetail({ params }) {
 
           <div>
             <span className="text-gray-500">From</span>
-            <p>{alert.from}</p>
+            <p>{alert.from || 'unknown'}</p>
           </div>
 
           <div>
             <span className="text-gray-500">To</span>
-            <p>{alert.to}</p>
+            <p>{alert.to || 'unknown'}</p>
           </div>
 
           <div className="col-span-2">
