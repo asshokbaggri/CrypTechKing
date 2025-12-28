@@ -1,37 +1,95 @@
-import { getAlerts } from '@/lib/api';
-import AlertCard from '@/components/AlertCard';
+'use client'
 
-// ✅ Auto refresh every 30 seconds (SERVER SIDE)
-export const revalidate = 30;
+import { useEffect, useState } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { getAlerts } from '@/lib/api'
+import AlertCard from '@/components/AlertCard'
 
-export default async function AlertsPage() {
-  const res = await getAlerts();
-  const alerts = res?.data || [];
+export default function AlertsPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const [alerts, setAlerts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // Filters from URL
+  const coin = searchParams.get('coin') || ''
+  const tier = searchParams.get('tier') || ''
+  const blockchain = searchParams.get('blockchain') || ''
+
+  useEffect(() => {
+    setLoading(true)
+    getAlerts({ coin, tier, blockchain })
+      .then(res => setAlerts(res.data || []))
+      .finally(() => setLoading(false))
+  }, [coin, tier, blockchain])
+
+  function updateFilter(key, value) {
+    const params = new URLSearchParams(searchParams.toString())
+
+    if (value) params.set(key, value)
+    else params.delete(key)
+
+    router.push(`/alerts?${params.toString()}`)
+  }
 
   return (
     <main className="max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
-      
+
       {/* Header */}
       <div className="text-center mb-6">
-        <div className="flex justify-center items-center gap-2 mb-2">
-          <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          <h1 className="text-2xl sm:text-3xl font-bold">
-            Live Whale Alerts
-          </h1>
-        </div>
-
-        <p className="text-xs sm:text-sm text-gray-500">
-          Auto-refreshes every 30 seconds
+        <h1 className="text-2xl sm:text-3xl font-bold">
+          Live Whale Alerts
+        </h1>
+        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+          Filter real-time whale activity
         </p>
       </div>
 
+      {/* Filters */}
+      <div className="grid grid-cols-3 gap-2 mb-6 text-sm">
+        <select
+          value={coin}
+          onChange={(e) => updateFilter('coin', e.target.value)}
+          className="bg-black border border-gray-700 rounded px-2 py-1"
+        >
+          <option value="">All Coins</option>
+          <option value="BTC">BTC</option>
+          <option value="ETH">ETH</option>
+          <option value="USDT">USDT</option>
+          <option value="XRP">XRP</option>
+        </select>
+
+        <select
+          value={tier}
+          onChange={(e) => updateFilter('tier', e.target.value)}
+          className="bg-black border border-gray-700 rounded px-2 py-1"
+        >
+          <option value="">All Tiers</option>
+          <option value="ULTRA_WHALE">ULTRA</option>
+          <option value="MEGA_WHALE">MEGA</option>
+          <option value="WHALE">WHALE</option>
+        </select>
+
+        <select
+          value={blockchain}
+          onChange={(e) => updateFilter('blockchain', e.target.value)}
+          className="bg-black border border-gray-700 rounded px-2 py-1"
+        >
+          <option value="">All Chains</option>
+          <option value="bitcoin">Bitcoin</option>
+          <option value="ethereum">Ethereum</option>
+          <option value="tron">Tron</option>
+          <option value="ripple">Ripple</option>
+        </select>
+      </div>
+
       {/* Alerts */}
-      {alerts.length === 0 ? (
+      {loading ? (
+        <p className="text-center text-gray-500">Loading alerts…</p>
+      ) : alerts.length === 0 ? (
         <div className="text-center text-gray-400 mt-12">
-          <p className="text-sm">No alerts yet…</p>
-          <p className="text-xs mt-2 text-gray-500">
-            Waiting for large on-chain movements 🐳
-          </p>
+          <p>No alerts found</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -41,5 +99,5 @@ export default async function AlertsPage() {
         </div>
       )}
     </main>
-  );
+  )
 }
