@@ -21,18 +21,12 @@ export default async function checkWhales() {
 
     return {
       type: 'WHALE_TRANSFER',
-
       blockchain: tx.blockchain,
       symbol: tx.symbol,
-
-      // ✅ BOTH VALUES
       amountUSD: tx.amount_usd,
-      amountToken: tx.amount,
-
-      // ✅ REAL EXCHANGE / OWNER NAMES
-      from: tx.from?.owner || tx.from?.owner_type || 'unknown',
-      to: tx.to?.owner || tx.to?.owner_type || 'unknown',
-
+      amountToken: tx.amount,          // ✅ IMPORTANT
+      from: tx.from?.owner_type || 'unknown',
+      to: tx.to?.owner_type || 'unknown',
       txid: tx.hash
     };
   } catch (err) {
