@@ -7,11 +7,11 @@ const AlertSchema = new mongoose.Schema({
 
   coin: String,
   usd: Number,
-  amountToken: Number,   // ✅ NEW
   tier: String,
 
   text: String,
 
+  // 🔍 NEW — Detail page fields
   blockchain: String,
   from: String,
   to: String,
