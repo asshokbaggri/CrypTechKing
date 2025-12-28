@@ -7,7 +7,7 @@ const AlertSchema = new mongoose.Schema({
 
   coin: String,
   usd: Number,
-  amountToken: Number,
+  amountToken: Number,   // ✅ NEW
   tier: String,
 
   text: String,
