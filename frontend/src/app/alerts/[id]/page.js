@@ -1,8 +1,10 @@
+// frontend/src/app/alerts/[id]/page.js
+
 import { notFound } from 'next/navigation';
 
 async function getAlert(id) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/alerts/${id}`,
+    `${process.env.NEXT_PUBLIC_API_BASE}/alerts/${id}`,
     { cache: 'no-store' }
   );
 
@@ -19,7 +21,8 @@ export default async function AlertDetail({ params }) {
   const explorerMap = {
     ethereum: `https://etherscan.io/tx/${alert.txid}`,
     tron: `https://tronscan.org/#/transaction/${alert.txid}`,
-    bitcoin: `https://www.blockchain.com/btc/tx/${alert.txid}`
+    bitcoin: `https://www.blockchain.com/btc/tx/${alert.txid}`,
+    ripple: `https://livenet.xrpl.org/transactions/${alert.txid}`
   };
 
   const explorerUrl = explorerMap[alert.blockchain];
@@ -34,10 +37,17 @@ export default async function AlertDetail({ params }) {
 
         <p className="text-gray-300">{alert.text}</p>
 
-        <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="text-gray-500">Value</span>
+            <span className="text-gray-500">Value (USD)</span>
             <p>${Number(alert.usd).toLocaleString()}</p>
+          </div>
+
+          <div>
+            <span className="text-gray-500">Amount</span>
+            <p>
+              {Number(alert.amountToken).toLocaleString()} {alert.coin}
+            </p>
           </div>
 
           <div>
@@ -47,24 +57,30 @@ export default async function AlertDetail({ params }) {
 
           <div>
             <span className="text-gray-500">Blockchain</span>
-            <p>{alert.blockchain}</p>
+            <p className="capitalize">{alert.blockchain}</p>
           </div>
 
           <div>
+            <span className="text-gray-500">From</span>
+            <p>{alert.from}</p>
+          </div>
+
+          <div>
+            <span className="text-gray-500">To</span>
+            <p>{alert.to}</p>
+          </div>
+
+          <div className="col-span-2">
             <span className="text-gray-500">Time</span>
             <p>{new Date(alert.createdAt).toLocaleString()}</p>
           </div>
-        </div>
-
-        <div className="text-sm">
-          <p><span className="text-gray-500">From:</span> {alert.from}</p>
-          <p><span className="text-gray-500">To:</span> {alert.to}</p>
         </div>
 
         {explorerUrl && (
           <a
             href={explorerUrl}
             target="_blank"
+            rel="noopener noreferrer"
             className="inline-block text-blue-400 hover:underline text-sm"
           >
             View Transaction ↗
