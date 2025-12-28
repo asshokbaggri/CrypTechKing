@@ -1,3 +1,5 @@
+// backend/src/services/whale.service.js
+
 import axios from 'axios';
 
 const BASE_URL = 'https://api.whale-alert.io/v1/transactions';
@@ -19,11 +21,18 @@ export default async function checkWhales() {
 
     return {
       type: 'WHALE_TRANSFER',
+
       blockchain: tx.blockchain,
       symbol: tx.symbol,
+
+      // ✅ BOTH VALUES
       amountUSD: tx.amount_usd,
-      from: tx.from?.owner_type,
-      to: tx.to?.owner_type,
+      amountToken: tx.amount,
+
+      // ✅ REAL EXCHANGE / OWNER NAMES
+      from: tx.from?.owner || tx.from?.owner_type || 'unknown',
+      to: tx.to?.owner || tx.to?.owner_type || 'unknown',
+
       txid: tx.hash
     };
   } catch (err) {
