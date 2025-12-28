@@ -1,5 +1,3 @@
-// backend/src/services/whale.service.js
-
 import axios from 'axios';
 
 const BASE_URL = 'https://api.whale-alert.io/v1/transactions';
@@ -24,9 +22,8 @@ export default async function checkWhales() {
       blockchain: tx.blockchain,
       symbol: tx.symbol,
       amountUSD: tx.amount_usd,
-      amountToken: tx.amount,          // ✅ IMPORTANT
-      from: tx.from?.owner_type || 'unknown',
-      to: tx.to?.owner_type || 'unknown',
+      from: tx.from?.owner_type,
+      to: tx.to?.owner_type,
       txid: tx.hash
     };
   } catch (err) {
