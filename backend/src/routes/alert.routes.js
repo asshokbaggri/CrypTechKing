@@ -4,11 +4,31 @@ import Alert from '../models/Alert.js';
 const router = express.Router();
 
 /**
- * GET latest alerts
+ * GET latest alerts (with filters)
+ * Supported query params:
+ *  - coin=BTC
+ *  - tier=ULTRA_WHALE | MEGA_WHALE | WHALE
+ *  - blockchain=bitcoin | ethereum | tron | ripple
  */
 router.get('/alerts', async (req, res) => {
   try {
-    const alerts = await Alert.find()
+    const { coin, tier, blockchain } = req.query;
+
+    const query = {};
+
+    if (coin) {
+      query.coin = coin.toUpperCase();
+    }
+
+    if (tier) {
+      query.tier = tier.toUpperCase();
+    }
+
+    if (blockchain) {
+      query.blockchain = blockchain.toLowerCase();
+    }
+
+    const alerts = await Alert.find(query)
       .sort({ createdAt: -1 })
       .limit(50);
 
