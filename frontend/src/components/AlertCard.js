@@ -13,67 +13,29 @@ export default function AlertCard({ alert }) {
   }, [])
 
   const usd = Number(alert.usd || 0)
-
   const isUltra = usd >= 50_000_000
   const isMega = usd >= 25_000_000 && usd < 50_000_000
-
-  const tierLabel = isUltra
-    ? 'ULTRA WHALE'
-    : isMega
-    ? 'MEGA WHALE'
-    : 'WHALE ALERT'
-
-  const tierEmoji = isUltra
-    ? '🔥🔥'
-    : isMega
-    ? '🚨🚨'
-    : '🐳'
-
-  const from = alert.from || 'unknown'
-  const to = alert.to || 'unknown'
-  const chain = alert.blockchain
-    ? alert.blockchain.toUpperCase()
-    : 'BLOCKCHAIN'
-
-  const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
-
-  // ✅ FINAL X SHARE TEXT
-  const tweetText = `
-${tierEmoji} ${tierLabel} — ${alert.coin}
-
-$${usd.toLocaleString()}
-Transferred on ${chain}
-
-From: ${from}
-To: ${to}
-
-👀 Large on-chain movement detected
-
-🔗 Full details:
-${detailUrl}
-
-#Crypto #WhaleAlert #${alert.coin}
-`.trim()
 
   return (
     <Link href={`/alerts/${alert._id}`} className="block">
       <div
-        className={`rounded-xl border p-4 sm:p-5 transition-all cursor-pointer hover:border-gray-500
+        className={`rounded-xl border p-4 sm:p-5 transition-all cursor-pointer
+          hover:border-gray-500
           ${
             isUltra
               ? 'border-red-500 shadow-lg shadow-red-500/20'
               : isMega
               ? 'border-yellow-400 shadow-lg shadow-yellow-500/20'
               : 'border-gray-700'
-          }
-        `}
+          }`}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
+        {/* TOP */}
+        <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-semibold text-base sm:text-lg">
+            <h3 className="text-lg font-semibold">
               {alert.coin}
             </h3>
+
             <p className="text-sm text-gray-400 mt-1">
               ${usd.toLocaleString()}
             </p>
@@ -86,12 +48,24 @@ ${detailUrl}
           )}
         </div>
 
-        {/* Compact Text */}
-        <p className="text-gray-300 text-sm mt-3 leading-relaxed line-clamp-3">
-          {alert.text}
-        </p>
+        {/* MIDDLE */}
+        <div className="mt-3 space-y-1 text-sm text-gray-300">
+          {alert.amountToken && (
+            <p>
+              {Number(alert.amountToken).toLocaleString()} {alert.coin}
+            </p>
+          )}
 
-        {/* Footer */}
+          <p className="text-gray-400">
+            {alert.from || 'unknown'} → {alert.to || 'unknown'}
+          </p>
+
+          <p className="uppercase text-xs tracking-wide text-gray-500">
+            {alert.blockchain}
+          </p>
+        </div>
+
+        {/* BOTTOM */}
         <div className="flex items-center justify-between mt-4">
           <span
             className={`text-xs font-medium ${
@@ -102,18 +76,21 @@ ${detailUrl}
                 : 'text-gray-500'
             }`}
           >
-            {tierEmoji} {tierLabel}
+            {isUltra
+              ? '🔥 ULTRA WHALE'
+              : isMega
+              ? '🐳 MEGA WHALE'
+              : 'Whale Alert'}
           </span>
 
-          {/* X SHARE */}
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              tweetText
+              alert.text
             )}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-blue-400 hover:text-blue-300"
+            className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300"
           >
             <XIcon size={14} />
             Share
