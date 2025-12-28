@@ -16,7 +16,6 @@ export default async function AlertDetail({ params }) {
 
   if (!alert) return notFound();
 
-  // 🧠 Blockchain explorer map
   const explorerMap = {
     ethereum: `https://etherscan.io/tx/${alert.txid}`,
     tron: `https://tronscan.org/#/transaction/${alert.txid}`,
@@ -24,14 +23,7 @@ export default async function AlertDetail({ params }) {
     ripple: `https://livenet.xrpl.org/transactions/${alert.txid}`
   };
 
-  const blockchainKey = alert.blockchain?.toLowerCase();
-  const explorerUrl = explorerMap[blockchainKey];
-
-  // 🧮 Token amount estimate (frontend derived)
-  let tokenAmount = null;
-  if (alert.usd && alert.coin) {
-    tokenAmount = '≈'; // exact token value API se aayega later
-  }
+  const explorerUrl = explorerMap[alert.blockchain];
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
@@ -39,7 +31,7 @@ export default async function AlertDetail({ params }) {
         {alert.coin} Whale Alert
       </h1>
 
-      <div className="rounded-xl border border-gray-700 p-5 space-y-4">
+      <div className="rounded-xl border border-gray-700 p-5 space-y-5">
 
         <p className="text-gray-300">{alert.text}</p>
 
@@ -50,8 +42,12 @@ export default async function AlertDetail({ params }) {
           </div>
 
           <div>
-            <span className="text-gray-500">Token</span>
-            <p>{alert.coin}</p>
+            <span className="text-gray-500">Token Amount</span>
+            <p>
+              {alert.amountToken
+                ? `${Number(alert.amountToken).toLocaleString()} ${alert.coin}`
+                : 'N/A'}
+            </p>
           </div>
 
           <div>
@@ -66,12 +62,12 @@ export default async function AlertDetail({ params }) {
 
           <div>
             <span className="text-gray-500">From</span>
-            <p>{alert.from || 'unknown'}</p>
+            <p>{alert.from}</p>
           </div>
 
           <div>
             <span className="text-gray-500">To</span>
-            <p>{alert.to || 'unknown'}</p>
+            <p>{alert.to}</p>
           </div>
 
           <div className="col-span-2">
