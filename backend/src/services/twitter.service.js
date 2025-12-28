@@ -7,11 +7,23 @@ const client = new TwitterApi({
   accessSecret: process.env.X_ACCESS_SECRET,
 });
 
+let lastPostTime = 0;
+const COOLDOWN_MS = 60 * 60 * 1000; // ⏳ 1 hour
+
 export default async function postToX(text) {
+  const now = Date.now();
+
+  if (now - lastPostTime < COOLDOWN_MS) {
+    console.log('⏳ X cooldown active — skipping tweet');
+    return;
+  }
+
   try {
     await client.v2.tweet(text);
-    console.log('🐦 Tweet posted successfully');
+    lastPostTime = Date.now();
+    console.log('🐦 X ULTRA tweet posted');
   } catch (err) {
-    console.error('❌ X post error:', err.message);
+    console.error('❌ X post error:', err?.data || err.message);
+    lastPostTime = Date.now(); // fail-safe
   }
 }
