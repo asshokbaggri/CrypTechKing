@@ -1,12 +1,5 @@
 import { notFound } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import XIcon from '@/components/icons/XIcon'
-
-// ✅ SAFE: client component via dynamic import
-const CoinAvatar = dynamic(
-  () => import('@/components/CoinAvatar'),
-  { ssr: false }
-)
 
 async function getAlert(id) {
   const res = await fetch(
@@ -50,20 +43,13 @@ export default async function AlertDetail({ params }) {
           {alert.tier?.replace('_', ' ')}
         </span>
 
-        {/* ✅ COIN AVATAR + TITLE (CRASH SAFE) */}
-        <div className="flex items-center gap-3 mt-1">
-          <CoinAvatar symbol={alert.coin} size={40} />
+        <h1 className="text-3xl font-bold mt-1">
+          {alert.coin}
+        </h1>
 
-          <div>
-            <h1 className="text-3xl font-bold">
-              {alert.coin}
-            </h1>
-
-            <p className="text-xl text-gray-300 mt-1">
-              ${Number(alert.usd).toLocaleString()}
-            </p>
-          </div>
-        </div>
+        <p className="text-xl text-gray-300 mt-1">
+          ${Number(alert.usd).toLocaleString()}
+        </p>
       </div>
 
       {/* TRANSFER FLOW */}
