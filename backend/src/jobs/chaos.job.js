@@ -3,6 +3,7 @@ import postToX from '../services/twitter.service.js';
 import { formatWhaleTweet } from '../utils/formatTweet.js';
 import { canPostWhale } from '../utils/whaleMemory.js';
 import Alert from '../models/Alert.js';
+import postToTelegram from '../services/telegram.service.js';
 
 const MIN_WHALE_USD = 10_000_000;
 const ULTRA_WHALE_USD = 50_000_000;
@@ -124,4 +125,22 @@ export default async function runChaosJob() {
   } else {
     console.log('🛑 X skipped (not ULTRA)');
   }
+}
+
+// 📣 TELEGRAM = MEGA + ULTRA
+if (tier === 'ULTRA_WHALE' || tier === 'MEGA_WHALE') {
+  const tgMessage = `
+🚨 *${tier.replace('_', ' ')} ALERT*
+
+${text}
+
+🧠 *Signal:* ${signal}
+📊 *Confidence:* ${signalStrength}%
+
+🔗 https://cryptechking.vercel.app
+  `.trim();
+
+  await postToTelegram(tgMessage);
+} else {
+  console.log('🔕 Telegram skipped (not MEGA / ULTRA)');
 }
