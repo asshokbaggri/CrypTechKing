@@ -19,56 +19,64 @@ export default function AlertCard({ alert }) {
   return (
     <Link href={`/alerts/${alert._id}`} className="block">
       <div
-        className={`rounded-xl border p-4 sm:p-5 transition-all cursor-pointer
-          hover:border-gray-500
+        className={`
+          relative rounded-xl border p-4 sm:p-5
+          transition-all cursor-pointer
+          hover:scale-[1.01]
           ${
             isUltra
-              ? 'border-red-500 shadow-lg shadow-red-500/20'
+              ? 'border-red-500 bg-red-500/5 shadow-lg shadow-red-500/20'
               : isMega
-              ? 'border-yellow-400 shadow-lg shadow-yellow-500/20'
-              : 'border-gray-700'
-          }`}
+              ? 'border-yellow-400 bg-yellow-400/5 shadow-lg shadow-yellow-500/20'
+              : 'border-gray-700 hover:border-gray-500'
+          }
+        `}
       >
-        {/* TOP */}
-        <div className="flex items-start justify-between">
+        {/* HEADER */}
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold">
+            <h3 className="text-lg font-semibold tracking-tight">
               {alert.coin}
             </h3>
 
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-gray-400 mt-0.5">
               ${usd.toLocaleString()}
             </p>
           </div>
 
           {isNew && (
-            <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-1 rounded-full">
+            <span className="shrink-0 text-[10px] font-medium bg-green-500/20 text-green-400 px-2 py-1 rounded-full">
               NEW
             </span>
           )}
         </div>
 
-        {/* MIDDLE */}
-        <div className="mt-3 space-y-1 text-sm text-gray-300">
+        {/* BODY */}
+        <div className="mt-3 space-y-1.5 text-sm">
           {alert.amountToken && (
-            <p>
+            <p className="text-gray-200 font-medium">
               {Number(alert.amountToken).toLocaleString()} {alert.coin}
             </p>
           )}
 
           <p className="text-gray-400">
-            {alert.from || 'unknown'} → {alert.to || 'unknown'}
+            <span className="text-gray-500">From:</span>{' '}
+            {alert.from || 'unknown'}{' '}
+            <span className="text-gray-500 mx-1">→</span>{' '}
+            <span className="text-gray-300">
+              {alert.to || 'unknown'}
+            </span>
           </p>
 
-          <p className="uppercase text-xs tracking-wide text-gray-500">
+          <p className="uppercase text-[11px] tracking-wider text-gray-500">
             {alert.blockchain}
           </p>
         </div>
 
-        {/* BOTTOM */}
+        {/* FOOTER */}
         <div className="flex items-center justify-between mt-4">
           <span
-            className={`text-xs font-medium ${
+            className={`text-xs font-semibold tracking-wide ${
               isUltra
                 ? 'text-red-400'
                 : isMega
@@ -80,7 +88,7 @@ export default function AlertCard({ alert }) {
               ? '🔥 ULTRA WHALE'
               : isMega
               ? '🐳 MEGA WHALE'
-              : 'Whale Alert'}
+              : 'WHALE ALERT'}
           </span>
 
           <a
@@ -95,6 +103,11 @@ export default function AlertCard({ alert }) {
             <XIcon size={14} />
             Share
           </a>
+        </div>
+
+        {/* SUBTLE CTA */}
+        <div className="absolute bottom-2 right-3 text-[10px] text-gray-500 opacity-60">
+          Tap for details →
         </div>
       </div>
     </Link>
