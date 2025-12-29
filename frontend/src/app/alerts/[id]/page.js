@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import XIcon from '@/components/icons/XIcon'
-import CoinAvatar from '@/components/CoinAvatar'
+import CoinAvatar from '@/components/CoinAvatar' // ✅ ADD THIS
 
 async function getAlert(id) {
   const res = await fetch(
@@ -44,8 +44,9 @@ export default async function AlertDetail({ params }) {
           {alert.tier?.replace('_', ' ')}
         </span>
 
+        {/* ✅ COIN AVATAR + TITLE */}
         <div className="flex items-center gap-3 mt-1">
-          <CoinAvatar symbol={alert.coin} size={42} />
+          <CoinAvatar symbol={alert.coin} size={40} />
 
           <div>
             <h1 className="text-3xl font-bold">
