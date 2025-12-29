@@ -117,19 +117,11 @@ export default async function runChaosJob() {
 
   console.log('💾 Alert saved with signal intelligence');
 
-  // 🐦 Phase 7.2 — SMART X POSTING
-  const shouldPostToX =
-    tier === 'ULTRA_WHALE' &&
-    signal === 'ACCUMULATION' &&
-    signalStrength >= 80;
-
-  if (shouldPostToX) {
-    console.log(
-      `🐦 X POST APPROVED → ${signal} (${signalStrength}%)`
-    );
+  // 🐦 X = ULTRA ONLY (unchanged logic)
+  if (tier === 'ULTRA_WHALE') {
+    console.log('🐦 Posting ULTRA whale to X');
     await postToX(text);
   } else {
-    console.log(
-      `🛑 X skipped → tier=${tier}, signal=${signal}, strength=${signalStrength}%`
-    );
+    console.log('🛑 X skipped (not ULTRA)');
   }
+}
