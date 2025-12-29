@@ -34,7 +34,7 @@ export default async function runChaosJob() {
 
   console.log(`🐳 Approved ${tier}:`, whale);
 
-  // 🧠 SIGNAL INTELLIGENCE
+  // 🧠 SIGNAL INTELLIGENCE (basic, AI later)
   const isExchange = (label) =>
     typeof label === 'string' &&
     label.toLowerCase().includes('exchange');
@@ -63,7 +63,7 @@ export default async function runChaosJob() {
 
   console.log(`🧠 Signal detected: ${signal} (${signalStrength}%)`);
 
-  // 🧠 Format text (stored + X)
+  // 🧠 Stored text (for DB + X)
   let text = formatWhaleTweet(whale, tier);
 
   if (tier === 'MEGA_WHALE') {
@@ -81,7 +81,7 @@ export default async function runChaosJob() {
   }
 
   // 💾 SAVE TO DB
-  await Alert.create({
+  const alert = await Alert.create({
     type: whale.type || 'WHALE_TRANSFER',
 
     coin: whale.symbol?.toUpperCase(),
@@ -105,29 +105,47 @@ export default async function runChaosJob() {
 
   console.log('💾 Alert saved with signal intelligence');
 
-  // 🐦 X = ULTRA ONLY
+  // 🐦 X = ULTRA ONLY (unchanged)
   if (tier === 'ULTRA_WHALE') {
     await postToX(text);
   }
 
-  // 📣 TELEGRAM = MEGA + ULTRA (HTML SAFE)
+  // 📣 TELEGRAM = MEGA + ULTRA (FINAL FORMATION)
   if (tier === 'MEGA_WHALE' || tier === 'ULTRA_WHALE') {
-    console.log('📣 Telegram trigger hit for tier:', tier);
+    const alertUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`;
+
+    const coinTag = `#${whale.symbol?.toUpperCase()}`;
+    const chainTag = `#${whale.blockchain?.toUpperCase()}`;
+
+    // ❌ no hashtag for unknown wallet
+    const fromLabel =
+      whale.from && whale.from !== 'unknown'
+        ? whale.from.includes('#') ? whale.from : whale.from
+        : 'unknown wallet';
+
+    const toLabel =
+      whale.to && whale.to !== 'unknown'
+        ? whale.to.includes('#') ? whale.to : `#${whale.to}`
+        : 'unknown wallet';
 
     const tgMessage = `
-🚨 <b>${tier.replace('_', ' ')}</b>
+${tier === 'ULTRA_WHALE'
+  ? '🔥🔥🔥 <b>ULTRA WHALE ALERT</b> 🔥🔥🔥'
+  : '🚨🚨 <b>MEGA WHALE ALERT</b> 🚨🚨'}
 
-<b>${whale.symbol?.toUpperCase()}</b> whale transfer detected
+🐳 <b>${whale.amountToken?.toLocaleString() || '—'} ${coinTag}</b>
+💰 <b>$${Number(whale.amountUSD).toLocaleString()} USD</b>
 
-💰 <b>Value:</b> $${Number(whale.amountUSD).toLocaleString()}
+➡️ <b>From:</b> ${fromLabel}
+➡️ <b>To:</b> ${toLabel}
 
-🔗 <b>Chain:</b> ${whale.blockchain}
-📍 <b>From:</b> ${whale.from}
-📍 <b>To:</b> ${whale.to}
-
-📊 <b>Signal:</b> ${signal} (${signalStrength}%)
+🔗 <b>Chain:</b> ${chainTag}
+${tier === 'ULTRA_WHALE' ? '⚠️ <b>Market-moving transfer detected</b>\n' : ''}
+👑 <b>CrypTechKing Alpha</b>
+🌐 <a href="${alertUrl}">View full details</a>
 `.trim();
 
+    console.log('📣 Sending Telegram alert');
     await postToTelegram(tgMessage);
   }
 }
