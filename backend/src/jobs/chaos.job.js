@@ -1,8 +1,6 @@
-// backend/src/jobs/chaos.job.js
-
 import checkWhales from '../services/whale.service.js';
 import postToX from '../services/twitter.service.js';
-import postToTelegram from '../services/telegram.service.js'; // ✅ NEW
+import postToTelegram from '../services/telegram.service.js';
 import { formatWhaleTweet } from '../utils/formatTweet.js';
 import { canPostWhale } from '../utils/whaleMemory.js';
 import Alert from '../models/Alert.js';
@@ -36,7 +34,7 @@ export default async function runChaosJob() {
 
   console.log(`🐳 Approved ${tier}:`, whale);
 
-  // 🧠 SIGNAL INTELLIGENCE (unchanged)
+  // 🧠 SIGNAL INTELLIGENCE
   const isExchange = (label) =>
     typeof label === 'string' &&
     label.toLowerCase().includes('exchange');
@@ -65,7 +63,7 @@ export default async function runChaosJob() {
 
   console.log(`🧠 Signal detected: ${signal} (${signalStrength}%)`);
 
-  // 🧠 Format text
+  // 🧠 Format text (stored + X)
   let text = formatWhaleTweet(whale, tier);
 
   if (tier === 'MEGA_WHALE') {
@@ -107,19 +105,27 @@ export default async function runChaosJob() {
 
   console.log('💾 Alert saved with signal intelligence');
 
-  // 🐦 X = ULTRA ONLY (unchanged)
+  // 🐦 X = ULTRA ONLY
   if (tier === 'ULTRA_WHALE') {
     await postToX(text);
   }
 
-  // 📣 TELEGRAM = MEGA + ULTRA (SAFE)
+  // 📣 TELEGRAM = MEGA + ULTRA (HTML SAFE)
   if (tier === 'MEGA_WHALE' || tier === 'ULTRA_WHALE') {
+    console.log('📣 Telegram trigger hit for tier:', tier);
+
     const tgMessage = `
-🚨 *${tier.replace('_', ' ')}*
+🚨 <b>${tier.replace('_', ' ')}</b>
 
-${text}
+<b>${whale.symbol?.toUpperCase()}</b> whale transfer detected
 
-📊 Signal: *${signal}* (${signalStrength}%)
+💰 <b>Value:</b> $${Number(whale.amountUSD).toLocaleString()}
+
+🔗 <b>Chain:</b> ${whale.blockchain}
+📍 <b>From:</b> ${whale.from}
+📍 <b>To:</b> ${whale.to}
+
+📊 <b>Signal:</b> ${signal} (${signalStrength}%)
 `.trim();
 
     await postToTelegram(tgMessage);
