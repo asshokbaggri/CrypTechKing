@@ -1,5 +1,3 @@
-// backend/src/jobs/chaos.job.js
-
 import checkWhales from '../services/whale.service.js';
 import postToX from '../services/twitter.service.js';
 import { formatWhaleTweet } from '../utils/formatTweet.js';
@@ -37,7 +35,46 @@ export default async function runChaosJob() {
 
   console.log(`🐳 Approved ${tier}:`, whale);
 
-  // 🧠 Format stored text (UI-safe, no dependency)
+  // 🧠 SIGNAL INTELLIGENCE (Phase 7.1)
+  const isExchange = (label) =>
+    typeof label === 'string' &&
+    label.toLowerCase().includes('exchange');
+
+  let signal = 'UNKNOWN_FLOW';
+  let flowType = 'UNKNOWN';
+  let signalStrength = 10;
+
+  // Wallet ➝ Exchange (Sell pressure)
+  if (!isExchange(whale.from) && isExchange(whale.to)) {
+    signal = 'EXCHANGE_INFLOW';
+    flowType = 'WALLET_TO_EXCHANGE';
+    signalStrength = 70;
+  }
+
+  // Exchange ➝ Wallet (Accumulation)
+  else if (isExchange(whale.from) && !isExchange(whale.to)) {
+    signal = 'ACCUMULATION';
+    flowType = 'EXCHANGE_TO_WALLET';
+    signalStrength = 80;
+  }
+
+  // Exchange ➝ Exchange (Noise)
+  else if (isExchange(whale.from) && isExchange(whale.to)) {
+    signal = 'EXCHANGE_TO_EXCHANGE';
+    flowType = 'EXCHANGE_TO_EXCHANGE';
+    signalStrength = 30;
+  }
+
+  // Boost confidence for ULTRA whales
+  if (tier === 'ULTRA_WHALE') {
+    signalStrength = Math.min(signalStrength + 15, 100);
+  }
+
+  console.log(
+    `🧠 Signal detected: ${signal} (${signalStrength}%)`
+  );
+
+  // 🧠 Format stored text (UI-safe)
   let text = formatWhaleTweet(whale, tier);
 
   if (tier === 'MEGA_WHALE') {
@@ -54,7 +91,7 @@ export default async function runChaosJob() {
       `\n\n🚀 Market-moving transfer detected.`;
   }
 
-  // 💾 SAVE TO DB (Phase 6.1 additions are OPTIONAL & SAFE)
+  // 💾 SAVE TO DB (Phase 7.1)
   await Alert.create({
     type: whale.type || 'WHALE_TRANSFER',
 
@@ -69,12 +106,16 @@ export default async function runChaosJob() {
     to: whale.to,
     txid: whale.txid,
 
-    // 🧠 Phase 6.1 intelligence (NEW, non-breaking)
     amountToken: whale.amountToken ?? null,
-    tokenSymbol: whale.tokenSymbol ?? whale.symbol
+    tokenSymbol: whale.tokenSymbol ?? whale.symbol,
+
+    // 🧠 Signal intelligence
+    signal,
+    flowType,
+    signalStrength
   });
 
-  console.log('💾 Alert saved to MongoDB (Phase 6.1)');
+  console.log('💾 Alert saved with signal intelligence');
 
   // 🐦 X = ULTRA ONLY (unchanged logic)
   if (tier === 'ULTRA_WHALE') {
