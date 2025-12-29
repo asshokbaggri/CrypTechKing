@@ -16,13 +16,15 @@ export default function AlertCard({ alert }) {
   const isUltra = usd >= 50_000_000
   const isMega = usd >= 25_000_000 && usd < 50_000_000
 
+  const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
+
   return (
     <Link href={`/alerts/${alert._id}`} className="block">
       <div
         className={`
           relative rounded-xl border p-4 sm:p-5
-          transition-all cursor-pointer
-          hover:scale-[1.01]
+          transition-colors cursor-pointer
+          active:scale-[0.99]
           ${
             isUltra
               ? 'border-red-500 bg-red-500/5 shadow-lg shadow-red-500/20'
@@ -38,14 +40,13 @@ export default function AlertCard({ alert }) {
             <h3 className="text-lg font-semibold tracking-tight">
               {alert.coin}
             </h3>
-
             <p className="text-sm text-gray-400 mt-0.5">
               ${usd.toLocaleString()}
             </p>
           </div>
 
           {isNew && (
-            <span className="shrink-0 text-[10px] font-medium bg-green-500/20 text-green-400 px-2 py-1 rounded-full">
+            <span className="shrink-0 text-[10px] font-semibold bg-green-500/20 text-green-400 px-2 py-1 rounded-full">
               NEW
             </span>
           )}
@@ -61,8 +62,8 @@ export default function AlertCard({ alert }) {
 
           <p className="text-gray-400">
             <span className="text-gray-500">From:</span>{' '}
-            {alert.from || 'unknown'}{' '}
-            <span className="text-gray-500 mx-1">→</span>{' '}
+            {alert.from || 'unknown'}
+            <span className="mx-1 text-gray-500">→</span>
             <span className="text-gray-300">
               {alert.to || 'unknown'}
             </span>
@@ -91,20 +92,20 @@ export default function AlertCard({ alert }) {
               : 'WHALE ALERT'}
           </span>
 
+          {/* SHARE ON X */}
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              alert.text
+              `🚨 Whale Alert\n\n${alert.coin} • $${usd.toLocaleString()}\n\nView details 👇\n${detailUrl}`
             )}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-400 hover:text-blue-300"
           >
             <XIcon size={14} />
             Share
           </a>
         </div>
-
       </div>
     </Link>
   )
