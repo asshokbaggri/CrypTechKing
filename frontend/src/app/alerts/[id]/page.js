@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation'
 import XIcon from '@/components/icons/XIcon'
-import CoinAvatar from '@/components/CoinAvatar'
 
 async function getAlert(id) {
   const res = await fetch(
@@ -35,27 +34,38 @@ export default async function AlertDetail({ params }) {
   const explorerUrl = explorerMap[alert.blockchain]
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
 
+  // 🪙 Coin logo path (SAFE)
+  const coinSymbol = alert.coin?.toLowerCase()
+  const coinLogo = `/coins/${coinSymbol}.svg`
+
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
 
       {/* HEADER */}
-      <div className="mb-6">
-        <span className="text-xs tracking-wide text-gray-400 uppercase">
-          {alert.tier?.replace('_', ' ')}
-        </span>
+      <div className="mb-6 flex items-center gap-4">
 
-        <div className="flex items-center gap-3 mt-2">
-          <CoinAvatar symbol={alert.coin} size={42} />
+        {/* COIN AVATAR */}
+        <img
+          src={coinLogo}
+          alt={alert.coin}
+          onError={(e) => {
+            e.currentTarget.src = '/coins/default.svg'
+          }}
+          className="w-12 h-12 rounded-full bg-black border border-gray-700 p-1"
+        />
 
-          <div>
-            <h1 className="text-3xl font-bold leading-tight">
-              {alert.coin}
-            </h1>
+        <div>
+          <span className="text-xs tracking-wide text-gray-400 uppercase">
+            {alert.tier?.replace('_', ' ')}
+          </span>
 
-            <p className="text-xl text-gray-300 mt-1">
-              ${Number(alert.usd).toLocaleString()}
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold leading-tight">
+            {alert.coin}
+          </h1>
+
+          <p className="text-xl text-gray-300">
+            ${Number(alert.usd).toLocaleString()}
+          </p>
         </div>
       </div>
 
@@ -126,7 +136,7 @@ export default async function AlertDetail({ params }) {
 
         <a
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            `🚨 Whale Alert\n\n${alert.coin} • $${Number(alert.usd).toLocaleString()}\n\n🔍 Full details:\n${detailUrl}`
+            `${alert.text}\n\n🔍 Full details:\n${detailUrl}`
           )}`}
           target="_blank"
           rel="noopener noreferrer"
