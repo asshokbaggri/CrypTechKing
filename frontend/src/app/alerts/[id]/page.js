@@ -1,6 +1,5 @@
-// frontend/src/app/alerts/[id]/page.js
-
 import { notFound } from 'next/navigation'
+import XIcon from '@/components/icons/XIcon'
 
 async function getAlert(id) {
   const res = await fetch(
@@ -18,11 +17,6 @@ export default async function AlertDetail({ params }) {
 
   if (!alert) return notFound()
 
-  const usd = Number(alert.usd || 0)
-
-  const isUltra = usd >= 50_000_000
-  const isMega = usd >= 25_000_000 && usd < 50_000_000
-
   const explorerMap = {
     ethereum: `https://etherscan.io/tx/${alert.txid}`,
     tron: `https://tronscan.org/#/transaction/${alert.txid}`,
@@ -31,115 +25,113 @@ export default async function AlertDetail({ params }) {
   }
 
   const explorerUrl = explorerMap[alert.blockchain]
+  const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+    <main className="max-w-2xl mx-auto px-4 py-8">
 
-      {/* HERO */}
-      <div>
-        <span
-          className={`inline-block mb-2 text-xs font-semibold tracking-wide ${
-            isUltra
-              ? 'text-red-400'
-              : isMega
-              ? 'text-yellow-400'
-              : 'text-gray-400'
-          }`}
-        >
-          {isUltra
-            ? '🔥 ULTRA WHALE ALERT'
-            : isMega
-            ? '🐳 MEGA WHALE ALERT'
-            : 'WHALE ALERT'}
+      {/* HEADER */}
+      <div className="mb-6">
+        <span className="text-xs tracking-wide text-gray-400">
+          {alert.tier?.replace('_', ' ')}
         </span>
 
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-3xl font-bold mt-1">
           {alert.coin}
         </h1>
 
         <p className="text-xl text-gray-300 mt-1">
-          ${usd.toLocaleString()}
+          ${Number(alert.usd).toLocaleString()}
         </p>
       </div>
 
-      {/* TRANSFER FLOW */}
-      <div className="rounded-xl border border-gray-700 p-5 text-center">
-        <p className="text-sm text-gray-400 mb-2">Transfer Flow</p>
-
-        <p className="text-lg font-medium">
-          {alert.from || 'unknown'} <span className="mx-2">→</span> {alert.to || 'unknown'}
+      {/* FLOW */}
+      <div className="rounded-xl border border-gray-700 p-4 mb-6 text-center">
+        <p className="text-sm text-gray-400">Transfer Flow</p>
+        <p className="text-lg mt-1">
+          {alert.from || 'unknown'} → {alert.to || 'unknown'}
         </p>
-
-        <p className="mt-2 text-xs uppercase tracking-wide text-gray-500">
+        <p className="text-xs uppercase tracking-wide text-gray-500 mt-1">
           {alert.blockchain}
         </p>
       </div>
 
-      {/* INTELLIGENCE GRID */}
-      <div className="grid grid-cols-2 gap-4 text-sm">
+      {/* STATS */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="rounded-lg border border-gray-700 p-4">
-          <span className="text-gray-500">USD Value</span>
-          <p className="mt-1 text-lg font-semibold">
-            ${usd.toLocaleString()}
+          <p className="text-xs text-gray-400">USD Value</p>
+          <p className="text-lg font-semibold">
+            ${Number(alert.usd).toLocaleString()}
           </p>
         </div>
 
         {alert.amountToken && (
           <div className="rounded-lg border border-gray-700 p-4">
-            <span className="text-gray-500">Token Amount</span>
-            <p className="mt-1 text-lg font-semibold">
+            <p className="text-xs text-gray-400">Token Amount</p>
+            <p className="text-lg font-semibold">
               {Number(alert.amountToken).toLocaleString()} {alert.coin}
             </p>
           </div>
         )}
 
         <div className="rounded-lg border border-gray-700 p-4">
-          <span className="text-gray-500">Tier</span>
-          <p className="mt-1 font-medium">
-            {alert.tier}
-          </p>
+          <p className="text-xs text-gray-400">Tier</p>
+          <p className="font-medium">{alert.tier}</p>
         </div>
 
         <div className="rounded-lg border border-gray-700 p-4">
-          <span className="text-gray-500">Time</span>
-          <p className="mt-1">
+          <p className="text-xs text-gray-400">Time</p>
+          <p className="text-sm">
             {new Date(alert.createdAt).toLocaleString()}
           </p>
         </div>
       </div>
 
-      {/* SIGNAL (LIGHTWEIGHT) */}
-      {alert.signal && (
-        <div className="rounded-xl border border-gray-700 p-4 text-sm">
-          <span className="text-gray-500">Signal</span>
-          <p className="mt-1 font-medium">
-            {alert.signal} ({alert.signalStrength || 0}%)
-          </p>
-        </div>
-      )}
+      {/* SIGNAL */}
+      <div className="rounded-lg border border-gray-700 p-4 mb-6">
+        <p className="text-xs text-gray-400">Market Signal (beta)</p>
+        <p className="font-medium mt-1">
+          Neutral flow detected ({alert.signalStrength || 0}%)
+        </p>
+      </div>
 
       {/* ACTIONS */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
+
         {explorerUrl && (
           <a
             href={explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-blue-400 hover:underline"
+            className="text-blue-400 hover:underline text-sm"
           >
-            View on Blockchain Explorer ↗
+            View on Blockchain Explorer
           </a>
         )}
 
         <a
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            alert.text
+            `${alert.text}\n\n🔍 Full details:\n${detailUrl}`
           )}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-blue-400 hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300"
         >
-          Share on X ↗
+          <XIcon size={14} />
+          Share
+        </a>
+      </div>
+
+      {/* TELEGRAM CTA */}
+      <div className="mt-8 text-center text-sm text-gray-500">
+        🔔 Get instant whale alerts on Telegram  
+        <br />
+        <a
+          href="https://t.me/CrypTechKingAlpha"
+          target="_blank"
+          className="text-blue-400 hover:underline"
+        >
+          Join CrypTechKing Alpha
         </a>
       </div>
 
