@@ -1,12 +1,10 @@
-// backend/src/models/Alert.js
-
 import mongoose from 'mongoose';
 
 /**
- * Phase 6.1 principles:
+ * Phase 7.1 principles:
  * - NEVER break old alerts
- * - All new intelligence fields OPTIONAL
- * - Frontend-safe (undefined-proof)
+ * - All intelligence fields OPTIONAL
+ * - Frontend-safe
  */
 
 const AlertSchema = new mongoose.Schema({
@@ -19,23 +17,45 @@ const AlertSchema = new mongoose.Schema({
 
   text: { type: String },
 
-  // 🔍 Blockchain intelligence (Phase 6.1)
+  // Blockchain context
   blockchain: { type: String },
-
-  // Human-readable labels
-  from: { type: String },   // Binance / Treasury / Unknown
+  from: { type: String },
   to: { type: String },
-
   txid: { type: String },
 
-  // 🧠 NEW — token intelligence (SAFE ADD)
-  amountToken: { type: Number, default: null }, // BTC / ETH / XRP count
-  tokenSymbol: { type: String },                // BTC / ETH / XRP
+  // Token intelligence
+  amountToken: { type: Number, default: null },
+  tokenSymbol: { type: String },
+
+  // 🧠 Phase 7.1 — SIGNAL INTELLIGENCE
+  signal: {
+    type: String,
+    enum: [
+      'ACCUMULATION',
+      'EXCHANGE_INFLOW',
+      'EXCHANGE_TO_EXCHANGE',
+      'UNKNOWN_FLOW'
+    ],
+    default: 'UNKNOWN_FLOW'
+  },
+
+  flowType: {
+    type: String,
+    enum: [
+      'WALLET_TO_EXCHANGE',
+      'EXCHANGE_TO_WALLET',
+      'EXCHANGE_TO_EXCHANGE',
+      'UNKNOWN'
+    ],
+    default: 'UNKNOWN'
+  },
+
+  signalStrength: {
+    type: Number, // 0–100
+    default: 0
+  },
 
   createdAt: { type: Date, default: Date.now }
 });
 
-/**
- * Prevent model overwrite in hot reloads
- */
 export default mongoose.models.Alert || mongoose.model('Alert', AlertSchema);
