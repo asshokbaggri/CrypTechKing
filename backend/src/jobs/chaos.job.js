@@ -1,9 +1,11 @@
+// backend/src/jobs/chaos.job.js
+
 import checkWhales from '../services/whale.service.js';
 import postToX from '../services/twitter.service.js';
+import postToTelegram from '../services/telegram.service.js'; // ✅ NEW
 import { formatWhaleTweet } from '../utils/formatTweet.js';
 import { canPostWhale } from '../utils/whaleMemory.js';
 import Alert from '../models/Alert.js';
-import postToTelegram from '../services/telegram.service.js';
 
 const MIN_WHALE_USD = 10_000_000;
 const ULTRA_WHALE_USD = 50_000_000;
@@ -16,27 +18,25 @@ export default async function runChaosJob() {
     return;
   }
 
-  // ❌ HARD FILTER
   if (whale.amountUSD < MIN_WHALE_USD) {
     console.log('🪙 Whale below threshold ignored');
     return;
   }
 
-  // 🛡️ Anti-spam memory
   const permission = canPostWhale(whale);
   if (!permission.ok) {
     console.log(`⛔ Skip whale: ${permission.reason}`);
     return;
   }
 
-  // 🧠 Tier detection
+  // 🧠 Tier detection (DO NOT MOVE)
   let tier = 'WHALE';
   if (whale.amountUSD >= ULTRA_WHALE_USD) tier = 'ULTRA_WHALE';
   else if (whale.amountUSD >= 25_000_000) tier = 'MEGA_WHALE';
 
   console.log(`🐳 Approved ${tier}:`, whale);
 
-  // 🧠 SIGNAL INTELLIGENCE (Phase 7.1)
+  // 🧠 SIGNAL INTELLIGENCE (unchanged)
   const isExchange = (label) =>
     typeof label === 'string' &&
     label.toLowerCase().includes('exchange');
@@ -45,37 +45,27 @@ export default async function runChaosJob() {
   let flowType = 'UNKNOWN';
   let signalStrength = 10;
 
-  // Wallet ➝ Exchange (Sell pressure)
   if (!isExchange(whale.from) && isExchange(whale.to)) {
     signal = 'EXCHANGE_INFLOW';
     flowType = 'WALLET_TO_EXCHANGE';
     signalStrength = 70;
-  }
-
-  // Exchange ➝ Wallet (Accumulation)
-  else if (isExchange(whale.from) && !isExchange(whale.to)) {
+  } else if (isExchange(whale.from) && !isExchange(whale.to)) {
     signal = 'ACCUMULATION';
     flowType = 'EXCHANGE_TO_WALLET';
     signalStrength = 80;
-  }
-
-  // Exchange ➝ Exchange (Noise)
-  else if (isExchange(whale.from) && isExchange(whale.to)) {
+  } else if (isExchange(whale.from) && isExchange(whale.to)) {
     signal = 'EXCHANGE_TO_EXCHANGE';
     flowType = 'EXCHANGE_TO_EXCHANGE';
     signalStrength = 30;
   }
 
-  // Boost confidence for ULTRA whales
   if (tier === 'ULTRA_WHALE') {
     signalStrength = Math.min(signalStrength + 15, 100);
   }
 
-  console.log(
-    `🧠 Signal detected: ${signal} (${signalStrength}%)`
-  );
+  console.log(`🧠 Signal detected: ${signal} (${signalStrength}%)`);
 
-  // 🧠 Format stored text (UI-safe)
+  // 🧠 Format text
   let text = formatWhaleTweet(whale, tier);
 
   if (tier === 'MEGA_WHALE') {
@@ -92,7 +82,7 @@ export default async function runChaosJob() {
       `\n\n🚀 Market-moving transfer detected.`;
   }
 
-  // 💾 SAVE TO DB (Phase 7.1)
+  // 💾 SAVE TO DB
   await Alert.create({
     type: whale.type || 'WHALE_TRANSFER',
 
@@ -110,7 +100,6 @@ export default async function runChaosJob() {
     amountToken: whale.amountToken ?? null,
     tokenSymbol: whale.tokenSymbol ?? whale.symbol,
 
-    // 🧠 Signal intelligence
     signal,
     flowType,
     signalStrength
@@ -118,29 +107,21 @@ export default async function runChaosJob() {
 
   console.log('💾 Alert saved with signal intelligence');
 
-  // 🐦 X = ULTRA ONLY (unchanged logic)
+  // 🐦 X = ULTRA ONLY (unchanged)
   if (tier === 'ULTRA_WHALE') {
-    console.log('🐦 Posting ULTRA whale to X');
     await postToX(text);
-  } else {
-    console.log('🛑 X skipped (not ULTRA)');
   }
-}
 
-// 📣 TELEGRAM = MEGA + ULTRA
-if (tier === 'ULTRA_WHALE' || tier === 'MEGA_WHALE') {
-  const tgMessage = `
-🚨 *${tier.replace('_', ' ')} ALERT*
+  // 📣 TELEGRAM = MEGA + ULTRA (SAFE)
+  if (tier === 'MEGA_WHALE' || tier === 'ULTRA_WHALE') {
+    const tgMessage = `
+🚨 *${tier.replace('_', ' ')}*
 
 ${text}
 
-🧠 *Signal:* ${signal}
-📊 *Confidence:* ${signalStrength}%
+📊 Signal: *${signal}* (${signalStrength}%)
+`.trim();
 
-🔗 https://cryptechking.vercel.app
-  `.trim();
-
-  await postToTelegram(tgMessage);
-} else {
-  console.log('🔕 Telegram skipped (not MEGA / ULTRA)');
+    await postToTelegram(tgMessage);
+  }
 }
