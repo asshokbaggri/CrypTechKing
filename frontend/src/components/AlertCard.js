@@ -105,10 +105,6 @@ export default function AlertCard({ alert }) {
           </a>
         </div>
 
-        {/* SUBTLE CTA */}
-        <div className="absolute bottom-2 right-3 text-[10px] text-gray-500 opacity-60">
-          Tap for details →
-        </div>
       </div>
     </Link>
   )
