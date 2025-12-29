@@ -34,39 +34,22 @@ export default async function AlertDetail({ params }) {
   const explorerUrl = explorerMap[alert.blockchain]
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
 
-  // 🪙 Coin logo path (SAFE)
-  const coinSymbol = alert.coin?.toLowerCase()
-  const coinLogo = `/coins/${coinSymbol}.svg`
-
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
 
       {/* HEADER */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-6">
+        <span className="text-xs tracking-wide text-gray-400 uppercase">
+          {alert.tier?.replace('_', ' ')}
+        </span>
 
-        {/* COIN AVATAR */}
-        <img
-          src={coinLogo}
-          alt={alert.coin}
-          onError={(e) => {
-            e.currentTarget.src = '/coins/default.svg'
-          }}
-          className="w-12 h-12 rounded-full bg-black border border-gray-700 p-1"
-        />
+        <h1 className="text-3xl font-bold mt-1">
+          {alert.coin}
+        </h1>
 
-        <div>
-          <span className="text-xs tracking-wide text-gray-400 uppercase">
-            {alert.tier?.replace('_', ' ')}
-          </span>
-
-          <h1 className="text-3xl font-bold leading-tight">
-            {alert.coin}
-          </h1>
-
-          <p className="text-xl text-gray-300">
-            ${Number(alert.usd).toLocaleString()}
-          </p>
-        </div>
+        <p className="text-xl text-gray-300 mt-1">
+          ${Number(alert.usd).toLocaleString()}
+        </p>
       </div>
 
       {/* TRANSFER FLOW */}
