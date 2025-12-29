@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import XIcon from '@/components/icons/XIcon'
+import CoinAvatar from '@/components/CoinAvatar'
 
 async function getAlert(id) {
   const res = await fetch(
@@ -43,13 +44,19 @@ export default async function AlertDetail({ params }) {
           {alert.tier?.replace('_', ' ')}
         </span>
 
-        <h1 className="text-3xl font-bold mt-1">
-          {alert.coin}
-        </h1>
+        <div className="flex items-center gap-3 mt-2">
+          <CoinAvatar symbol={alert.coin} size={42} />
 
-        <p className="text-xl text-gray-300 mt-1">
-          ${Number(alert.usd).toLocaleString()}
-        </p>
+          <div>
+            <h1 className="text-3xl font-bold leading-tight">
+              {alert.coin}
+            </h1>
+
+            <p className="text-xl text-gray-300 mt-1">
+              ${Number(alert.usd).toLocaleString()}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* TRANSFER FLOW */}
@@ -119,7 +126,7 @@ export default async function AlertDetail({ params }) {
 
         <a
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            `${alert.text}\n\n🔍 Full details:\n${detailUrl}`
+            `🚨 Whale Alert\n\n${alert.coin} • $${Number(alert.usd).toLocaleString()}\n\n🔍 Full details:\n${detailUrl}`
           )}`}
           target="_blank"
           rel="noopener noreferrer"
