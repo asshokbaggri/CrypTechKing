@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import XIcon from './icons/XIcon'
+import CoinAvatar from './CoinAvatar'
 
 export default function AlertCard({ alert }) {
   const [isNew, setIsNew] = useState(true)
@@ -36,13 +37,17 @@ export default function AlertCard({ alert }) {
       >
         {/* HEADER */}
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-semibold tracking-tight">
-              {alert.coin}
-            </h3>
-            <p className="text-sm text-gray-400 mt-0.5">
-              ${usd.toLocaleString()}
-            </p>
+          <div className="flex items-center gap-2">
+            <CoinAvatar symbol={alert.coin} size={28} />
+
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight">
+                {alert.coin}
+              </h3>
+              <p className="text-sm text-gray-400 mt-0.5">
+                ${usd.toLocaleString()}
+              </p>
+            </div>
           </div>
 
           {isNew && (
@@ -62,10 +67,10 @@ export default function AlertCard({ alert }) {
 
           <p className="text-gray-400">
             <span className="text-gray-500">From:</span>{' '}
-            {alert.from || 'unknown'}
+            {alert.from || 'Unknown wallet'}
             <span className="mx-1 text-gray-500">→</span>
             <span className="text-gray-300">
-              {alert.to || 'unknown'}
+              {alert.to || 'Unknown wallet'}
             </span>
           </p>
 
@@ -92,7 +97,6 @@ export default function AlertCard({ alert }) {
               : 'WHALE ALERT'}
           </span>
 
-          {/* SHARE ON X */}
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
               `🚨 Whale Alert\n\n${alert.coin} • $${usd.toLocaleString()}\n\nView details 👇\n${detailUrl}`
