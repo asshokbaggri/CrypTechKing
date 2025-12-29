@@ -58,4 +58,7 @@ const AlertSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+/**
+ * Prevent model overwrite in hot reloads
+ */
 export default mongoose.models.Alert || mongoose.model('Alert', AlertSchema);
