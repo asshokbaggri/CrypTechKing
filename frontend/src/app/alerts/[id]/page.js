@@ -11,6 +11,13 @@ async function getAlert(id) {
   return res.json()
 }
 
+// 🔧 Helper for wallet labels
+function formatWallet(label) {
+  if (!label) return 'Unknown wallet'
+  if (label.toLowerCase() === 'unknown') return 'Unknown wallet'
+  return label
+}
+
 export default async function AlertDetail({ params }) {
   const res = await getAlert(params.id)
   const alert = res?.data
@@ -32,7 +39,7 @@ export default async function AlertDetail({ params }) {
 
       {/* HEADER */}
       <div className="mb-6">
-        <span className="text-xs tracking-wide text-gray-400">
+        <span className="text-xs tracking-wide text-gray-400 uppercase">
           {alert.tier?.replace('_', ' ')}
         </span>
 
@@ -45,12 +52,14 @@ export default async function AlertDetail({ params }) {
         </p>
       </div>
 
-      {/* FLOW */}
+      {/* TRANSFER FLOW */}
       <div className="rounded-xl border border-gray-700 p-4 mb-6 text-center">
         <p className="text-sm text-gray-400">Transfer Flow</p>
-        <p className="text-lg mt-1">
-          {alert.from || 'unknown'} → {alert.to || 'unknown'}
+
+        <p className="text-lg mt-1 font-medium">
+          {formatWallet(alert.from)} → {formatWallet(alert.to)}
         </p>
+
         <p className="text-xs uppercase tracking-wide text-gray-500 mt-1">
           {alert.blockchain}
         </p>
@@ -89,15 +98,14 @@ export default async function AlertDetail({ params }) {
 
       {/* SIGNAL */}
       <div className="rounded-lg border border-gray-700 p-4 mb-6">
-        <p className="text-xs text-gray-400">Market Signal (beta)</p>
+        <p className="text-xs text-gray-400">Flow Insight (Beta)</p>
         <p className="font-medium mt-1">
-          Neutral flow detected ({alert.signalStrength || 0}%)
+          Neutral transfer detected ({alert.signalStrength || 0}%)
         </p>
       </div>
 
       {/* ACTIONS */}
       <div className="flex items-center justify-between gap-4">
-
         {explorerUrl && (
           <a
             href={explorerUrl}
@@ -105,7 +113,7 @@ export default async function AlertDetail({ params }) {
             rel="noopener noreferrer"
             className="text-blue-400 hover:underline text-sm"
           >
-            View on Blockchain Explorer
+            View on Blockchain Explorer ↗
           </a>
         )}
 
@@ -124,7 +132,7 @@ export default async function AlertDetail({ params }) {
 
       {/* TELEGRAM CTA */}
       <div className="mt-8 text-center text-sm text-gray-500">
-        🔔 Get instant whale alerts on Telegram  
+        🔔 Get instant whale alerts on Telegram
         <br />
         <a
           href="https://t.me/CrypTechKingAlpha"
