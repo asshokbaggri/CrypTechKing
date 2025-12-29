@@ -27,34 +27,20 @@ export default async function AlertDetail({ params }) {
   const explorerUrl = explorerMap[alert.blockchain]
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
 
-  const isUltra = alert.tier === 'ULTRA_WHALE'
-  const isMega = alert.tier === 'MEGA_WHALE'
-
   return (
     <main className="max-w-2xl mx-auto px-4 pt-6 pb-24">
 
-      {/* TIER BADGE */}
-      <div className="mb-2">
-        <span
-          className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${
-            isUltra
-              ? 'bg-red-500/20 text-red-400'
-              : isMega
-              ? 'bg-yellow-500/20 text-yellow-400'
-              : 'bg-gray-500/20 text-gray-400'
-          }`}
-        >
-          {isUltra ? '🔥 ULTRA WHALE ALERT' : isMega ? '🐳 MEGA WHALE ALERT' : 'WHALE ALERT'}
-        </span>
-      </div>
-
       {/* HEADER */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <span className="inline-block text-[11px] font-semibold tracking-wide px-2 py-1 rounded-full bg-gray-800 text-gray-300">
+          {alert.tier?.replace('_', ' ')}
+        </span>
+
+        <h1 className="text-2xl font-bold mt-2">
           {alert.coin}
         </h1>
 
-        <p className="text-xl text-gray-300 mt-1">
+        <p className="text-lg text-gray-300 mt-1">
           ${Number(alert.usd).toLocaleString()}
         </p>
       </div>
@@ -65,59 +51,63 @@ export default async function AlertDetail({ params }) {
           Transfer Flow
         </p>
 
-        <p className="text-lg mt-1 font-medium">
-          {alert.from || 'unknown'} → {alert.to || 'unknown'}
+        <p className="text-base font-medium mt-2">
+          {alert.from || 'unknown'}
+          <span className="mx-2 text-gray-500">→</span>
+          {alert.to || 'unknown'}
         </p>
 
-        <p className="text-xs uppercase tracking-wider text-gray-500 mt-1">
+        <span className="inline-block mt-2 text-[11px] uppercase tracking-wider text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full">
           {alert.blockchain}
-        </p>
+        </span>
       </div>
 
       {/* STATS */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="rounded-lg border border-gray-700 p-4">
-          <p className="text-xs text-gray-400">USD Value</p>
-          <p className="text-lg font-semibold">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="rounded-lg border border-gray-700 p-3">
+          <p className="text-[11px] text-gray-400">USD Value</p>
+          <p className="text-base font-semibold">
             ${Number(alert.usd).toLocaleString()}
           </p>
         </div>
 
         {alert.amountToken && (
-          <div className="rounded-lg border border-gray-700 p-4">
-            <p className="text-xs text-gray-400">Token Amount</p>
-            <p className="text-lg font-semibold">
+          <div className="rounded-lg border border-gray-700 p-3">
+            <p className="text-[11px] text-gray-400">Token Amount</p>
+            <p className="text-base font-semibold">
               {Number(alert.amountToken).toLocaleString()} {alert.coin}
             </p>
           </div>
         )}
 
-        <div className="rounded-lg border border-gray-700 p-4">
-          <p className="text-xs text-gray-400">Tier</p>
-          <p className="font-medium">{alert.tier}</p>
+        <div className="rounded-lg border border-gray-700 p-3">
+          <p className="text-[11px] text-gray-400">Tier</p>
+          <p className="text-sm font-medium">
+            {alert.tier}
+          </p>
         </div>
 
-        <div className="rounded-lg border border-gray-700 p-4">
-          <p className="text-xs text-gray-400">Time</p>
-          <p className="text-sm">
+        <div className="rounded-lg border border-gray-700 p-3">
+          <p className="text-[11px] text-gray-400">Time</p>
+          <p className="text-xs">
             {new Date(alert.createdAt).toLocaleString()}
           </p>
         </div>
       </div>
 
       {/* SIGNAL */}
-      <div className="rounded-lg border border-gray-700 p-4 mb-8">
-        <p className="text-xs text-gray-400 uppercase tracking-wide">
+      <div className="rounded-lg border border-gray-700 p-4 mb-6">
+        <p className="text-[11px] text-gray-400 uppercase tracking-wide">
           Market Signal (beta)
         </p>
-        <p className="font-medium mt-1">
+        <p className="text-sm font-medium mt-1">
           Neutral flow detected ({alert.signalStrength || 0}%)
         </p>
       </div>
 
       {/* TELEGRAM CTA */}
-      <div className="text-center text-sm text-gray-500 mb-10">
-        🔔 Get instant whale alerts on Telegram
+      <div className="mt-6 text-center text-sm text-gray-500">
+        🔔 Get instant whale alerts on Telegram  
         <br />
         <a
           href="https://t.me/CrypTechKingAlpha"
@@ -129,31 +119,32 @@ export default async function AlertDetail({ params }) {
       </div>
 
       {/* STICKY ACTION BAR (MOBILE FIRST) */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-800 bg-black/80 backdrop-blur z-50">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          {explorerUrl ? (
-            <a
-              href={explorerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-400 hover:underline"
-            >
-              Explorer ↗
-            </a>
-          ) : <span />}
+      <div className="fixed bottom-0 left-0 right-0 z-20 bg-black/90 backdrop-blur border-t border-gray-800 px-4 py-3 flex items-center justify-between sm:hidden">
 
+        {explorerUrl ? (
           <a
-            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              `🚨 Whale Alert\n\n${alert.coin} • $${Number(alert.usd).toLocaleString()}\n\nView full details 👇\n${detailUrl}`
-            )}`}
+            href={explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300"
+            className="text-sm font-medium text-blue-400"
           >
-            <XIcon size={16} />
-            Share
+            Explorer ↗
           </a>
-        </div>
+        ) : (
+          <span />
+        )}
+
+        <a
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+            `🚨 Whale Alert\n\n${alert.coin} • $${Number(alert.usd).toLocaleString()}\n\nFull details 👇\n${detailUrl}`
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-400"
+        >
+          <XIcon size={16} />
+          Share
+        </a>
       </div>
 
     </main>
