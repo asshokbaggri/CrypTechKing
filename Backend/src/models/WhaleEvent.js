@@ -5,6 +5,7 @@ const whaleEventSchema = new mongoose.Schema({
   amount: Number,
   from: String,
   to: String,
+  txHash: { type: String, unique: true },
   createdAt: { type: Date, default: Date.now }
 })
 
