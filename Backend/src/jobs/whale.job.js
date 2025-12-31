@@ -45,7 +45,7 @@ export default function startWhaleJob() {
       )
       const height = heightRes.data
 
-      // 🔒 Process only NEW block
+      // 🔒 Only process new block
       if (height === lastProcessedHeight) return
       lastProcessedHeight = height
 
@@ -62,7 +62,7 @@ export default function startWhaleJob() {
       const txs = txRes.data
 
       for (const tx of txs) {
-        // HARD duplicate block
+        // 🔒 DB-level duplicate protection
         const exists = await WhaleEvent.findOne({ txHash: tx.txid })
         if (exists) continue
 
@@ -70,7 +70,7 @@ export default function startWhaleJob() {
         let maxOut = { value: 0, addr: null }
         let maxIn = { value: 0, addr: null }
 
-        // TO
+        // TO (outputs)
         for (const out of tx.vout) {
           totalOut += out.value
           if (out.value > maxOut.value && out.scriptpubkey_address) {
@@ -81,7 +81,7 @@ export default function startWhaleJob() {
           }
         }
 
-        // FROM
+        // FROM (inputs)
         for (const vin of tx.vin) {
           if (
             vin.prevout &&
@@ -114,6 +114,7 @@ export default function startWhaleJob() {
 
         const usdValue = (btcAmount * btcPrice).toLocaleString()
 
+        // 📢 TELEGRAM MESSAGE (TX HASH COPY FRIENDLY)
         const message = `
 🚨 <b>BTC WHALE ALERT</b> 🚨
 
@@ -125,7 +126,9 @@ export default function startWhaleJob() {
 
 ${signal}
 
-🔗 https://mempool.space/tx/${tx.txid}
+🧾 <b>Tx Hash (tap to copy)</b>
+<code>${tx.txid}</code>
+
 ⏱ Just mined
 `
 
@@ -144,5 +147,5 @@ ${signal}
     } catch (err) {
       console.error('Whale job error:', err.message)
     }
-  }, 120 * 1000) // ⏱ every 2 minutes (SAFE)
+  }, 120 * 1000) // every 2 minutes
 }
