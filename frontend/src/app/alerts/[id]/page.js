@@ -8,16 +8,15 @@ async function getAlert(id) {
     `${process.env.NEXT_PUBLIC_API_URL}/alerts/${id}`,
     { cache: 'no-store' }
   )
-
   if (!res.ok) return null
   return res.json()
 }
 
 // ---------- HELPERS ----------
-function formatWallet(label) {
+function safeWallet(label) {
   if (!label) return 'Unknown wallet'
-  if (label.toLowerCase() === 'unknown') return 'Unknown wallet'
-  return label
+  const v = String(label).trim().toLowerCase()
+  return v === 'unknown' ? 'Unknown wallet' : label
 }
 
 function formatXShare(alert, detailUrl) {
@@ -29,9 +28,9 @@ function formatXShare(alert, detailUrl) {
   const isMega = usd >= 25_000_000 && usd < 50_000_000
 
   const header = isUltra
-    ? '🔥 ULTRA WHALE ALERT'
+    ? '🔥🔥 ULTRA WHALE ALERT 🔥🔥'
     : isMega
-    ? '🚨 MEGA WHALE ALERT'
+    ? '🚨🚨 MEGA WHALE ALERT 🚨🚨'
     : '🐳 WHALE ALERT'
 
   const amountLine = alert.amountToken
@@ -44,8 +43,10 @@ ${header}
 ${amountLine}
 moved on ${chain}
 
-From: ${formatWallet(alert.from)}
-To: ${formatWallet(alert.to)}
+From: ${safeWallet(alert.from)}
+To: ${safeWallet(alert.to)}
+
+#Crypto #WhaleAlert #${coin}
 
 🔍 Full details:
 ${detailUrl}
@@ -56,7 +57,6 @@ ${detailUrl}
 export default async function AlertDetail({ params }) {
   const res = await getAlert(params.id)
   const alert = res?.data
-
   if (!alert) return notFound()
 
   const explorerMap = {
@@ -73,25 +73,22 @@ export default async function AlertDetail({ params }) {
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
 
-      {/* HEADER */}
       <AlertHeader
         coin={alert.coin}
         usd={alert.usd}
         tier={alert.tier}
       />
 
-      {/* TRANSFER FLOW */}
       <div className="rounded-xl border border-gray-700 p-4 mb-6 text-center">
         <p className="text-sm text-gray-400">Transfer Flow</p>
         <p className="text-lg mt-1 font-medium">
-          {formatWallet(alert.from)} → {formatWallet(alert.to)}
+          {safeWallet(alert.from)} → {safeWallet(alert.to)}
         </p>
         <p className="text-xs uppercase tracking-wide text-gray-500 mt-1">
           {alert.blockchain}
         </p>
       </div>
 
-      {/* STATS */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="rounded-lg border border-gray-700 p-4">
           <p className="text-xs text-gray-400">USD Value</p>
@@ -122,15 +119,6 @@ export default async function AlertDetail({ params }) {
         </div>
       </div>
 
-      {/* SIGNAL */}
-      <div className="rounded-lg border border-gray-700 p-4 mb-6">
-        <p className="text-xs text-gray-400">Flow Insight (Beta)</p>
-        <p className="font-medium mt-1">
-          Neutral transfer detected ({alert.signalStrength || 0}%)
-        </p>
-      </div>
-
-      {/* ACTIONS */}
       <div className="flex items-center justify-between gap-4">
         {explorerUrl && (
           <a
@@ -144,9 +132,7 @@ export default async function AlertDetail({ params }) {
         )}
 
         <a
-          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            xText
-          )}`}
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(xText)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300"
@@ -156,7 +142,6 @@ export default async function AlertDetail({ params }) {
         </a>
       </div>
 
-      {/* TELEGRAM CTA */}
       <div className="mt-8 text-center text-sm text-gray-500">
         🔔 Get instant whale alerts on Telegram
         <br />
