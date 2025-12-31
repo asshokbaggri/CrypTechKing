@@ -8,22 +8,28 @@ import WhaleEvent from '../models/WhaleEvent.js'
 
 const BTC_THRESHOLD = WHALE_THRESHOLDS.BTC
 
-let lastProcessedHeight = null
+const ALCHEMY_RPC =
+  `${process.env.ALCHEMY_NETWORK}/${process.env.ALCHEMY_API_KEY}`
+
+let lastProcessedBlock = null
 let cachedPrice = null
 let lastPriceFetch = 0
 
-const http = axios.create({
-  timeout: 15000,
-  headers: {
-    'User-Agent': 'CrypTechKing/1.0 (Telegram Whale Bot)'
-  }
-})
+async function rpc(method, params = []) {
+  const res = await axios.post(ALCHEMY_RPC, {
+    jsonrpc: '2.0',
+    id: 1,
+    method,
+    params
+  })
+  return res.data.result
+}
 
 async function getBTCPrice() {
   const now = Date.now()
   if (cachedPrice && now - lastPriceFetch < 60_000) return cachedPrice
 
-  const res = await http.get(
+  const res = await axios.get(
     'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT'
   )
 
@@ -33,36 +39,26 @@ async function getBTCPrice() {
 }
 
 export default function startWhaleJob() {
-  log('Whale job started (Mempool API)')
+  log('Whale job started (Alchemy BTC RPC)')
 
   setInterval(async () => {
     try {
       const btcPrice = await getBTCPrice()
 
       // 1️⃣ Latest block height
-      const heightRes = await http.get(
-        'https://mempool.space/api/blocks/tip/height'
-      )
-      const height = heightRes.data
+      const blockHeight = await rpc('getblockcount')
 
-      // 🔒 Process only NEW block
-      if (height === lastProcessedHeight) return
-      lastProcessedHeight = height
+      if (blockHeight === lastProcessedBlock) return
+      lastProcessedBlock = blockHeight
 
       // 2️⃣ Block hash
-      const hashRes = await http.get(
-        `https://mempool.space/api/block-height/${height}`
-      )
-      const blockHash = hashRes.data
+      const blockHash = await rpc('getblockhash', [blockHeight])
 
-      // 3️⃣ Block transactions
-      const txRes = await http.get(
-        `https://mempool.space/api/block/${blockHash}/txs`
-      )
-      const txs = txRes.data
+      // 3️⃣ Full block with tx data
+      const block = await rpc('getblock', [blockHash, 2])
 
-      for (const tx of txs) {
-        // 🔒 HARD duplicate protection (DB)
+      for (const tx of block.tx) {
+        // 🔒 DB duplicate protection
         const exists = await WhaleEvent.findOne({ txHash: tx.txid })
         if (exists) continue
 
@@ -71,12 +67,17 @@ export default function startWhaleJob() {
         let maxIn = { value: 0, addr: null }
 
         // TO (outputs)
-        for (const out of tx.vout) {
-          totalOut += out.value
-          if (out.value > maxOut.value && out.scriptpubkey_address) {
+        for (const vout of tx.vout) {
+          const valueBTC = vout.value
+          totalOut += valueBTC
+
+          if (
+            valueBTC > maxOut.value &&
+            vout.scriptPubKey?.addresses?.[0]
+          ) {
             maxOut = {
-              value: out.value,
-              addr: out.scriptpubkey_address
+              value: valueBTC,
+              addr: vout.scriptPubKey.addresses[0]
             }
           }
         }
@@ -86,17 +87,16 @@ export default function startWhaleJob() {
           if (
             vin.prevout &&
             vin.prevout.value > maxIn.value &&
-            vin.prevout.scriptpubkey_address
+            vin.prevout.scriptPubKey?.addresses?.[0]
           ) {
             maxIn = {
               value: vin.prevout.value,
-              addr: vin.prevout.scriptpubkey_address
+              addr: vin.prevout.scriptPubKey.addresses[0]
             }
           }
         }
 
-        const btcAmount = totalOut / 100000000
-        if (btcAmount < BTC_THRESHOLD) continue
+        if (totalOut < BTC_THRESHOLD) continue
         if (isCooldown(tx.txid, 3600)) continue
 
         const fromExchange = maxIn.addr
@@ -112,13 +112,12 @@ export default function startWhaleJob() {
         if (!toExchange && fromExchange)
           signal = '📈 Accumulation move'
 
-        const usdValue = (btcAmount * btcPrice).toLocaleString()
+        const usdValue = (totalOut * btcPrice).toLocaleString()
 
-        // 🔥 FINAL TELEGRAM MESSAGE (NO BLOCK / EXPLORER LINK)
         const message = `
 🚨 <b>BTC WHALE ALERT</b> 🚨
 
-🐳 <b>${btcAmount.toFixed(0)} BTC</b>
+🐳 <b>${totalOut.toFixed(0)} BTC</b>
 💰 ~$${usdValue}
 
 📤 From: ${fromExchange || 'Unknown Wallet'}
@@ -129,23 +128,23 @@ ${signal}
 🧾 <b>Tx Hash (tap to copy)</b>
 <code>${tx.txid}</code>
 
-⏱ Just mined
+⏱ New block
 `
 
         await sendTelegramMessage(message)
 
         await WhaleEvent.create({
           chain: 'BTC',
-          amount: btcAmount,
+          amount: totalOut,
           from: fromExchange || 'unknown',
           to: toExchange || 'unknown',
           txHash: tx.txid
         })
 
-        log(`🐳 BTC Whale SENT: ${btcAmount} BTC`)
+        log(`🐳 BTC Whale SENT: ${totalOut} BTC`)
       }
     } catch (err) {
       console.error('Whale job error:', err.message)
     }
-  }, 120 * 1000) // ⏱ every 2 minutes
+  }, 120 * 1000) // ⏱ 2 min (safe even for paid RPC)
 }
