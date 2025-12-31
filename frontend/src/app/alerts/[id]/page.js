@@ -1,23 +1,53 @@
 import { notFound } from 'next/navigation'
 import XIcon from '@/components/icons/XIcon'
-import AlertHeader from '@/components/AlertHeader' // ✅ SAFE
+import AlertHeader from '@/components/AlertHeader'
 
+// =======================
+// FETCH
+// =======================
 async function getAlert(id) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/alerts/${id}`,
     { cache: 'no-store' }
   )
-
   if (!res.ok) return null
   return res.json()
 }
 
+// =======================
+// HELPERS
+// =======================
 function formatWallet(label) {
   if (!label) return 'Unknown wallet'
   if (label.toLowerCase() === 'unknown') return 'Unknown wallet'
   return label
 }
 
+/**
+ * 🧠 CLEAN TEXT ONLY FOR X SHARE
+ * - removes duplicate MEGA / ULTRA heading
+ * - fixes unknown → unknown wallet
+ * - keeps original format intact
+ */
+function cleanTextForX(text = '') {
+  let cleaned = text
+
+  // ❌ remove inner duplicate heading lines
+  cleaned = cleaned.replace(
+    /(🚨🐳 MEGA WHALE ALERT|🔥🐳 ULTRA WHALE ALERT)\n+/g,
+    ''
+  )
+
+  // ✅ fix unknown wording
+  cleaned = cleaned.replace(/From:\s*unknown/gi, 'From: unknown wallet')
+  cleaned = cleaned.replace(/To:\s*unknown/gi, 'To: unknown wallet')
+
+  return cleaned.trim()
+}
+
+// =======================
+// PAGE
+// =======================
 export default async function AlertDetail({ params }) {
   const res = await getAlert(params.id)
   const alert = res?.data
@@ -34,10 +64,17 @@ export default async function AlertDetail({ params }) {
   const explorerUrl = explorerMap[alert.blockchain]
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
 
+  const xShareText = `
+${cleanTextForX(alert.text)}
+
+🔍 Full details:
+${detailUrl}
+`.trim()
+
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
 
-      {/* ✅ HEADER (CLIENT SAFE) */}
+      {/* HEADER */}
       <AlertHeader
         coin={alert.coin}
         usd={alert.usd}
@@ -109,7 +146,7 @@ export default async function AlertDetail({ params }) {
 
         <a
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            `${alert.text}\n\n🔍 Full details:\n${detailUrl}`
+            xShareText
           )}`}
           target="_blank"
           rel="noopener noreferrer"
