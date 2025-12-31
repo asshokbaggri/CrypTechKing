@@ -5,6 +5,41 @@ import Link from 'next/link'
 import XIcon from './icons/XIcon'
 import CoinAvatar from './CoinAvatar'
 
+// 🔧 helpers
+const safeWallet = (v) =>
+  !v || v.toLowerCase() === 'unknown' ? 'Unknown wallet' : v
+
+const formatXShare = (alert, usd, detailUrl) => {
+  const coin = alert.coin?.toUpperCase() || 'TOKEN'
+  const chain = alert.blockchain?.toUpperCase() || 'BLOCKCHAIN'
+
+  const isUltra = usd >= 50_000_000
+  const isMega = usd >= 25_000_000 && usd < 50_000_000
+
+  const header = isUltra
+    ? '🔥 ULTRA WHALE ALERT'
+    : isMega
+    ? '🚨 MEGA WHALE ALERT'
+    : '🐳 WHALE ALERT'
+
+  const amountLine = alert.amountToken
+    ? `${Number(alert.amountToken).toLocaleString()} ${coin} ($${usd.toLocaleString()})`
+    : `$${usd.toLocaleString()}`
+
+  return `
+${header}
+
+${amountLine}
+moved on ${chain}
+
+From: ${safeWallet(alert.from)}
+To: ${safeWallet(alert.to)}
+
+🔍 Full details:
+${detailUrl}
+`.trim()
+}
+
 export default function AlertCard({ alert }) {
   const [isNew, setIsNew] = useState(true)
 
@@ -18,6 +53,7 @@ export default function AlertCard({ alert }) {
   const isMega = usd >= 25_000_000 && usd < 50_000_000
 
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
+  const xText = formatXShare(alert, usd, detailUrl)
 
   return (
     <Link href={`/alerts/${alert._id}`} className="block">
@@ -39,7 +75,6 @@ export default function AlertCard({ alert }) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
             <CoinAvatar symbol={alert.coin} size={28} />
-
             <div>
               <h3 className="text-lg font-semibold tracking-tight">
                 {alert.coin}
@@ -67,10 +102,10 @@ export default function AlertCard({ alert }) {
 
           <p className="text-gray-400">
             <span className="text-gray-500">From:</span>{' '}
-            {alert.from || 'Unknown wallet'}
+            {safeWallet(alert.from)}
             <span className="mx-1 text-gray-500">→</span>
             <span className="text-gray-300">
-              {alert.to || 'Unknown wallet'}
+              {safeWallet(alert.to)}
             </span>
           </p>
 
@@ -99,7 +134,7 @@ export default function AlertCard({ alert }) {
 
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              `🚨 Whale Alert\n\n${alert.coin} • $${usd.toLocaleString()}\n\nView details 👇\n${detailUrl}`
+              xText
             )}`}
             target="_blank"
             rel="noopener noreferrer"
