@@ -18,29 +18,30 @@ async function getAlert(id) {
 // HELPERS
 // =======================
 function formatWallet(label) {
-  if (!label) return 'Unknown wallet'
-  if (label.toLowerCase() === 'unknown') return 'Unknown wallet'
+  if (!label) return 'unknown wallet'
+  const v = label.toLowerCase().trim()
+  if (v === 'unknown' || v === 'unknown wallet') return 'unknown wallet'
   return label
 }
 
 /**
  * 🧠 CLEAN TEXT ONLY FOR X SHARE
- * - removes duplicate MEGA / ULTRA heading
- * - fixes unknown → unknown wallet
- * - keeps original format intact
+ * - removes duplicate MEGA / ULTRA heading lines
+ * - fixes "unknown" → "unknown wallet"
+ * - does NOT touch UI text
  */
 function cleanTextForX(text = '') {
   let cleaned = text
 
-  // ❌ remove inner duplicate heading lines
+  // ❌ remove duplicated inner headings
   cleaned = cleaned.replace(
-    /(🚨🐳 MEGA WHALE ALERT|🔥🐳 ULTRA WHALE ALERT)\n+/g,
+    /(🚨🐳 MEGA WHALE ALERT|🔥🐳 ULTRA WHALE ALERT)\s*\n*/gi,
     ''
   )
 
-  // ✅ fix unknown wording
-  cleaned = cleaned.replace(/From:\s*unknown/gi, 'From: unknown wallet')
-  cleaned = cleaned.replace(/To:\s*unknown/gi, 'To: unknown wallet')
+  // ✅ normalize wallet labels
+  cleaned = cleaned.replace(/From:\s*unknown(\s*wallet)?/gi, 'From: unknown wallet')
+  cleaned = cleaned.replace(/To:\s*unknown(\s*wallet)?/gi, 'To: unknown wallet')
 
   return cleaned.trim()
 }
