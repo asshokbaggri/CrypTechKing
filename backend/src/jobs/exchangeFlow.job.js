@@ -1,93 +1,66 @@
-// backend/src/jobs/exchangeFlow.job.js
+import Alert from '../models/Alert.js'
+import postToTelegram from '../services/telegram.service.js'
 
-import { Alchemy, Network } from 'alchemy-sdk';
-import Alert from '../models/Alert.js';
-import { classifyWallet } from '../utils/walletClassifier.js';
-import { detectSignal } from '../utils/signalEngine.js';
-import postToTelegram from '../services/telegram.service.js'; // ✅ ADD
+// helper
+function prettyUSD(n) {
+  return `$${Number(n).toLocaleString()}`
+}
 
-const alchemy = new Alchemy({
-  apiKey: process.env.ALCHEMY_API_KEY,
-  network: Network.ETH_MAINNET
-});
-
-const MIN_USD = 10_000_000;
+function tierMeta(usd) {
+  if (usd >= 50_000_000) return { tier: 'ULTRA_WHALE', emoji: '🔥🐳', label: 'ULTRA WHALE' }
+  if (usd >= 25_000_000) return { tier: 'MEGA_WHALE', emoji: '🚨🐳', label: 'MEGA WHALE' }
+  return { tier: 'WHALE', emoji: '🐳', label: 'WHALE ALERT' }
+}
 
 export default async function runExchangeFlowJob() {
-  console.log('🧠 Exchange Flow Scan running...');
+  console.log('🧠 Exchange Flow Scan running...')
 
-  const transfers = await alchemy.core.getAssetTransfers({
-    fromBlock: 'latest',
-    toBlock: 'latest',
-    category: ['erc20'],
-    withMetadata: true,
-    excludeZeroValue: true
-  });
+  const alerts = await Alert.find({
+    type: 'EXCHANGE_FLOW',
+    telegramSent: { $ne: true }
+  }).limit(10)
 
-  for (const tx of transfers.transfers) {
-    const amountUSD = Number(tx.value);
-    if (amountUSD < MIN_USD) continue;
+  for (const a of alerts) {
+    const { tier, emoji, label } = tierMeta(a.usd)
 
-    const fromType = classifyWallet(tx.from);
-    const toType = classifyWallet(tx.to);
+    const tokenAmount =
+      a.amountToken
+        ? `${Number(a.amountToken).toLocaleString()} ${a.coin}`
+        : a.coin
 
-    const signalData = detectSignal(fromType, toType);
-    if (!signalData) continue; // ❌ Exchange → Exchange ignored
+    const flowLine =
+      a.flowType === 'EXCHANGE_TO_EXCHANGE'
+        ? '🏦 Exchange ➜ Exchange'
+        : a.flowType === 'WALLET_TO_EXCHANGE'
+        ? '📥 Wallet ➜ Exchange'
+        : a.flowType === 'EXCHANGE_TO_WALLET'
+        ? '📤 Exchange ➜ Wallet'
+        : '🔄 Wallet ➜ Wallet'
 
-    const tier =
-      amountUSD >= 50_000_000
-        ? 'ULTRA_WHALE'
-        : amountUSD >= 25_000_000
-        ? 'MEGA_WHALE'
-        : 'WHALE';
+    const confidence =
+      a.signalStrength >= 70
+        ? 'High'
+        : a.signalStrength >= 40
+        ? 'Medium'
+        : 'Low'
 
-    const text = `
-${tier.replace('_', ' ')} ALERT
+    const message = `
+${emoji} <b>${label}</b>
 
-${tx.value.toLocaleString()} ${tx.asset} ($${(amountUSD / 1_000_000).toFixed(1)}M)
-${fromType} → ${toType}
+<b>${tokenAmount}</b>
+💰 Value: <b>${prettyUSD(a.usd)}</b>
 
-Signal: ${signalData.signal}
-Confidence: ${signalData.strength}%
+${flowLine}
+📊 Confidence: <b>${confidence}</b>
 
-#Crypto #WhaleAlert #${tx.asset}
-`.trim();
+#${a.coin} #WhaleAlert
+`.trim()
 
-    // 💾 SAVE DB
-    const alert = await Alert.create({
-      type: 'EXCHANGE_FLOW',
-      coin: tx.asset,
-      usd: amountUSD,
-      amountToken: tx.value,
-      blockchain: 'ethereum',
-      from: fromType,
-      to: toType,
-      tier,
-      text,
-      signal: signalData.signal,
-      flowType: signalData.flowType,
-      signalStrength: signalData.strength
-    });
+    await postToTelegram(message)
 
-    console.log(
-      `✅ ${signalData.signal} | ${tx.asset} $${amountUSD.toLocaleString()}`
-    );
+    a.telegramSent = true
+    await a.save()
 
-    // 📣 TELEGRAM (ONLY MEGA + ULTRA)
-    if (tier === 'MEGA_WHALE' || tier === 'ULTRA_WHALE') {
-      const tgMessage = `
-<b>${tier.replace('_', ' ')}</b>
-
-<b>${tx.asset}</b> ${signalData.signal.replace('_', ' ')}
-
-💰 <b>Value:</b> $${amountUSD.toLocaleString()}
-🔁 <b>Flow:</b> ${fromType} → ${toType}
-📊 <b>Confidence:</b> ${signalData.strength}%
-
-#${tx.asset} #WhaleAlert
-`.trim();
-
-      await postToTelegram(tgMessage);
-    }
+    console.log(`📣 Telegram sent → ${a.coin} ${prettyUSD(a.usd)}`)
   }
 }
