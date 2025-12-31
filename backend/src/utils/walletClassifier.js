@@ -7,14 +7,14 @@ export function classifyWallet(address) {
 
   const lower = address.toLowerCase();
 
-  for (const [exchange, wallets] of Object.entries(EXCHANGE_WALLETS)) {
+  if (lower === '0x0000000000000000000000000000000000000000') {
+    return 'MINT_BURN';
+  }
+
+  for (const wallets of Object.values(EXCHANGE_WALLETS)) {
     if (wallets.map(w => w.toLowerCase()).includes(lower)) {
       return 'EXCHANGE';
     }
-  }
-
-  if (address === '0x0000000000000000000000000000000000000000') {
-    return 'MINT_BURN';
   }
 
   return 'WALLET';
