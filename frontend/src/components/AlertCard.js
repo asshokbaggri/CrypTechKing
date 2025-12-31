@@ -5,6 +5,28 @@ import Link from 'next/link'
 import XIcon from './icons/XIcon'
 import CoinAvatar from './CoinAvatar'
 
+/**
+ * 🧠 SAME CLEANER AS DETAIL PAGE (X SHARE ONLY)
+ * - removes duplicate MEGA / ULTRA headings
+ * - fixes unknown → unknown wallet
+ * - keeps original alert.text format
+ */
+function cleanTextForX(text = '') {
+  let cleaned = text
+
+  // ❌ remove duplicated inner headings
+  cleaned = cleaned.replace(
+    /(🚨🐳 MEGA WHALE ALERT|🔥🐳 ULTRA WHALE ALERT)\s*\n*/gi,
+    ''
+  )
+
+  // ✅ normalize wallet labels
+  cleaned = cleaned.replace(/From:\s*unknown(\s*wallet)?/gi, 'From: unknown wallet')
+  cleaned = cleaned.replace(/To:\s*unknown(\s*wallet)?/gi, 'To: unknown wallet')
+
+  return cleaned.trim()
+}
+
 export default function AlertCard({ alert }) {
   const [isNew, setIsNew] = useState(true)
 
@@ -18,6 +40,13 @@ export default function AlertCard({ alert }) {
   const isMega = usd >= 25_000_000 && usd < 50_000_000
 
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
+
+  const xShareText = `
+${cleanTextForX(alert.text)}
+
+🔍 Full details:
+${detailUrl}
+`.trim()
 
   return (
     <Link href={`/alerts/${alert._id}`} className="block">
@@ -67,10 +96,14 @@ export default function AlertCard({ alert }) {
 
           <p className="text-gray-400">
             <span className="text-gray-500">From:</span>{' '}
-            {alert.from || 'Unknown wallet'}
+            {alert.from?.toLowerCase() === 'unknown'
+              ? 'unknown wallet'
+              : alert.from || 'unknown wallet'}
             <span className="mx-1 text-gray-500">→</span>
             <span className="text-gray-300">
-              {alert.to || 'Unknown wallet'}
+              {alert.to?.toLowerCase() === 'unknown'
+                ? 'unknown wallet'
+                : alert.to || 'unknown wallet'}
             </span>
           </p>
 
@@ -97,9 +130,10 @@ export default function AlertCard({ alert }) {
               : 'WHALE ALERT'}
           </span>
 
+          {/* X SHARE (CLEAN + SAME FORMAT AS DETAIL PAGE) */}
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              `🚨 Whale Alert\n\n${alert.coin} • $${usd.toLocaleString()}\n\nView details 👇\n${detailUrl}`
+              xShareText
             )}`}
             target="_blank"
             rel="noopener noreferrer"
