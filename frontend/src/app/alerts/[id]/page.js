@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import XIcon from '@/components/icons/XIcon'
-import AlertHeader from '@/components/AlertHeader'
+import AlertHeader from '@/components/AlertHeader' // ✅ SAFE
 
 async function getAlert(id) {
   const res = await fetch(
@@ -13,9 +13,8 @@ async function getAlert(id) {
 }
 
 function formatWallet(label) {
-  if (!label || label.toLowerCase() === 'unknown') {
-    return 'Unknown wallet'
-  }
+  if (!label) return 'Unknown wallet'
+  if (label.toLowerCase() === 'unknown') return 'Unknown wallet'
   return label
 }
 
@@ -35,15 +34,10 @@ export default async function AlertDetail({ params }) {
   const explorerUrl = explorerMap[alert.blockchain]
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
 
-  const shareText = `
-${alert.text}
-
-🔍 Full details:
-${detailUrl}
-  `.trim()
-
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
+
+      {/* ✅ HEADER (CLIENT SAFE) */}
       <AlertHeader
         coin={alert.coin}
         usd={alert.usd}
@@ -58,6 +52,45 @@ ${detailUrl}
         </p>
         <p className="text-xs uppercase tracking-wide text-gray-500 mt-1">
           {alert.blockchain}
+        </p>
+      </div>
+
+      {/* STATS */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="rounded-lg border border-gray-700 p-4">
+          <p className="text-xs text-gray-400">USD Value</p>
+          <p className="text-lg font-semibold">
+            ${Number(alert.usd).toLocaleString()}
+          </p>
+        </div>
+
+        {alert.amountToken && (
+          <div className="rounded-lg border border-gray-700 p-4">
+            <p className="text-xs text-gray-400">Token Amount</p>
+            <p className="text-lg font-semibold">
+              {Number(alert.amountToken).toLocaleString()} {alert.coin}
+            </p>
+          </div>
+        )}
+
+        <div className="rounded-lg border border-gray-700 p-4">
+          <p className="text-xs text-gray-400">Tier</p>
+          <p className="font-medium">{alert.tier}</p>
+        </div>
+
+        <div className="rounded-lg border border-gray-700 p-4">
+          <p className="text-xs text-gray-400">Time</p>
+          <p className="text-sm">
+            {new Date(alert.createdAt).toLocaleString()}
+          </p>
+        </div>
+      </div>
+
+      {/* SIGNAL */}
+      <div className="rounded-lg border border-gray-700 p-4 mb-6">
+        <p className="text-xs text-gray-400">Flow Insight (Beta)</p>
+        <p className="font-medium mt-1">
+          Neutral transfer detected ({alert.signalStrength || 0}%)
         </p>
       </div>
 
@@ -76,7 +109,7 @@ ${detailUrl}
 
         <a
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            shareText
+            `${alert.text}\n\n🔍 Full details:\n${detailUrl}`
           )}`}
           target="_blank"
           rel="noopener noreferrer"
@@ -86,6 +119,20 @@ ${detailUrl}
           Share
         </a>
       </div>
+
+      {/* TELEGRAM CTA */}
+      <div className="mt-8 text-center text-sm text-gray-500">
+        🔔 Get instant whale alerts on Telegram
+        <br />
+        <a
+          href="https://t.me/CrypTechKingAlpha"
+          target="_blank"
+          className="text-blue-400 hover:underline"
+        >
+          Join CrypTechKing Alpha
+        </a>
+      </div>
+
     </main>
   )
 }
