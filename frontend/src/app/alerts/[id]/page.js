@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import XIcon from '@/components/icons/XIcon'
+import AlertHeader from '@/components/AlertHeader' // ✅ SAFE
 
 async function getAlert(id) {
   const res = await fetch(
@@ -11,7 +12,6 @@ async function getAlert(id) {
   return res.json()
 }
 
-// 🔧 Helper for wallet labels
 function formatWallet(label) {
   if (!label) return 'Unknown wallet'
   if (label.toLowerCase() === 'unknown') return 'Unknown wallet'
@@ -37,29 +37,19 @@ export default async function AlertDetail({ params }) {
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
 
-      {/* HEADER */}
-      <div className="mb-6">
-        <span className="text-xs tracking-wide text-gray-400 uppercase">
-          {alert.tier?.replace('_', ' ')}
-        </span>
-
-        <h1 className="text-3xl font-bold mt-1">
-          {alert.coin}
-        </h1>
-
-        <p className="text-xl text-gray-300 mt-1">
-          ${Number(alert.usd).toLocaleString()}
-        </p>
-      </div>
+      {/* ✅ HEADER (CLIENT SAFE) */}
+      <AlertHeader
+        coin={alert.coin}
+        usd={alert.usd}
+        tier={alert.tier}
+      />
 
       {/* TRANSFER FLOW */}
       <div className="rounded-xl border border-gray-700 p-4 mb-6 text-center">
         <p className="text-sm text-gray-400">Transfer Flow</p>
-
         <p className="text-lg mt-1 font-medium">
           {formatWallet(alert.from)} → {formatWallet(alert.to)}
         </p>
-
         <p className="text-xs uppercase tracking-wide text-gray-500 mt-1">
           {alert.blockchain}
         </p>
