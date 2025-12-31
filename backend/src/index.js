@@ -8,6 +8,7 @@ import alertRoutes from './routes/alert.routes.js'
 
 import runChaosJob from './jobs/chaos.job.js'
 import runStablecoinMintBurn from './jobs/stablecoinMintBurn.job.js'
+import runExchangeFlowJob from './jobs/exchangeFlow.job.js';
 
 const app = express()
 
@@ -57,3 +58,9 @@ cron.schedule('*/10 * * * *', async () => {
   console.log('🟢 Stablecoin mint/burn scan running...')
   await runStablecoinMintBurn()
 })
+
+// Exchange Flow 
+cron.schedule('*/10 * * * *', async () => {
+  console.log('🧠 Exchange Flow Intelligence Scan...');
+  await runExchangeFlowJob();
+});
