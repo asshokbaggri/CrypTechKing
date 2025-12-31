@@ -45,7 +45,7 @@ export default function startWhaleJob() {
       )
       const height = heightRes.data
 
-      // 🔒 Only process new block
+      // 🔒 Process only NEW block
       if (height === lastProcessedHeight) return
       lastProcessedHeight = height
 
@@ -62,7 +62,7 @@ export default function startWhaleJob() {
       const txs = txRes.data
 
       for (const tx of txs) {
-        // 🔒 DB-level duplicate protection
+        // 🔒 HARD duplicate protection (DB)
         const exists = await WhaleEvent.findOne({ txHash: tx.txid })
         if (exists) continue
 
@@ -114,7 +114,7 @@ export default function startWhaleJob() {
 
         const usdValue = (btcAmount * btcPrice).toLocaleString()
 
-        // 📢 TELEGRAM MESSAGE (TX HASH COPY FRIENDLY)
+        // 🔥 FINAL TELEGRAM MESSAGE (NO BLOCK / EXPLORER LINK)
         const message = `
 🚨 <b>BTC WHALE ALERT</b> 🚨
 
@@ -147,5 +147,5 @@ ${signal}
     } catch (err) {
       console.error('Whale job error:', err.message)
     }
-  }, 120 * 1000) // every 2 minutes
+  }, 120 * 1000) // ⏱ every 2 minutes
 }
