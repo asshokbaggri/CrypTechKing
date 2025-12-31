@@ -1,7 +1,7 @@
 // backend/src/jobs/stablecoinMintBurn.job.js
 
-import { Alchemy, Network, Utils } from 'alchemy-sdk';
-import Alert from '../models/alert.model.js';
+import { Alchemy, Network } from 'alchemy-sdk'
+import Alert from '../models/Alert.js'
 
 const config = {
   apiKey: process.env.ALCHEMY_API_KEY,
