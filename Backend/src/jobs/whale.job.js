@@ -25,53 +25,68 @@ async function getBTCPrice() {
 }
 
 export default function startWhaleJob() {
-  log('Whale job started')
+  log('Whale job started (Blockstream API)')
 
   setInterval(async () => {
     try {
       const btcPrice = await getBTCPrice()
 
-      const latestBlock = await axios.get(
-        'https://blockchain.info/latestblock'
+      // 1️⃣ Latest block height
+      const heightRes = await axios.get(
+        'https://blockstream.info/api/blocks/tip/height'
       )
+      const height = heightRes.data
 
-      const blockHash = latestBlock.data.hash
-      const blockData = await axios.get(
-        `https://blockchain.info/rawblock/${blockHash}`
+      // 2️⃣ Block hash
+      const hashRes = await axios.get(
+        `https://blockstream.info/api/block-height/${height}`
       )
+      const blockHash = hashRes.data
 
-      for (const tx of blockData.data.tx) {
-        // 🔒 Hard duplicate block
-        const exists = await WhaleEvent.findOne({ txHash: tx.hash })
+      // 3️⃣ Block transactions
+      const txRes = await axios.get(
+        `https://blockstream.info/api/block/${blockHash}/txs`
+      )
+      const txs = txRes.data
+
+      for (const tx of txs) {
+        // 🔒 Duplicate protection
+        const exists = await WhaleEvent.findOne({ txHash: tx.txid })
         if (exists) continue
 
         let totalOut = 0
         let maxOut = { value: 0, addr: null }
         let maxIn = { value: 0, addr: null }
 
-        // TO (outputs)
-        for (const out of tx.out) {
+        // Outputs (TO)
+        for (const out of tx.vout) {
           totalOut += out.value
-          if (out.value > maxOut.value && out.addr) {
-            maxOut = out
+          if (out.value > maxOut.value && out.scriptpubkey_address) {
+            maxOut = {
+              value: out.value,
+              addr: out.scriptpubkey_address
+            }
           }
         }
 
-        // FROM (inputs)
-        for (const input of tx.inputs) {
+        // Inputs (FROM)
+        for (const vin of tx.vin) {
           if (
-            input.prev_out &&
-            input.prev_out.value > maxIn.value &&
-            input.prev_out.addr
+            vin.prevout &&
+            vin.prevout.value > maxIn.value &&
+            vin.prevout.scriptpubkey_address
           ) {
-            maxIn = input.prev_out
+            maxIn = {
+              value: vin.prevout.value,
+              addr: vin.prevout.scriptpubkey_address
+            }
           }
         }
 
         const btcAmount = totalOut / 100000000
         if (btcAmount < BTC_THRESHOLD) continue
 
-        if (isCooldown(tx.hash, 1800)) continue
+        if (isCooldown(tx.txid, 1800)) continue
 
         const fromExchange = maxIn.addr
           ? detectExchange(maxIn.addr)
@@ -99,7 +114,7 @@ export default function startWhaleJob() {
 
 ${signal}
 
-🔗 https://www.blockchain.com/btc/tx/${tx.hash}
+🔗 https://blockstream.info/tx/${tx.txid}
 ⏱ Just now
 `
 
@@ -110,7 +125,7 @@ ${signal}
           amount: btcAmount,
           from: fromExchange || 'unknown',
           to: toExchange || 'unknown',
-          txHash: tx.hash
+          txHash: tx.txid
         })
 
         log(`🐳 BTC Whale SENT: ${btcAmount} BTC`)
