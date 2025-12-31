@@ -5,13 +5,6 @@ import Link from 'next/link'
 import XIcon from './icons/XIcon'
 import CoinAvatar from './CoinAvatar'
 
-function formatWallet(label) {
-  if (!label || label.toLowerCase() === 'unknown') {
-    return 'Unknown wallet'
-  }
-  return label
-}
-
 export default function AlertCard({ alert }) {
   const [isNew, setIsNew] = useState(true)
 
@@ -26,19 +19,13 @@ export default function AlertCard({ alert }) {
 
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
 
-  const shareText = `
-${alert.text}
-
-🔍 Full details:
-${detailUrl}
-  `.trim()
-
   return (
     <Link href={`/alerts/${alert._id}`} className="block">
       <div
         className={`
           relative rounded-xl border p-4 sm:p-5
-          transition-colors cursor-pointer active:scale-[0.99]
+          transition-colors cursor-pointer
+          active:scale-[0.99]
           ${
             isUltra
               ? 'border-red-500 bg-red-500/5 shadow-lg shadow-red-500/20'
@@ -52,6 +39,7 @@ ${detailUrl}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
             <CoinAvatar symbol={alert.coin} size={28} />
+
             <div>
               <h3 className="text-lg font-semibold tracking-tight">
                 {alert.coin}
@@ -79,10 +67,10 @@ ${detailUrl}
 
           <p className="text-gray-400">
             <span className="text-gray-500">From:</span>{' '}
-            {formatWallet(alert.from)}
+            {alert.from || 'Unknown wallet'}
             <span className="mx-1 text-gray-500">→</span>
             <span className="text-gray-300">
-              {formatWallet(alert.to)}
+              {alert.to || 'Unknown wallet'}
             </span>
           </p>
 
@@ -111,7 +99,7 @@ ${detailUrl}
 
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              shareText
+              `🚨 Whale Alert\n\n${alert.coin} • $${usd.toLocaleString()}\n\nView details 👇\n${detailUrl}`
             )}`}
             target="_blank"
             rel="noopener noreferrer"
