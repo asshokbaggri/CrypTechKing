@@ -8,78 +8,115 @@ import WhaleEvent from '../models/WhaleEvent.js'
 
 const BTC_THRESHOLD = WHALE_THRESHOLDS.BTC
 
+let cachedPrice = null
+let lastPriceFetch = 0
+
+async function getBTCPrice() {
+  const now = Date.now()
+  if (cachedPrice && now - lastPriceFetch < 60_000) return cachedPrice
+
+  const res = await axios.get(
+    'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT'
+  )
+
+  cachedPrice = Number(res.data.price)
+  lastPriceFetch = now
+  return cachedPrice
+}
+
 export default function startWhaleJob() {
   log('Whale job started')
 
   setInterval(async () => {
     try {
-      // 1️⃣ Get latest BTC block
+      const btcPrice = await getBTCPrice()
+
       const latestBlock = await axios.get(
         'https://blockchain.info/latestblock'
       )
-      const blockHash = latestBlock.data.hash
 
+      const blockHash = latestBlock.data.hash
       const blockData = await axios.get(
         `https://blockchain.info/rawblock/${blockHash}`
       )
 
-      // 2️⃣ Scan transactions
       for (const tx of blockData.data.tx) {
-        // 🔒 HARD DUPLICATE BLOCK (DB LEVEL)
-        const alreadyAlerted = await WhaleEvent.findOne({
-          txHash: tx.hash
-        })
-        if (alreadyAlerted) continue
+        // 🔒 Hard duplicate block
+        const exists = await WhaleEvent.findOne({ txHash: tx.hash })
+        if (exists) continue
 
-        let totalBTC = 0
-        let toAddress = null
+        let totalOut = 0
+        let maxOut = { value: 0, addr: null }
+        let maxIn = { value: 0, addr: null }
 
+        // TO (outputs)
         for (const out of tx.out) {
-          totalBTC += out.value
-          if (!toAddress && out.addr) toAddress = out.addr
+          totalOut += out.value
+          if (out.value > maxOut.value && out.addr) {
+            maxOut = out
+          }
         }
 
-        const btcAmount = totalBTC / 100000000
+        // FROM (inputs)
+        for (const input of tx.inputs) {
+          if (
+            input.prev_out &&
+            input.prev_out.value > maxIn.value &&
+            input.prev_out.addr
+          ) {
+            maxIn = input.prev_out
+          }
+        }
+
+        const btcAmount = totalOut / 100000000
         if (btcAmount < BTC_THRESHOLD) continue
 
-        // ⏱ Soft cooldown (extra safety)
         if (isCooldown(tx.hash, 1800)) continue
 
-        // 3️⃣ Classification
-        const exchange = toAddress ? detectExchange(toAddress) : null
+        const fromExchange = maxIn.addr
+          ? detectExchange(maxIn.addr)
+          : null
+        const toExchange = maxOut.addr
+          ? detectExchange(maxOut.addr)
+          : null
 
         let signal = '🟡 Neutral transfer'
-        if (exchange) signal = '⚠️ Possible SELL pressure'
+        if (toExchange && !fromExchange)
+          signal = '⚠️ Possible SELL pressure'
+        if (!toExchange && fromExchange)
+          signal = '📈 Accumulation move'
 
-        // 4️⃣ Telegram message
+        const usdValue = (btcAmount * btcPrice).toLocaleString()
+
         const message = `
 🚨 <b>BTC WHALE ALERT</b> 🚨
 
 🐳 <b>${btcAmount.toFixed(0)} BTC</b>
-💰 ~$${(btcAmount * 43000).toLocaleString()}
+💰 ~$${usdValue}
 
-📥 To: ${exchange || 'Unknown Wallet'}
+📤 From: ${fromExchange || 'Unknown Wallet'}
+📥 To: ${toExchange || 'Unknown Wallet'}
+
 ${signal}
 
-🔗 Tx: ${tx.hash.slice(0, 12)}...
+🔗 https://www.blockchain.com/btc/tx/${tx.hash}
 ⏱ Just now
 `
 
         await sendTelegramMessage(message)
 
-        // 5️⃣ SAVE TX (PERMANENT BLOCK)
         await WhaleEvent.create({
           chain: 'BTC',
           amount: btcAmount,
-          from: 'unknown',
-          to: exchange || 'unknown',
+          from: fromExchange || 'unknown',
+          to: toExchange || 'unknown',
           txHash: tx.hash
         })
 
-        log(`🐳 BTC Whale ALERT SENT: ${btcAmount} BTC`)
+        log(`🐳 BTC Whale SENT: ${btcAmount} BTC`)
       }
     } catch (err) {
       console.error('Whale job error:', err.message)
     }
-  }, 60 * 1000) // every 1 minute
+  }, 60 * 1000)
 }
