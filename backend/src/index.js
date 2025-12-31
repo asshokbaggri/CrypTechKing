@@ -3,67 +3,47 @@ import express from 'express';
 import http from 'http';
 import cron from 'node-cron';
 import runChaosJob from './jobs/chaos.job.js';
+import runStablecoinJob from './jobs/stablecoin.job.js'; // ✅ TEMP ADD
 import connectMongo from './config/mongo.js';
 import alertRoutes from './routes/alert.routes.js';
 
-// 🔒 OPTIONAL (future)
-// import runStablecoinJob from './jobs/stablecoin.job.js';
-
 const app = express();
 
-// 🔑 Railway-safe PORT handling
+// 🔑 IMPORTANT: force number + fallback
 const PORT = Number(process.env.PORT) || 8080;
 
-// =======================
-// BOOTSTRAP
-// =======================
-(async () => {
-  try {
-    // DB connect
-    await connectMongo();
-    console.log('✅ MongoDB connected');
+// DB connect
+await connectMongo();
 
-    // Middleware
-    app.use(express.json());
+// Middleware
+app.use(express.json());
 
-    // Routes
-    app.use('/api', alertRoutes);
+// Routes
+app.use('/api', alertRoutes);
 
-    // Health check
-    app.get('/', (req, res) => {
-      res.send('🚀 CrypTechKing backend running 👑');
-    });
+// Health check
+app.get('/', (req, res) => {
+  res.send('🚀 CrypTechKing backend running 👑');
+});
 
-    // 🔥 FORCE HTTP SERVER (Railway safe)
-    const server = http.createServer(app);
+// 🔥 FORCE HTTP SERVER (Railway safe)
+const server = http.createServer(app);
 
-    server.listen(PORT, '0.0.0.0', () => {
-      console.log(`👑 CrypTechKing backend live on port ${PORT}`);
-    });
+// 🔥 FORCE bind on all interfaces
+server.listen(PORT, '0.0.0.0', async () => {
+  console.log(`👑 CrypTechKing backend live on port ${PORT}`);
 
-    // =======================
-    // 🐳 WHALE ALERT CRON (KEEP AS IS)
-    // =======================
-    cron.schedule('*/15 * * * *', async () => {
-      console.log('🔥 CrypTechKing Chaos Scan running...');
-      try {
-        await runChaosJob();
-      } catch (err) {
-        console.error('❌ Chaos job failed:', err.message);
-      }
-    });
+  // ===============================
+  // 🧪 TEMP — ALCHEMY STABLECOIN TEST
+  // ===============================
+  console.log('🧪 Running Alchemy stablecoin test scan...');
+  await runStablecoinJob();
+});
 
-    // =======================
-    // 🪙 STABLECOIN (TEMP — MANUAL ONLY)
-    // =======================
-    // 🔴 DO NOT ENABLE CRON YET
-    // Uncomment ONLY when testing Alchemy manually
-    //
-    // console.log('🧪 Running stablecoin test scan...');
-    // await runStablecoinJob();
-
-  } catch (err) {
-    console.error('❌ Backend bootstrap failed:', err);
-    process.exit(1);
-  }
-})();
+// ===============================
+// 🔁 EXISTING CHAOS CRON (UNCHANGED)
+// ===============================
+cron.schedule('*/15 * * * *', async () => {
+  console.log('🔥 CrypTechKing Chaos Scan running...');
+  await runChaosJob();
+});
