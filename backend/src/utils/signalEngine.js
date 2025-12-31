@@ -1,41 +1,29 @@
 // backend/src/utils/signalEngine.js
 
-export function detectSignal(fromType, toType) {
-  // Wallet ➜ Exchange (Sell pressure)
-  if (fromType === 'WALLET' && toType === 'EXCHANGE') {
-    return {
-      signal: 'SELL_PRESSURE',
-      flowType: 'WALLET_TO_EXCHANGE',
-      strength: 75
-    };
-  }
+export function shouldSendSignal({
+  usd,
+  confidence,
+  flowType,
+  symbol
+}) {
+  const TOP_TOKENS = ['BTC', 'ETH', 'USDT', 'USDC', 'SHIB'];
 
-  // Exchange ➜ Wallet (Accumulation)
-  if (fromType === 'EXCHANGE' && toType === 'WALLET') {
-    return {
-      signal: 'ACCUMULATION',
-      flowType: 'EXCHANGE_TO_WALLET',
-      strength: 80
-    };
-  }
+  if (!TOP_TOKENS.includes(symbol)) return false;
+  if (usd < 10_000_000) return false;
+  if (confidence < 60) return false;
 
-  // Mint / Burn events
-  if (fromType === 'MINT_BURN' || toType === 'MINT_BURN') {
-    return {
-      signal: 'SUPPLY_EVENT',
-      flowType: 'SUPPLY_CHANGE',
-      strength: 85
-    };
-  }
+  if (flowType === 'WALLET_TO_WALLET') return false;
+  if (flowType === 'EXCHANGE_TO_EXCHANGE') return false;
 
-  // Exchange ➜ Exchange = noise
-  if (fromType === 'EXCHANGE' && toType === 'EXCHANGE') {
-    return null; // ❌ IGNORE
-  }
+  return true;
+}
 
-  return {
-    signal: 'UNKNOWN_FLOW',
-    flowType: 'UNKNOWN',
-    strength: 20
-  };
+export function buildNarrative(flowType) {
+  if (flowType === 'WALLET_TO_EXCHANGE')
+    return 'Possible sell pressure building 👀';
+
+  if (flowType === 'EXCHANGE_TO_WALLET')
+    return 'Accumulation signal detected 🧠';
+
+  return 'Unusual large movement detected';
 }
