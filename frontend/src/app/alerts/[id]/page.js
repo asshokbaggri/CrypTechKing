@@ -2,61 +2,27 @@ import { notFound } from 'next/navigation'
 import XIcon from '@/components/icons/XIcon'
 import AlertHeader from '@/components/AlertHeader'
 
-// ---------- DATA ----------
 async function getAlert(id) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/alerts/${id}`,
     { cache: 'no-store' }
   )
+
   if (!res.ok) return null
   return res.json()
 }
 
-// ---------- HELPERS ----------
-function safeWallet(label) {
-  if (!label) return 'Unknown wallet'
-  const v = String(label).trim().toLowerCase()
-  return v === 'unknown' ? 'Unknown wallet' : label
+function formatWallet(label) {
+  if (!label || label.toLowerCase() === 'unknown') {
+    return 'Unknown wallet'
+  }
+  return label
 }
 
-function formatXShare(alert, detailUrl) {
-  const usd = Number(alert.usd || 0)
-  const coin = alert.coin?.toUpperCase() || 'TOKEN'
-  const chain = alert.blockchain?.toUpperCase() || 'BLOCKCHAIN'
-
-  const isUltra = usd >= 50_000_000
-  const isMega = usd >= 25_000_000 && usd < 50_000_000
-
-  const header = isUltra
-    ? '🔥🔥 ULTRA WHALE ALERT 🔥🔥'
-    : isMega
-    ? '🚨🚨 MEGA WHALE ALERT 🚨🚨'
-    : '🐳 WHALE ALERT'
-
-  const amountLine = alert.amountToken
-    ? `${Number(alert.amountToken).toLocaleString()} ${coin} ($${usd.toLocaleString()})`
-    : `$${usd.toLocaleString()}`
-
-  return `
-${header}
-
-${amountLine}
-moved on ${chain}
-
-From: ${safeWallet(alert.from)}
-To: ${safeWallet(alert.to)}
-
-#Crypto #WhaleAlert #${coin}
-
-🔍 Full details:
-${detailUrl}
-`.trim()
-}
-
-// ---------- PAGE ----------
 export default async function AlertDetail({ params }) {
   const res = await getAlert(params.id)
   const alert = res?.data
+
   if (!alert) return notFound()
 
   const explorerMap = {
@@ -68,57 +34,34 @@ export default async function AlertDetail({ params }) {
 
   const explorerUrl = explorerMap[alert.blockchain]
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
-  const xText = formatXShare(alert, detailUrl)
+
+  const shareText = `
+${alert.text}
+
+🔍 Full details:
+${detailUrl}
+  `.trim()
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
-
       <AlertHeader
         coin={alert.coin}
         usd={alert.usd}
         tier={alert.tier}
       />
 
+      {/* TRANSFER FLOW */}
       <div className="rounded-xl border border-gray-700 p-4 mb-6 text-center">
         <p className="text-sm text-gray-400">Transfer Flow</p>
         <p className="text-lg mt-1 font-medium">
-          {safeWallet(alert.from)} → {safeWallet(alert.to)}
+          {formatWallet(alert.from)} → {formatWallet(alert.to)}
         </p>
         <p className="text-xs uppercase tracking-wide text-gray-500 mt-1">
           {alert.blockchain}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="rounded-lg border border-gray-700 p-4">
-          <p className="text-xs text-gray-400">USD Value</p>
-          <p className="text-lg font-semibold">
-            ${Number(alert.usd).toLocaleString()}
-          </p>
-        </div>
-
-        {alert.amountToken && (
-          <div className="rounded-lg border border-gray-700 p-4">
-            <p className="text-xs text-gray-400">Token Amount</p>
-            <p className="text-lg font-semibold">
-              {Number(alert.amountToken).toLocaleString()} {alert.coin}
-            </p>
-          </div>
-        )}
-
-        <div className="rounded-lg border border-gray-700 p-4">
-          <p className="text-xs text-gray-400">Tier</p>
-          <p className="font-medium">{alert.tier}</p>
-        </div>
-
-        <div className="rounded-lg border border-gray-700 p-4">
-          <p className="text-xs text-gray-400">Time</p>
-          <p className="text-sm">
-            {new Date(alert.createdAt).toLocaleString()}
-          </p>
-        </div>
-      </div>
-
+      {/* ACTIONS */}
       <div className="flex items-center justify-between gap-4">
         {explorerUrl && (
           <a
@@ -132,7 +75,9 @@ export default async function AlertDetail({ params }) {
         )}
 
         <a
-          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(xText)}`}
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+            shareText
+          )}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300"
@@ -141,19 +86,6 @@ export default async function AlertDetail({ params }) {
           Share
         </a>
       </div>
-
-      <div className="mt-8 text-center text-sm text-gray-500">
-        🔔 Get instant whale alerts on Telegram
-        <br />
-        <a
-          href="https://t.me/CrypTechKingAlpha"
-          target="_blank"
-          className="text-blue-400 hover:underline"
-        >
-          Join CrypTechKing Alpha
-        </a>
-      </div>
-
     </main>
   )
 }
