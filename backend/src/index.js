@@ -1,49 +1,53 @@
-import 'dotenv/config';
-import express from 'express';
-import http from 'http';
-import cron from 'node-cron';
-import runChaosJob from './jobs/chaos.job.js';
-import runStablecoinJob from './jobs/stablecoin.job.js'; // ✅ TEMP ADD
-import connectMongo from './config/mongo.js';
-import alertRoutes from './routes/alert.routes.js';
+import 'dotenv/config'
+import express from 'express'
+import http from 'http'
+import cron from 'node-cron'
 
-const app = express();
+import runChaosJob from './jobs/chaos.job.js'
+import runStablecoinMintBurn from './jobs/stablecoinMintBurn.job.js' // ✅ ADD
 
-// 🔑 IMPORTANT: force number + fallback
-const PORT = Number(process.env.PORT) || 8080;
+import connectMongo from './config/mongo.js'
+import alertRoutes from './routes/alert.routes.js'
+
+const app = express()
+
+// 🔑 PORT (Railway safe)
+const PORT = Number(process.env.PORT) || 8080
 
 // DB connect
-await connectMongo();
+await connectMongo()
 
 // Middleware
-app.use(express.json());
+app.use(express.json())
 
 // Routes
-app.use('/api', alertRoutes);
+app.use('/api', alertRoutes)
 
 // Health check
 app.get('/', (req, res) => {
-  res.send('🚀 CrypTechKing backend running 👑');
-});
+  res.send('🚀 CrypTechKing backend running 👑')
+})
 
-// 🔥 FORCE HTTP SERVER (Railway safe)
-const server = http.createServer(app);
+// 🔥 HTTP SERVER
+const server = http.createServer(app)
 
-// 🔥 FORCE bind on all interfaces
-server.listen(PORT, '0.0.0.0', async () => {
-  console.log(`👑 CrypTechKing backend live on port ${PORT}`);
+// 🔥 BIND
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`👑 CrypTechKing backend live on port ${PORT}`)
+})
 
-  // ===============================
-  // 🧪 TEMP — ALCHEMY STABLECOIN TEST
-  // ===============================
-  console.log('🧪 Running Alchemy stablecoin test scan...');
-  await runStablecoinJob();
-});
+/* ======================================================
+   CRON JOBS
+   ====================================================== */
 
-// ===============================
-// 🔁 EXISTING CHAOS CRON (UNCHANGED)
-// ===============================
+// 🐳 Regular Whale Transfers (existing)
 cron.schedule('*/15 * * * *', async () => {
-  console.log('🔥 CrypTechKing Chaos Scan running...');
-  await runChaosJob();
-});
+  console.log('🐳 Chaos whale scan running...')
+  await runChaosJob()
+})
+
+// 🪙 Stablecoin Mint / Burn / Treasury (REAL ALPHA)
+cron.schedule('*/5 * * * *', async () => {
+  console.log('🪙 Stablecoin mint/burn scan running...')
+  await runStablecoinMintBurn()
+})
