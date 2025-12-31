@@ -2,7 +2,7 @@
 
 import { Alchemy, Network } from 'alchemy-sdk'
 import Alert from '../models/Alert.js'
-import postToTelegram from '../services/telegram.service.js' // ✅ ADD THIS
+import postToTelegram from '../services/telegram.service.js'
 
 const config = {
   apiKey: process.env.ALCHEMY_API_KEY,
@@ -11,7 +11,9 @@ const config = {
 
 const alchemy = new Alchemy(config)
 
-// Stablecoin contracts
+// =======================
+// CONFIG
+// =======================
 const TOKENS = {
   USDT: {
     address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
@@ -23,15 +25,16 @@ const TOKENS = {
   }
 }
 
-// Known treasury wallets
 const TREASURY = {
   USDT: 'Tether Treasury',
   USDC: 'Circle Treasury'
 }
 
-// Thresholds (USD)
 const MIN_USD = 10_000_000
 
+// =======================
+// JOB
+// =======================
 export default async function runStablecoinMintBurn() {
   console.log('🟢 Scanning stablecoin Mint / Burn...')
 
@@ -41,20 +44,17 @@ export default async function runStablecoinMintBurn() {
       toBlock: 'latest',
       category: ['erc20'],
       contractAddresses: [token.address],
-      withMetadata: true,
       excludeZeroValue: true
     })
 
     for (const tx of transfers.transfers) {
       const amount = Number(tx.value)
-      const usdValue = amount // stablecoins ≈ USD
+      const usdValue = amount
 
       if (usdValue < MIN_USD) continue
 
-      const isMint =
-        tx.from === '0x0000000000000000000000000000000000000000'
-      const isBurn =
-        tx.to === '0x0000000000000000000000000000000000000000'
+      const isMint = tx.from === '0x0000000000000000000000000000000000000000'
+      const isBurn = tx.to === '0x0000000000000000000000000000000000000000'
 
       if (!isMint && !isBurn) continue
 
@@ -66,35 +66,36 @@ export default async function runStablecoinMintBurn() {
           : 'WHALE'
 
       const action = isMint ? 'Minted' : 'Burned'
+      const insight = isMint
+        ? 'Fresh liquidity entering the market 🟢'
+        : 'Supply reduction detected 🔥'
 
-      const text = `
-${isMint ? '🟢' : '🔥'} ${tier.replace('_', ' ')} ALERT
+      const message = `
+${isMint ? '🟢' : '🔥'} <b>${tier.replace('_', ' ')}</b>
 
-${amount.toLocaleString()} ${symbol} ($${(usdValue / 1_000_000).toFixed(1)}M)
+<b>${amount.toLocaleString()} ${symbol}</b>
+💰 Value: <b>$${(usdValue / 1_000_000).toFixed(1)}M</b>
+
 ${action} at ${TREASURY[symbol]}
+🧠 ${insight}
 
-${isMint ? 'Fresh liquidity entering market' : 'Supply reduction detected'}
-
-#Crypto #WhaleAlert #${symbol}
+#${symbol} #StablecoinAlert
 `.trim()
 
-      // ✅ SAVE ALERT
       await Alert.create({
+        type: 'STABLECOIN',
         coin: symbol,
         amountToken: amount,
         usd: usdValue,
-        from: isMint ? 'Mint' : 'Treasury',
-        to: isBurn ? 'Burn' : 'Treasury',
         blockchain: 'ethereum',
         tier,
-        text,
-        signalStrength: isMint ? 70 : 75
+        text: message,
+        signalStrength: isMint ? 80 : 85
       })
 
-      // ✅ TELEGRAM AUTO POST
-      await postToTelegram(text)
+      await postToTelegram(message)
 
-      console.log(`✅ ${symbol} ${action} alert saved & sent to Telegram`)
+      console.log(`✅ ${symbol} ${action} alert sent`)
     }
   }
 }
