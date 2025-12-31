@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import XIcon from '@/components/icons/XIcon'
-import AlertHeader from '@/components/AlertHeader' // ✅ SAFE
+import AlertHeader from '@/components/AlertHeader'
 
+// ---------- DATA ----------
 async function getAlert(id) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/alerts/${id}`,
@@ -12,12 +13,46 @@ async function getAlert(id) {
   return res.json()
 }
 
+// ---------- HELPERS ----------
 function formatWallet(label) {
   if (!label) return 'Unknown wallet'
   if (label.toLowerCase() === 'unknown') return 'Unknown wallet'
   return label
 }
 
+function formatXShare(alert, detailUrl) {
+  const usd = Number(alert.usd || 0)
+  const coin = alert.coin?.toUpperCase() || 'TOKEN'
+  const chain = alert.blockchain?.toUpperCase() || 'BLOCKCHAIN'
+
+  const isUltra = usd >= 50_000_000
+  const isMega = usd >= 25_000_000 && usd < 50_000_000
+
+  const header = isUltra
+    ? '🔥 ULTRA WHALE ALERT'
+    : isMega
+    ? '🚨 MEGA WHALE ALERT'
+    : '🐳 WHALE ALERT'
+
+  const amountLine = alert.amountToken
+    ? `${Number(alert.amountToken).toLocaleString()} ${coin} ($${usd.toLocaleString()})`
+    : `$${usd.toLocaleString()}`
+
+  return `
+${header}
+
+${amountLine}
+moved on ${chain}
+
+From: ${formatWallet(alert.from)}
+To: ${formatWallet(alert.to)}
+
+🔍 Full details:
+${detailUrl}
+`.trim()
+}
+
+// ---------- PAGE ----------
 export default async function AlertDetail({ params }) {
   const res = await getAlert(params.id)
   const alert = res?.data
@@ -33,11 +68,12 @@ export default async function AlertDetail({ params }) {
 
   const explorerUrl = explorerMap[alert.blockchain]
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
+  const xText = formatXShare(alert, detailUrl)
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
 
-      {/* ✅ HEADER (CLIENT SAFE) */}
+      {/* HEADER */}
       <AlertHeader
         coin={alert.coin}
         usd={alert.usd}
@@ -109,7 +145,7 @@ export default async function AlertDetail({ params }) {
 
         <a
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            `${alert.text}\n\n🔍 Full details:\n${detailUrl}`
+            xText
           )}`}
           target="_blank"
           rel="noopener noreferrer"
