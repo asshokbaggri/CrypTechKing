@@ -1,21 +1,41 @@
 // backend/src/utils/walletClassifier.js
 
-import { EXCHANGE_WALLETS } from '../data/exchangeWallets.js';
+import { detectExchange } from '../data/exchangeWallets.js';
 
-export function classifyWallet(address) {
-  if (!address) return 'UNKNOWN';
+export function classifyFlow(from, to) {
+  const fromExchange = detectExchange(from);
+  const toExchange = detectExchange(to);
 
-  const lower = address.toLowerCase();
-
-  if (lower === '0x0000000000000000000000000000000000000000') {
-    return 'MINT_BURN';
+  if (fromExchange && toExchange) {
+    return {
+      flowType: 'EXCHANGE_TO_EXCHANGE',
+      confidence: 30
+    };
   }
 
-  for (const wallets of Object.values(EXCHANGE_WALLETS)) {
-    if (wallets.map(w => w.toLowerCase()).includes(lower)) {
-      return 'EXCHANGE';
-    }
+  if (!fromExchange && !toExchange) {
+    return {
+      flowType: 'WALLET_TO_WALLET',
+      confidence: 20
+    };
   }
 
-  return 'WALLET';
+  if (!fromExchange && toExchange) {
+    return {
+      flowType: 'WALLET_TO_EXCHANGE',
+      confidence: 80
+    };
+  }
+
+  if (fromExchange && !toExchange) {
+    return {
+      flowType: 'EXCHANGE_TO_WALLET',
+      confidence: 75
+    };
+  }
+
+  return {
+    flowType: 'UNKNOWN',
+    confidence: 10
+  };
 }
