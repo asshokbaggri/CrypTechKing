@@ -5,39 +5,11 @@ import Link from 'next/link'
 import XIcon from './icons/XIcon'
 import CoinAvatar from './CoinAvatar'
 
-// 🔧 helpers
-const safeWallet = (v) =>
-  !v || v.toLowerCase() === 'unknown' ? 'Unknown wallet' : v
-
-const formatXShare = (alert, usd, detailUrl) => {
-  const coin = alert.coin?.toUpperCase() || 'TOKEN'
-  const chain = alert.blockchain?.toUpperCase() || 'BLOCKCHAIN'
-
-  const isUltra = usd >= 50_000_000
-  const isMega = usd >= 25_000_000 && usd < 50_000_000
-
-  const header = isUltra
-    ? '🔥 ULTRA WHALE ALERT'
-    : isMega
-    ? '🚨 MEGA WHALE ALERT'
-    : '🐳 WHALE ALERT'
-
-  const amountLine = alert.amountToken
-    ? `${Number(alert.amountToken).toLocaleString()} ${coin} ($${usd.toLocaleString()})`
-    : `$${usd.toLocaleString()}`
-
-  return `
-${header}
-
-${amountLine}
-moved on ${chain}
-
-From: ${safeWallet(alert.from)}
-To: ${safeWallet(alert.to)}
-
-🔍 Full details:
-${detailUrl}
-`.trim()
+function formatWallet(label) {
+  if (!label || label.toLowerCase() === 'unknown') {
+    return 'Unknown wallet'
+  }
+  return label
 }
 
 export default function AlertCard({ alert }) {
@@ -53,15 +25,20 @@ export default function AlertCard({ alert }) {
   const isMega = usd >= 25_000_000 && usd < 50_000_000
 
   const detailUrl = `https://cryptechking.vercel.app/alerts/${alert._id}`
-  const xText = formatXShare(alert, usd, detailUrl)
+
+  const shareText = `
+${alert.text}
+
+🔍 Full details:
+${detailUrl}
+  `.trim()
 
   return (
     <Link href={`/alerts/${alert._id}`} className="block">
       <div
         className={`
           relative rounded-xl border p-4 sm:p-5
-          transition-colors cursor-pointer
-          active:scale-[0.99]
+          transition-colors cursor-pointer active:scale-[0.99]
           ${
             isUltra
               ? 'border-red-500 bg-red-500/5 shadow-lg shadow-red-500/20'
@@ -102,10 +79,10 @@ export default function AlertCard({ alert }) {
 
           <p className="text-gray-400">
             <span className="text-gray-500">From:</span>{' '}
-            {safeWallet(alert.from)}
+            {formatWallet(alert.from)}
             <span className="mx-1 text-gray-500">→</span>
             <span className="text-gray-300">
-              {safeWallet(alert.to)}
+              {formatWallet(alert.to)}
             </span>
           </p>
 
@@ -134,7 +111,7 @@ export default function AlertCard({ alert }) {
 
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              xText
+              shareText
             )}`}
             target="_blank"
             rel="noopener noreferrer"
