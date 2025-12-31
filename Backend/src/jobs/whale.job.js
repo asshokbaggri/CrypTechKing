@@ -8,14 +8,22 @@ import WhaleEvent from '../models/WhaleEvent.js'
 
 const BTC_THRESHOLD = WHALE_THRESHOLDS.BTC
 
+let lastProcessedHeight = null
 let cachedPrice = null
 let lastPriceFetch = 0
+
+const http = axios.create({
+  timeout: 15000,
+  headers: {
+    'User-Agent': 'CrypTechKing/1.0 (Telegram Whale Bot)'
+  }
+})
 
 async function getBTCPrice() {
   const now = Date.now()
   if (cachedPrice && now - lastPriceFetch < 60_000) return cachedPrice
 
-  const res = await axios.get(
+  const res = await http.get(
     'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT'
   )
 
@@ -25,32 +33,36 @@ async function getBTCPrice() {
 }
 
 export default function startWhaleJob() {
-  log('Whale job started (Blockstream API)')
+  log('Whale job started (Mempool API)')
 
   setInterval(async () => {
     try {
       const btcPrice = await getBTCPrice()
 
       // 1️⃣ Latest block height
-      const heightRes = await axios.get(
-        'https://blockstream.info/api/blocks/tip/height'
+      const heightRes = await http.get(
+        'https://mempool.space/api/blocks/tip/height'
       )
       const height = heightRes.data
 
+      // 🔒 Process only NEW block
+      if (height === lastProcessedHeight) return
+      lastProcessedHeight = height
+
       // 2️⃣ Block hash
-      const hashRes = await axios.get(
-        `https://blockstream.info/api/block-height/${height}`
+      const hashRes = await http.get(
+        `https://mempool.space/api/block-height/${height}`
       )
       const blockHash = hashRes.data
 
       // 3️⃣ Block transactions
-      const txRes = await axios.get(
-        `https://blockstream.info/api/block/${blockHash}/txs`
+      const txRes = await http.get(
+        `https://mempool.space/api/block/${blockHash}/txs`
       )
       const txs = txRes.data
 
       for (const tx of txs) {
-        // 🔒 Duplicate protection
+        // HARD duplicate block
         const exists = await WhaleEvent.findOne({ txHash: tx.txid })
         if (exists) continue
 
@@ -58,7 +70,7 @@ export default function startWhaleJob() {
         let maxOut = { value: 0, addr: null }
         let maxIn = { value: 0, addr: null }
 
-        // Outputs (TO)
+        // TO
         for (const out of tx.vout) {
           totalOut += out.value
           if (out.value > maxOut.value && out.scriptpubkey_address) {
@@ -69,7 +81,7 @@ export default function startWhaleJob() {
           }
         }
 
-        // Inputs (FROM)
+        // FROM
         for (const vin of tx.vin) {
           if (
             vin.prevout &&
@@ -85,8 +97,7 @@ export default function startWhaleJob() {
 
         const btcAmount = totalOut / 100000000
         if (btcAmount < BTC_THRESHOLD) continue
-
-        if (isCooldown(tx.txid, 1800)) continue
+        if (isCooldown(tx.txid, 3600)) continue
 
         const fromExchange = maxIn.addr
           ? detectExchange(maxIn.addr)
@@ -114,8 +125,8 @@ export default function startWhaleJob() {
 
 ${signal}
 
-🔗 https://blockstream.info/tx/${tx.txid}
-⏱ Just now
+🔗 https://mempool.space/tx/${tx.txid}
+⏱ Just mined
 `
 
         await sendTelegramMessage(message)
@@ -133,5 +144,5 @@ ${signal}
     } catch (err) {
       console.error('Whale job error:', err.message)
     }
-  }, 60 * 1000)
+  }, 120 * 1000) // ⏱ every 2 minutes (SAFE)
 }
