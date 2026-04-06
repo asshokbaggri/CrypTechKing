@@ -22,19 +22,21 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initApp() async {
-
-    // 🔥 Smooth splash delay
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
     try {
 
-      // 🔥 SAFE WALLET FETCH
+      // 🔥 Smooth splash delay
+      await Future.delayed(const Duration(seconds: 2));
+
+      // 🔥 GET WALLET SAFE
       final wallet = await StorageService.getSelectedWallet();
 
+      // 🔥 GET NETWORK (IMPORTANT FOR APP SHELL)
+      final network = await StorageService.getSelectedNetwork();
+
+      if (!mounted) return;
+
+      // 🔥 VALID WALLET CHECK
       if (wallet != null &&
-          wallet is Map<String, dynamic> &&
           wallet["address"] != null &&
           wallet["address"].toString().isNotEmpty) {
 
@@ -42,7 +44,8 @@ class _SplashScreenState extends State<SplashScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => AppShell(
-              walletAddress: wallet["address"].toString(),
+              walletAddress: wallet["address"],
+              network: network, // 🔥 FIX: network pass
             ),
           ),
         );
@@ -59,7 +62,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     } catch (e) {
 
-      // 🔥 FAIL SAFE → always go onboarding
+      // 🔥 FAIL SAFE (CRASH PREVENTION)
+      if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -90,6 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
 
+            // 🔥 APP LOGO
             Image.asset(
               'assets/icon.png',
               width: 110,
@@ -97,6 +103,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
             const SizedBox(height: 20),
 
+            // 🔥 APP NAME
             const Text(
               "NexPoket",
               style: TextStyle(
@@ -109,6 +116,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
             const SizedBox(height: 8),
 
+            // 🔥 TAGLINE
             const Text(
               "Smart Digital Wallet",
               style: TextStyle(
@@ -119,6 +127,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
             const SizedBox(height: 30),
 
+            // 🔥 LOADER
             const CircularProgressIndicator(
               color: Colors.white,
               strokeWidth: 2,
