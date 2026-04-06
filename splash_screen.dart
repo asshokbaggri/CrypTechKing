@@ -23,19 +23,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initApp() async {
     try {
-
-      // 🔥 Smooth splash delay
       await Future.delayed(const Duration(seconds: 2));
 
-      // 🔥 GET WALLET SAFE
       final wallet = await StorageService.getSelectedWallet();
-
-      // 🔥 GET NETWORK (IMPORTANT FOR APP SHELL)
       final network = await StorageService.getSelectedNetwork();
 
       if (!mounted) return;
 
-      // 🔥 VALID WALLET CHECK
       if (wallet != null &&
           wallet["address"] != null &&
           wallet["address"].toString().isNotEmpty) {
@@ -45,13 +39,12 @@ class _SplashScreenState extends State<SplashScreen> {
           MaterialPageRoute(
             builder: (_) => AppShell(
               walletAddress: wallet["address"],
-              network: network, // 🔥 FIX: network pass
+              network: network, // ✅ now supported
             ),
           ),
         );
 
       } else {
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -61,8 +54,6 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
     } catch (e) {
-
-      // 🔥 FAIL SAFE (CRASH PREVENTION)
       if (!mounted) return;
 
       Navigator.pushReplacement(
@@ -79,7 +70,6 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Container(
         width: double.infinity,
-
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -90,47 +80,34 @@ class _SplashScreenState extends State<SplashScreen> {
             end: Alignment.bottomRight,
           ),
         ),
-
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
 
-            // 🔥 APP LOGO
-            Image.asset(
-              'assets/icon.png',
-              width: 110,
-            ),
+            Image.asset('assets/icon.png', width: 110),
 
             const SizedBox(height: 20),
 
-            // 🔥 APP NAME
             const Text(
               "NexPoket",
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
-                letterSpacing: 1,
               ),
             ),
 
             const SizedBox(height: 8),
 
-            // 🔥 TAGLINE
             const Text(
               "Smart Digital Wallet",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
+              style: TextStyle(color: Colors.white70),
             ),
 
             const SizedBox(height: 30),
 
-            // 🔥 LOADER
             const CircularProgressIndicator(
               color: Colors.white,
-              strokeWidth: 2,
             ),
           ],
         ),
