@@ -247,3 +247,5 @@ class WalletService {
 
     return "https://assets.trustwallet.com/blockchains/$folder/assets/$cleanContract/logo.png";
   }
+  // ❗❗❗ THIS WAS MISSING ❗❗❗
+}
