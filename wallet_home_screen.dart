@@ -237,7 +237,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     );
   }
 
-  // 🔥 TOKEN UI FIXED
+  // 🔥 TOKEN UI FINAL FIX
   Widget buildTokenItem(Map<String, dynamic> token) {
 
     final isNative = token["isNative"] == true;
@@ -254,7 +254,20 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: Colors.white,
-        backgroundImage: NetworkImage(iconUrl),
+        child: ClipOval(
+          child: Image.network(
+            iconUrl,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return const Icon(
+                Icons.currency_bitcoin,
+                color: Color(0xFF3375BB),
+              );
+            },
+          ),
+        ),
       ),
       title: Text(token["symbol"] ?? ""),
       subtitle: Text(token["name"] ?? ""),
