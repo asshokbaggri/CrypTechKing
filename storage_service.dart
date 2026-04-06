@@ -149,6 +149,27 @@ class StorageService {
     }
   }
 
+  // 🔥🔥🔥 FINAL FIX (MISSING FUNCTION ADDED HERE)
+  static Future<Map<String, dynamic>?> getSelectedWallet() async {
+    try {
+      final address = await _storage.read(key: _selectedWalletKey);
+      final wallets = await getWallets();
+
+      if (wallets.isEmpty) return null;
+
+      if (address == null || address.isEmpty) {
+        return wallets.first;
+      }
+
+      return wallets.firstWhere(
+        (w) => w["address"] == address,
+        orElse: () => wallets.first,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
   static Future<void> setSelectedWallet(String address) async {
     await _storage.write(
       key: _selectedWalletKey,
@@ -178,7 +199,7 @@ class StorageService {
   }
 
   // =========================================================
-  // 🪙 TOKEN SYSTEM (FIXED 🔥)
+  // 🪙 TOKEN SYSTEM
   // =========================================================
 
   static Future<List<Map<String, dynamic>>> getCustomTokens() async {
@@ -217,7 +238,7 @@ class StorageService {
       "contract": token["contract"],
       "decimals": token["decimals"],
       "network": token["network"],
-      "isNative": false, // 🔥 IMPORTANT FIX
+      "isNative": false,
     });
 
     await _storage.write(
@@ -226,7 +247,6 @@ class StorageService {
     );
   }
 
-  // 🔥 MAIN FIX (THIS WAS MISSING)
   static Future<List<Map<String, dynamic>>> getTokensByNetwork(
       String network) async {
 
@@ -238,7 +258,6 @@ class StorageService {
         .toList();
   }
 
-  // (old function compatibility)
   static Future<List<Map<String, dynamic>>> getTokens(
       String network) async {
     return getTokensByNetwork(network);
