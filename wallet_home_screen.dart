@@ -9,6 +9,8 @@ import '../core/wallet_service.dart';
 import 'send_screen.dart';
 import 'receive_screen.dart';
 import 'add_token_screen.dart';
+import 'seed_phrase_screen.dart';
+import 'import_wallet_screen.dart';
 
 class WalletHomeScreen extends StatefulWidget {
   final String walletAddress;
@@ -57,13 +59,14 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     }
   }
 
-  // 🚀 FAST INIT
+  // 🔥 FAST INIT
   Future<void> initAll() async {
-    await loadWallets();
+    loadWallets();
 
-    // parallel loading
-    loadBalance();
-    loadTokens();
+    Future.wait([
+      loadBalance(),
+      loadTokens(),
+    ]);
   }
 
   Future<void> loadWallets() async {
@@ -119,7 +122,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     }
   }
 
-  // ⚡ ULTRA FAST TOKEN LOAD
   Future<void> loadTokens() async {
 
     setState(() => isLoadingTokens = true);
@@ -135,40 +137,34 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
       Map<String, String> balances = {};
 
-      // 🔥 native balance once
-      final nativeBalance = await WalletService.getBalance(
-        currentAddress,
-        widget.network,
-      );
+      for (var token in merged) {
 
-      await Future.wait(
-        merged.map((token) async {
+        try {
+          String bal = "0.00";
 
-          try {
-            String bal = "0.00";
+          final isNative = token["isNative"] == true;
+          final contract = token["contract"]?.toString() ?? "";
 
-            final isNative = token["isNative"] == true;
-            final contract = token["contract"]?.toString() ?? "";
-
-            if (isNative || contract.isEmpty) {
-              bal = nativeBalance;
-            } else {
-              bal = await WalletService.getTokenBalance(
-                address: currentAddress,
-                contract: contract,
-                decimals: int.tryParse(token["decimals"].toString()) ?? 18,
-                network: widget.network,
-              );
-            }
-
-            balances[token["symbol"]] = bal;
-
-          } catch (e) {
-            balances[token["symbol"]] = "0.00";
+          if (isNative || contract.isEmpty) {
+            bal = await WalletService.getBalance(
+              currentAddress,
+              widget.network,
+            );
+          } else {
+            bal = await WalletService.getTokenBalance(
+              address: currentAddress,
+              contract: contract,
+              decimals: int.tryParse(token["decimals"].toString()) ?? 18,
+              network: widget.network,
+            );
           }
 
-        }),
-      );
+          balances[token["symbol"]] = bal;
+
+        } catch (e) {
+          balances[token["symbol"]] = "0.00";
+        }
+      }
 
       if (!mounted) return;
 
@@ -241,34 +237,58 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     );
   }
 
-  // 🔥 CREATE / IMPORT SHEET
-  void showWalletActions() {
+  // 🔥🔥🔥 NEW PREMIUM POPUP
+  void showAddWalletOptions() {
     showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (_) {
-        return SafeArea(
+        return Container(
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
 
+              const Text(
+                "Add Wallet",
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 20),
+
               ListTile(
-                leading: const Icon(Icons.add_circle_outline),
-                title: const Text("Create Wallet"),
+                leading: const Icon(Icons.add_circle_outline,
+                    color: Color(0xFF3375BB)),
+                title: const Text("Create New Wallet"),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.pushNamed(context, '/create-wallet');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SeedPhraseScreen(),
+                    ),
+                  );
                 },
               ),
 
               ListTile(
-                leading: const Icon(Icons.download),
+                leading: const Icon(Icons.download,
+                    color: Color(0xFF3375BB)),
                 title: const Text("Import Wallet"),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.pushNamed(context, '/import-wallet');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ImportWalletScreen(),
+                    ),
+                  );
                 },
               ),
-
             ],
           ),
         );
@@ -276,6 +296,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     );
   }
 
+  // 🔥 ICON SYSTEM
   Widget buildTokenItem(Map<String, dynamic> token) {
 
     final symbol = (token["symbol"] ?? "").toString();
@@ -340,63 +361,34 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      appBar: AppBar(
+        title: GestureDetector(
+          onTap: showWalletList,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(walletName),
+              const SizedBox(width: 5),
+              const Icon(Icons.keyboard_arrow_down),
+            ],
+          ),
+        ),
+
+        // ✅ FIXED BUTTON
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: showAddWalletOptions,
+          ),
+        ],
+      ),
+
       body: RefreshIndicator(
         onRefresh: initAll,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
 
-            // 🔥 SCROLLABLE HEADER
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-
-                GestureDetector(
-                  onTap: showWalletList,
-                  child: Row(
-                    children: [
-                      Text(
-                        walletName,
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const Icon(Icons.keyboard_arrow_down),
-                    ],
-                  ),
-                ),
-
-                Row(
-                  children: [
-
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          Text(symbol),
-                          const Icon(Icons.arrow_drop_down),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(width: 10),
-
-                    GestureDetector(
-                      onTap: showWalletActions,
-                      child: const Icon(Icons.add),
-                    )
-                  ],
-                )
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // BALANCE CARD
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -425,7 +417,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             const SizedBox(height: 20),
 
-            // ADDRESS
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -451,7 +442,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             const SizedBox(height: 25),
 
-            // ACTIONS
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -509,7 +499,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             const SizedBox(height: 10),
 
-            if (isLoadingTokens)
+            if (isLoadingTokens && tokens.isEmpty)
               const Center(child: CircularProgressIndicator())
             else
               ...tokens.map((t) => buildTokenItem(t)).toList(),
