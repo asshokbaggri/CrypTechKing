@@ -5,6 +5,7 @@ import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/services.dart';
 
 import '../core/storage_service.dart';
 import '../core/wallet_service.dart';
