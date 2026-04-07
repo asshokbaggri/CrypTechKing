@@ -29,6 +29,7 @@ class _SendScreenState extends State<SendScreen> {
 
   bool isLoading = false;
   bool isScanning = false;
+  bool isInitializing = true; // 🔥 FIX
 
   String selectedNetwork = "BSC";
   String symbol = "BNB";
@@ -47,6 +48,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   Future<void> initNetwork() async {
+
     final net = await StorageService.getSelectedNetwork();
 
     final defaultTokens = WalletService.getDefaultTokens(net);
@@ -67,6 +69,8 @@ class _SendScreenState extends State<SendScreen> {
       symbol = selectedToken!["symbol"];
       chainId = getChainId(net);
       currentBalance = double.tryParse(bal) ?? 0;
+
+      isInitializing = false; // 🔥 IMPORTANT
     });
   }
 
@@ -82,20 +86,14 @@ class _SendScreenState extends State<SendScreen> {
     }
   }
 
-  // 🔥 MAX BUTTON
   void setMaxAmount() {
     if (currentBalance <= 0) return;
-
-    // small buffer for gas
     final max = currentBalance * 0.98;
-
     amountController.text = max.toStringAsFixed(6);
   }
 
-  // 🔥 PASTE BUTTON
   Future<void> pasteAddress() async {
     final data = await Clipboard.getData('text/plain');
-
     if (data != null) {
       addressController.text = data.text ?? "";
     }
@@ -129,16 +127,10 @@ class _SendScreenState extends State<SendScreen> {
       final privateKey =
           await StorageService.getPrivateKey(widget.walletAddress);
 
-      if (privateKey == null) {
-        throw Exception("Wallet not found");
-      }
-
       final rpc = WalletService.networks[selectedNetwork]!["rpc"]!;
       final client = Web3Client(rpc, Client());
 
-      final credentials = EthPrivateKey.fromHex(privateKey);
-      final senderAddress = await credentials.extractAddress();
-
+      final credentials = EthPrivateKey.fromHex(privateKey!);
       final receiver = EthereumAddress.fromHex(toAddress);
 
       final txHash = await client.sendTransaction(
@@ -197,7 +189,6 @@ class _SendScreenState extends State<SendScreen> {
     );
   }
 
-  // 🔥 TOKEN SELECTOR WITH ICON
   Widget buildTokenSelector() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -246,6 +237,12 @@ class _SendScreenState extends State<SendScreen> {
   @override
   Widget build(BuildContext context) {
 
+    if (isInitializing) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -262,7 +259,6 @@ class _SendScreenState extends State<SendScreen> {
 
             const SizedBox(height: 20),
 
-            // 🔥 WALLET ADDRESS
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -285,7 +281,7 @@ class _SendScreenState extends State<SendScreen> {
 
             const SizedBox(height: 20),
 
-            // 🔥 ADDRESS INPUT (PASTE + SCAN)
+            // 🔥 ADDRESS INPUT (FIXED BUTTON STYLE)
             TextField(
               controller: addressController,
               decoration: InputDecoration(
@@ -294,20 +290,16 @@ class _SendScreenState extends State<SendScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
 
-                    // 🔥 PASTE BUTTON
                     GestureDetector(
                       onTap: pasteAddress,
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 5),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF3375BB),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
+                      child: const Padding(
+                        padding: EdgeInsets.only(right: 10),
+                        child: Text(
                           "Paste",
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(
+                            color: Color(0xFF3375BB),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),
@@ -323,7 +315,7 @@ class _SendScreenState extends State<SendScreen> {
 
             const SizedBox(height: 20),
 
-            // 🔥 AMOUNT + MAX
+            // 🔥 AMOUNT INPUT (FIXED BUTTON STYLE)
             TextField(
               controller: amountController,
               keyboardType: TextInputType.number,
@@ -331,17 +323,14 @@ class _SendScreenState extends State<SendScreen> {
                 labelText: "Amount ($symbol)",
                 suffixIcon: GestureDetector(
                   onTap: setMaxAmount,
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 10),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF3375BB),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      "MAX",
-                      style: TextStyle(color: Colors.white),
+                  child: const Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: Text(
+                      "Max",
+                      style: TextStyle(
+                        color: Color(0xFF3375BB),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
