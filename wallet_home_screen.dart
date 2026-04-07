@@ -57,11 +57,11 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     }
   }
 
-  // 🔥 FAST INIT (parallel loading)
+  // 🚀 FAST INIT
   Future<void> initAll() async {
     await loadWallets();
 
-    // 🚀 parallel
+    // parallel loading
     loadBalance();
     loadTokens();
   }
@@ -119,6 +119,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     }
   }
 
+  // ⚡ ULTRA FAST TOKEN LOAD
   Future<void> loadTokens() async {
 
     setState(() => isLoadingTokens = true);
@@ -134,34 +135,40 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
       Map<String, String> balances = {};
 
-      for (var token in merged) {
+      // 🔥 native balance once
+      final nativeBalance = await WalletService.getBalance(
+        currentAddress,
+        widget.network,
+      );
 
-        try {
-          String bal = "0.00";
+      await Future.wait(
+        merged.map((token) async {
 
-          final isNative = token["isNative"] == true;
-          final contract = token["contract"]?.toString() ?? "";
+          try {
+            String bal = "0.00";
 
-          if (isNative || contract.isEmpty) {
-            bal = await WalletService.getBalance(
-              currentAddress,
-              widget.network,
-            );
-          } else {
-            bal = await WalletService.getTokenBalance(
-              address: currentAddress,
-              contract: contract,
-              decimals: int.tryParse(token["decimals"].toString()) ?? 18,
-              network: widget.network,
-            );
+            final isNative = token["isNative"] == true;
+            final contract = token["contract"]?.toString() ?? "";
+
+            if (isNative || contract.isEmpty) {
+              bal = nativeBalance;
+            } else {
+              bal = await WalletService.getTokenBalance(
+                address: currentAddress,
+                contract: contract,
+                decimals: int.tryParse(token["decimals"].toString()) ?? 18,
+                network: widget.network,
+              );
+            }
+
+            balances[token["symbol"]] = bal;
+
+          } catch (e) {
+            balances[token["symbol"]] = "0.00";
           }
 
-          balances[token["symbol"]] = bal;
-
-        } catch (e) {
-          balances[token["symbol"]] = "0.00";
-        }
-      }
+        }),
+      );
 
       if (!mounted) return;
 
@@ -234,16 +241,50 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     );
   }
 
-  // 🔥 ICON SYSTEM
+  // 🔥 CREATE / IMPORT SHEET
+  void showWalletActions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              ListTile(
+                leading: const Icon(Icons.add_circle_outline),
+                title: const Text("Create Wallet"),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/create-wallet');
+                },
+              ),
+
+              ListTile(
+                leading: const Icon(Icons.download),
+                title: const Text("Import Wallet"),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/import-wallet');
+                },
+              ),
+
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget buildTokenItem(Map<String, dynamic> token) {
 
     final symbol = (token["symbol"] ?? "").toString();
     final isNative = token["isNative"] == true;
     final contract = token["contract"]?.toString() ?? "";
 
-    final localPath = WalletService.getLocalTokenIcon(symbol);
+    final localPath = WalletService.resolveLocalIcon(symbol);
 
-    final fallbackUrl = WalletService.getFallbackIcon(
+    final fallbackUrl = WalletService.resolveFallbackIcon(
       network: widget.network,
       contract: contract,
       isNative: isNative,
@@ -299,37 +340,63 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: GestureDetector(
-          onTap: showWalletList,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(walletName),
-              const SizedBox(width: 5),
-              const Icon(Icons.keyboard_arrow_down),
-            ],
-          ),
-        ),
-
-        // 🔥 ADD BUTTON BACK
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              showWalletList();
-            },
-          ),
-        ],
-      ),
-
       body: RefreshIndicator(
         onRefresh: initAll,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
 
-            // 🔥 BALANCE CARD
+            // 🔥 SCROLLABLE HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+
+                GestureDetector(
+                  onTap: showWalletList,
+                  child: Row(
+                    children: [
+                      Text(
+                        walletName,
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const Icon(Icons.keyboard_arrow_down),
+                    ],
+                  ),
+                ),
+
+                Row(
+                  children: [
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(symbol),
+                          const Icon(Icons.arrow_drop_down),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    GestureDetector(
+                      onTap: showWalletActions,
+                      child: const Icon(Icons.add),
+                    )
+                  ],
+                )
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // BALANCE CARD
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -358,7 +425,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             const SizedBox(height: 20),
 
-            // 🔥 ADDRESS
+            // ADDRESS
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -384,7 +451,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             const SizedBox(height: 25),
 
-            // 🔥 ACTIONS
+            // ACTIONS
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
