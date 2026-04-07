@@ -6,11 +6,10 @@ class ActivityScreen extends StatefulWidget {
   final String address;
   final String network;
 
-  const ActivityScreen({
-    super.key,
-    required this.address,
-    required this.network,
-  });
+  ActivityScreen(
+    address: walletAddress,   // current wallet address
+    network: selectedNetwork, // current network (BSC / ETH / Polygon)
+  ),
 
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
@@ -22,7 +21,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   bool isLoading = true;
 
   // 🔥 CHANGE THIS (your API key)
-  final String apiKey = "YOUR_API_KEY";
+  final String apiKey = "S97UPFBS6EJRSNUHQU1PD25KNT89UJKX6C";
 
   String getApiUrl() {
     switch (widget.network) {
