@@ -1,3 +1,5 @@
+// app/lib/screens/activity_screen.dart
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -6,10 +8,11 @@ class ActivityScreen extends StatefulWidget {
   final String address;
   final String network;
 
-  ActivityScreen(
-    address: walletAddress,   // current wallet address
-    network: selectedNetwork, // current network (BSC / ETH / Polygon)
-  ),
+  const ActivityScreen({
+    super.key,
+    required this.address,
+    required this.network,
+  });
 
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
@@ -20,7 +23,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
   List txs = [];
   bool isLoading = true;
 
-  // 🔥 CHANGE THIS (your API key)
   final String apiKey = "S97UPFBS6EJRSNUHQU1PD25KNT89UJKX6C";
 
   String getApiUrl() {
@@ -84,6 +86,17 @@ class _ActivityScreenState extends State<ActivityScreen> {
     return "${diff.inDays} days ago";
   }
 
+  String getSymbol() {
+    switch (widget.network) {
+      case "BSC":
+        return "BNB";
+      case "Polygon":
+        return "POL";
+      default:
+        return "ETH";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -133,7 +146,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                       return _TxTile(
                         type: isSend ? "Send" : "Receive",
                         amount:
-                            "${isSend ? "-" : "+"}${value.toStringAsFixed(5)} ${widget.network == "BSC" ? "BNB" : widget.network == "Polygon" ? "POL" : "ETH"}",
+                            "${isSend ? "-" : "+"}${value.toStringAsFixed(5)} ${getSymbol()}",
                         date: formatTime(tx["timeStamp"]),
                       );
                     },
