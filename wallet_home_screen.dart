@@ -57,10 +57,13 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     }
   }
 
+  // 🔥 FAST INIT (parallel loading)
   Future<void> initAll() async {
     await loadWallets();
-    await loadBalance();
-    await loadTokens();
+
+    // 🚀 parallel
+    loadBalance();
+    loadTokens();
   }
 
   Future<void> loadWallets() async {
@@ -194,7 +197,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       currentAddress = address;
     });
 
-    await initAll();
+    initAll();
 
     if (mounted) Navigator.pop(context);
   }
@@ -231,16 +234,16 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     );
   }
 
-  // 🔥 PRO ICON SYSTEM
+  // 🔥 ICON SYSTEM
   Widget buildTokenItem(Map<String, dynamic> token) {
 
     final symbol = (token["symbol"] ?? "").toString();
     final isNative = token["isNative"] == true;
     final contract = token["contract"]?.toString() ?? "";
 
-    final localPath = WalletService.resolveLocalIcon(symbol);
+    final localPath = WalletService.getLocalTokenIcon(symbol);
 
-    final fallbackUrl = WalletService.resolveFallbackIcon(
+    final fallbackUrl = WalletService.getFallbackIcon(
       network: widget.network,
       contract: contract,
       isNative: isNative,
@@ -257,16 +260,12 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
             width: 28,
             height: 28,
             fit: BoxFit.contain,
-
-            // 🔥 अगर local SVG fail
             errorBuilder: (context, error, stackTrace) {
               return Image.network(
                 fallbackUrl,
                 width: 28,
                 height: 28,
                 fit: BoxFit.cover,
-
-                // 🔥 अगर CDN भी fail
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(
                     Icons.currency_bitcoin,
@@ -278,11 +277,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
           ),
         ),
       ),
-
       title: Text(symbol),
       subtitle: Text(token["name"] ?? ""),
       trailing: Text(bal),
-
       onTap: () {
         Navigator.push(
           context,
@@ -314,6 +311,16 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
             ],
           ),
         ),
+
+        // 🔥 ADD BUTTON BACK
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              showWalletList();
+            },
+          ),
+        ],
       ),
 
       body: RefreshIndicator(
@@ -322,6 +329,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
           padding: const EdgeInsets.all(20),
           children: [
 
+            // 🔥 BALANCE CARD
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -350,6 +358,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             const SizedBox(height: 20),
 
+            // 🔥 ADDRESS
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -375,6 +384,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             const SizedBox(height: 25),
 
+            // 🔥 ACTIONS
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -423,7 +433,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                       ),
                     );
 
-                    await loadTokens();
+                    loadTokens();
                   },
                   child: const Text("Add Crypto"),
                 ),
