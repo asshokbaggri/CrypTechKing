@@ -53,12 +53,12 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
     if (oldWidget.network != widget.network ||
         oldWidget.walletAddress != widget.walletAddress) {
+
       currentAddress = widget.walletAddress;
       initAll();
     }
   }
 
-  // 🔥 FAST INIT
   Future<void> initAll() async {
     loadWallets();
 
@@ -85,8 +85,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       orElse: () => data.first,
     );
 
-    if (!mounted) return;
-
     setState(() {
       wallets = data;
       walletName = current["name"];
@@ -112,7 +110,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         symbol = fetchedSymbol;
         isLoadingBalance = false;
       });
-
     } catch (e) {
       if (!mounted) return;
 
@@ -203,6 +200,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     });
 
     initAll();
+
     if (mounted) Navigator.pop(context);
   }
 
@@ -238,7 +236,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     );
   }
 
-  // 🔥 PREMIUM POPUP
   void showAddWalletOptions() {
     showModalBottomSheet(
       context: context,
@@ -254,9 +251,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
               const Text(
                 "Add Wallet",
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 20),
@@ -297,7 +292,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     );
   }
 
-  // 🔥 TOKEN ITEM
   Widget buildTokenItem(Map<String, dynamic> token) {
 
     final symbol = (token["symbol"] ?? "").toString();
@@ -343,6 +337,16 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       title: Text(symbol),
       subtitle: Text(token["name"] ?? ""),
       trailing: Text(bal),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SendScreen(
+              walletAddress: currentAddress,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -358,50 +362,51 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
           padding: const EdgeInsets.all(20),
           children: [
 
-            // 🔥 SCROLLABLE HEADER
-            Padding(
-              padding: const EdgeInsets.only(top: 40, bottom: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+            // 🔥 SCROLLABLE HEADER (REPLACED APPBAR)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
 
-                  GestureDetector(
-                    onTap: showWalletList,
-                    child: Row(
-                      children: [
-                        Text(
-                          walletName,
-                          style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        const Icon(Icons.keyboard_arrow_down),
-                      ],
-                    ),
-                  ),
-
-                  Row(
+                GestureDetector(
+                  onTap: showWalletList,
+                  child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(10),
+                      Text(
+                        walletName,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
-                        child: Text(widget.network),
                       ),
-                      const SizedBox(width: 10),
-                      GestureDetector(
-                        onTap: showAddWalletOptions,
-                        child: const Icon(Icons.add, size: 28),
-                      ),
+                      const SizedBox(width: 5),
+                      const Icon(Icons.keyboard_arrow_down),
                     ],
-                  )
-                ],
-              ),
+                  ),
+                ),
+
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(widget.network),
+                    ),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: showAddWalletOptions,
+                      child: const Icon(Icons.add),
+                    ),
+                  ],
+                ),
+              ],
             ),
 
-            // 🔥 BALANCE
+            const SizedBox(height: 20),
+
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -430,7 +435,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             const SizedBox(height: 20),
 
-            // 🔥 ADDRESS
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -456,7 +460,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             const SizedBox(height: 25),
 
-            // 🔥 ACTIONS
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
