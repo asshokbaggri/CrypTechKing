@@ -40,6 +40,10 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   Map<String, String> tokenBalances = {};
   bool isLoadingTokens = true;
 
+  // 🔥 NEW: PRICE DATA
+  Map<String, dynamic> livePrices = {};
+  double totalPortfolio = 0;
+
   @override
   void initState() {
     super.initState();
@@ -165,11 +169,24 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         }
       }
 
+      // 🔥 FETCH LIVE PRICES
+      final symbols = merged.map((t) => t["symbol"].toString()).toList();
+      final prices = await WalletService.getLivePrices(symbols);
+
+      // 🔥 PORTFOLIO CALC
+      final portfolio = WalletService.calculatePortfolio(
+        merged,
+        balances,
+        prices,
+      );
+
       if (!mounted) return;
 
       setState(() {
         tokens = merged;
         tokenBalances = balances;
+        livePrices = prices;
+        totalPortfolio = portfolio;
         isLoadingTokens = false;
       });
 
@@ -179,6 +196,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       setState(() {
         tokens = [];
         tokenBalances = {};
+        livePrices = {};
+        totalPortfolio = 0;
         isLoadingTokens = false;
       });
     }
@@ -362,45 +381,36 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
           padding: const EdgeInsets.all(20),
           children: [
 
-            // 🔥 SCROLLABLE HEADER (REPLACED APPBAR)
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
 
-                GestureDetector(
-                  onTap: showWalletList,
-                  child: Row(
-                    children: [
-                      Text(
-                        walletName,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                const SizedBox(width: 40),
+
+                Expanded(
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: showWalletList,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            walletName,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          const Icon(Icons.keyboard_arrow_down),
+                        ],
                       ),
-                      const SizedBox(width: 5),
-                      const Icon(Icons.keyboard_arrow_down),
-                    ],
+                    ),
                   ),
                 ),
 
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(widget.network),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: showAddWalletOptions,
-                      child: const Icon(Icons.add),
-                    ),
-                  ],
+                GestureDetector(
+                  onTap: showAddWalletOptions,
+                  child: const Icon(Icons.add),
                 ),
               ],
             ),
