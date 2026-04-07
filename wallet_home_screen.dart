@@ -40,8 +40,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   Map<String, String> tokenBalances = {};
   bool isLoadingTokens = true;
 
-  // 🔥 NEW: PRICE DATA
-  Map<String, dynamic> livePrices = {};
+  // 🔥 NEW (PRICE + PORTFOLIO)
+  Map<String, dynamic> prices = {};
   double totalPortfolio = 0;
 
   @override
@@ -66,7 +66,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   Future<void> initAll() async {
     loadWallets();
 
-    Future.wait([
+    await Future.wait([
       loadBalance(),
       loadTokens(),
     ]);
@@ -169,15 +169,14 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
         }
       }
 
-      // 🔥 FETCH LIVE PRICES
-      final symbols = merged.map((t) => t["symbol"].toString()).toList();
-      final prices = await WalletService.getLivePrices(symbols);
+      // 🔥 FETCH LIVE PRICE
+      final symbols = merged.map((e) => e["symbol"].toString()).toList();
+      final livePrices = await WalletService.getLivePrices(symbols);
 
-      // 🔥 PORTFOLIO CALC
       final portfolio = WalletService.calculatePortfolio(
         merged,
         balances,
-        prices,
+        livePrices,
       );
 
       if (!mounted) return;
@@ -185,7 +184,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       setState(() {
         tokens = merged;
         tokenBalances = balances;
-        livePrices = prices;
+        prices = livePrices;
         totalPortfolio = portfolio;
         isLoadingTokens = false;
       });
@@ -196,7 +195,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       setState(() {
         tokens = [];
         tokenBalances = {};
-        livePrices = {};
+        prices = {};
         totalPortfolio = 0;
         isLoadingTokens = false;
       });
@@ -314,58 +313,36 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   Widget buildTokenItem(Map<String, dynamic> token) {
 
     final symbol = (token["symbol"] ?? "").toString();
-    final isNative = token["isNative"] == true;
-    final contract = token["contract"]?.toString() ?? "";
+    final bal = double.tryParse(tokenBalances[symbol] ?? "0") ?? 0;
+
+    final price = prices[symbol]?["price"] ?? 0;
+    final change = prices[symbol]?["change"] ?? 0;
+
+    final usdValue = bal * price;
+
+    final isPositive = change >= 0;
 
     final localPath = WalletService.resolveLocalIcon(symbol);
-
-    final fallbackUrl = WalletService.resolveFallbackIcon(
-      network: widget.network,
-      contract: contract,
-      isNative: isNative,
-    );
-
-    final bal = tokenBalances[symbol] ?? "0.00";
 
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: Colors.white,
-        child: ClipOval(
-          child: SvgPicture.asset(
-            localPath,
-            width: 28,
-            height: 28,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Image.network(
-                fallbackUrl,
-                width: 28,
-                height: 28,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.currency_bitcoin,
-                    color: Color(0xFF3375BB),
-                  );
-                },
-              );
-            },
-          ),
+        child: SvgPicture.asset(
+          localPath,
+          width: 28,
+          height: 28,
+          errorBuilder: (_, __, ___) =>
+              const Icon(Icons.currency_bitcoin),
         ),
       ),
       title: Text(symbol),
-      subtitle: Text(token["name"] ?? ""),
-      trailing: Text(bal),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => SendScreen(
-              walletAddress: currentAddress,
-            ),
-          ),
-        );
-      },
+      subtitle: Text(
+        "\$${usdValue.toStringAsFixed(2)} • ${change.toStringAsFixed(2)}%",
+        style: TextStyle(
+          color: isPositive ? Colors.green : Colors.red,
+        ),
+      ),
+      trailing: Text(tokenBalances[symbol] ?? "0.00"),
     );
   }
 
@@ -426,19 +403,17 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Total Balance",
+                  const Text("Total Portfolio",
                       style: TextStyle(color: Colors.white70)),
                   const SizedBox(height: 8),
-                  isLoadingBalance
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          "$balance $symbol",
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                  Text(
+                    "\$${totalPortfolio.toStringAsFixed(2)}",
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -500,30 +475,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             const SizedBox(height: 30),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Your Assets",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-
-                TextButton(
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AddTokenScreen(
-                          network: widget.network,
-                        ),
-                      ),
-                    );
-
-                    loadTokens();
-                  },
-                  child: const Text("Add Crypto"),
-                ),
-              ],
-            ),
+            const Text("Your Assets",
+                style:
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
 
             const SizedBox(height: 10),
 
