@@ -71,7 +71,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       loadTokens(),
     ]);
 
-    await loadPrices(); // 🔥 NEW
+    if (tokens.isNotEmpty) {
+      await loadPrices();
+    }
   }
 
   Future<void> loadWallets() async {
@@ -193,9 +195,10 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   // 🔥 LIVE PRICE LOAD
   Future<void> loadPrices() async {
 
-    final symbols = tokens.map((e) => e["symbol"].toString()).toList();
-
-    final prices = await WalletService.getLivePrices(symbols);
+    final prices = await WalletService.getLivePricesAdvanced(
+      tokens,
+      widget.network,
+    );
 
     final total = WalletService.calculatePortfolio(
       tokens,
