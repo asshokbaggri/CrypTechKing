@@ -56,6 +56,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
     // 🔥 AUTO REFRESH
     priceTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (!mounted) return; // 🔥 IMPORTANT
+
       if (tokens.isNotEmpty) {
         loadPrices();
       }
@@ -88,9 +90,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       loadTokens(),
     ]);
 
-    if (tokens.isNotEmpty) {
-      await loadPrices();
-    }
+    // ❌ REMOVE THIS BLOCK
+    // loadPrices already called inside loadTokens
   }
 
   Future<void> loadWallets() async {
@@ -226,23 +227,35 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   // 🔥 LIVE PRICE LOAD
   Future<void> loadPrices() async {
 
-    final prices = await WalletService.getLivePricesAdvanced(
-      tokens,
-      widget.network,
-    );
+    if (isPriceLoading) return;
+    isPriceLoading = true;
 
-    final total = WalletService.calculatePortfolio(
-      tokens,
-      tokenBalances,
-      prices,
-    );
+    try {
 
-    if (!mounted) return;
+      final prices = await WalletService.getLivePricesAdvanced(
+        tokens,
+        widget.network,
+      );
 
-    setState(() {
-      livePrices = prices;
-      totalPortfolio = total;
-    });
+      final total = WalletService.calculatePortfolio(
+        tokens,
+        tokenBalances,
+        prices,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        livePrices = prices;
+        totalPortfolio = total;
+      });
+
+    } catch (e) {
+      // optional: log error
+    } finally {
+      // 🔥 ALWAYS RESET (MOST IMPORTANT)
+      isPriceLoading = false;
+    }
   }
 
   void copyAddress() {
