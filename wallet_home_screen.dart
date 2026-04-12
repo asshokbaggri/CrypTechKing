@@ -46,6 +46,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
   Map<String, dynamic> livePrices = {};
   double totalPortfolio = 0;
 
+  bool isPriceLoading = false; // 🔥 ADD THIS
+
   Timer? priceTimer; // 🔥 ADDED
 
   @override
