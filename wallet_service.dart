@@ -64,6 +64,12 @@ class WalletService {
     "usdc": "usdc",
   };
 
+  // 🔥 STABLE COIN CHECK
+  static bool isStableCoin(String symbol) {
+    final s = symbol.toLowerCase();
+    return s == "usdt" || s == "usdc" || s == "busd" || s == "dai";
+  }
+
   // 🔥 STATIC MAP
   static const Map<String, String> baseIds = {
     "eth": "ethereum",
@@ -123,7 +129,7 @@ class WalletService {
   }
 
   // =========================================================
-  // 🔥 MAIN LIVE PRICE ENGINE (FINAL)
+  // 🔥 MAIN LIVE PRICE ENGINE (FINAL FIXED)
   // =========================================================
 
   static Future<Map<String, dynamic>> getLivePricesAdvanced(
@@ -142,26 +148,46 @@ class WalletService {
       double price = 0;
       double change = 0;
 
-      // ================= BINANCE =================
-      try {
-        final pair = "${symbol.toUpperCase()}USDT";
+      // ================= STABLE COIN FIX =================
+      if (isStableCoin(symbol)) {
+        try {
+          final res = await client.get(
+            Uri.parse("https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT"),
+          );
 
-        final res = await client.get(
-          Uri.parse("https://api.binance.com/api/v3/ticker/24hr?symbol=$pair"),
-        );
-
-        if (res.statusCode == 200) {
-          final data = jsonDecode(res.body);
-
-          price = double.tryParse(data["lastPrice"]) ?? 0;
-          change = double.tryParse(data["priceChangePercent"]) ?? 0;
+          if (res.statusCode == 200) {
+            final data = jsonDecode(res.body);
+            price = double.tryParse(data["lastPrice"]) ?? 1.0;
+            change = double.tryParse(data["priceChangePercent"]) ?? 0;
+          } else {
+            price = 1.0;
+          }
+        } catch (_) {
+          price = 1.0;
         }
-      } catch (_) {}
+      }
+
+      // ================= BINANCE =================
+      if (price == 0) {
+        try {
+          final pair = "${symbol.toUpperCase()}USDT";
+
+          final res = await client.get(
+            Uri.parse("https://api.binance.com/api/v3/ticker/24hr?symbol=$pair"),
+          );
+
+          if (res.statusCode == 200) {
+            final data = jsonDecode(res.body);
+
+            price = double.tryParse(data["lastPrice"]) ?? 0;
+            change = double.tryParse(data["priceChangePercent"]) ?? 0;
+          }
+        } catch (_) {}
+      }
 
       // ================= DEXSCREENER =================
       if (price == 0 && contract.isNotEmpty) {
         try {
-
           final res = await client.get(
             Uri.parse("https://api.dexscreener.com/latest/dex/tokens/$contract"),
           );
@@ -173,7 +199,6 @@ class WalletService {
               final pair = data["pairs"][0];
 
               price = double.tryParse(pair["priceUsd"] ?? "0") ?? 0;
-
               change = double.tryParse(
                 pair["priceChange"]?["h24"]?.toString() ?? "0",
               ) ?? 0;
@@ -189,7 +214,6 @@ class WalletService {
           final id = await resolveCoinGeckoId(symbol);
 
           if (id != null) {
-
             final res = await client.get(
               Uri.parse(
                 "https://api.coingecko.com/api/v3/simple/price"
