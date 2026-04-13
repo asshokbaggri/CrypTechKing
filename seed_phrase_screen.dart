@@ -136,6 +136,7 @@ class _SeedPhraseScreenState extends State<SeedPhraseScreen> {
                       builder: (_) => ConfirmPhraseScreen(
                         seedWords: _seedWords,
                         mnemonic: _mnemonic,
+                        isBackup: true, // 🔥 ADD THIS
                       ),
                     ),
                   );
