@@ -368,7 +368,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
               title: const Text("Edit Wallet Name"),
               onTap: () {
                 Navigator.pop(context);
-                // 🔥 next step: rename dialog
+                showRenameDialog(wallet);
               },
             ),
 
@@ -377,12 +377,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
               title: const Text("Backup Seed Phrase"),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const SeedPhraseScreen(),
-                  ),
-                );
+                showBackupWarning(wallet);
               },
             ),
 
@@ -441,6 +436,106 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                     ),
                   );
                 },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void showRenameDialog(Map<String, dynamic> wallet) {
+
+    final controller = TextEditingController(text: wallet["name"]);
+
+    showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text("Edit Wallet Name"),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: "Enter wallet name",
+            ),
+          ),
+          actions: [
+
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+
+            TextButton(
+              onPressed: () async {
+
+                final newName = controller.text.trim();
+                if (newName.isEmpty) return;
+
+                await StorageService.updateWalletName(
+                  wallet["address"],
+                  newName,
+                );
+
+                Navigator.pop(context);
+                initAll(); // 🔥 refresh UI
+
+              },
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showBackupWarning(Map<String, dynamic> wallet) {
+
+    final mnemonic = wallet["mnemonic"];
+
+    if (mnemonic == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Seed phrase not available")),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              const Icon(Icons.warning, color: Colors.orange, size: 40),
+
+              const SizedBox(height: 10),
+
+              const Text(
+                "This secret phrase unlocks your wallet",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 20),
+
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SeedPhraseScreen(
+                        mnemonic: mnemonic, // 🔥 IMPORTANT
+                        isBackup: true,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text("Continue"),
               ),
             ],
           ),
@@ -546,7 +641,9 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
             Row(
               children: [
+
                 const SizedBox(width: 40),
+
                 Expanded(
                   child: Center(
                     child: GestureDetector(
@@ -559,7 +656,6 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                               walletName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -573,12 +669,10 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: showAddWalletOptions,
-                  child: const Icon(Icons.add),
-                ),
+
+                const SizedBox(width: 24), // 🔥 instead of "+"
               ],
-            ),
+            )
 
             const SizedBox(height: 20),
 
