@@ -284,29 +284,110 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     showModalBottomSheet(
       context: context,
       builder: (_) {
-        return ListView(
-          padding: const EdgeInsets.all(10),
-          children: wallets.map((w) {
-            final isActive = w["address"] == currentAddress;
+        return SizedBox(
+          height: 400,
+          child: Column(
+            children: [
 
-            return ListTile(
-              title: Text(
-                w["name"],
-                style: TextStyle(
-                  fontWeight:
-                      isActive ? FontWeight.bold : FontWeight.normal,
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(10),
+                  children: wallets.map((w) {
+                    final isActive = w["address"] == currentAddress;
+
+                    return ListTile(
+                      title: Text(
+                        w["name"],
+                        style: TextStyle(
+                          fontWeight: isActive
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      subtitle: Text(
+                        w["address"],
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+
+                          if (isActive)
+                            const Icon(Icons.check,
+                                color: Color(0xFF3375BB)),
+
+                          const SizedBox(width: 5),
+
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context);
+                              showWalletOptions(w);
+                            },
+                            child: const Icon(Icons.more_vert),
+                          ),
+                        ],
+                      ),
+
+                      onTap: () => switchWallet(w["address"]),
+                    );
+                  }).toList(),
                 ),
               ),
-              subtitle: Text(
-                w["address"],
-                overflow: TextOverflow.ellipsis,
+
+              const Divider(),
+
+              ListTile(
+                leading: const Icon(Icons.add,
+                    color: Color(0xFF3375BB)),
+                title: const Text("Add Wallet"),
+                onTap: () {
+                  Navigator.pop(context);
+                  showAddWalletOptions();
+                },
               ),
-              trailing: isActive
-                  ? const Icon(Icons.check, color: Color(0xFF3375BB))
-                  : null,
-              onTap: () => switchWallet(w["address"]),
-            );
-          }).toList(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void showWalletOptions(Map<String, dynamic> wallet) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+
+            const SizedBox(height: 10),
+
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text("Edit Wallet Name"),
+              onTap: () {
+                Navigator.pop(context);
+                // 🔥 next step: rename dialog
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.security),
+              title: const Text("Backup Seed Phrase"),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SeedPhraseScreen(),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 20),
+          ],
         );
       },
     );
@@ -473,10 +554,18 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(walletName,
+                          Flexible(
+                            child: Text(
+                              walletName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                               style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold)),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                           const SizedBox(width: 5),
                           const Icon(Icons.keyboard_arrow_down),
                         ],
