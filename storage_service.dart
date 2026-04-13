@@ -105,6 +105,7 @@ class StorageService {
     required String name,
     required String privateKey,
     required String address,
+    required String mnemonic, // 🔥 ADD THIS
   }) async {
     final wallets = await getWallets();
 
@@ -113,10 +114,13 @@ class StorageService {
 
     final encrypted = await _encrypt(privateKey);
 
+    final encryptedMnemonic = await _encrypt(mnemonic);
+
     final wallet = {
       "name": name.trim(),
       "address": address,
       "privateKey": encrypted,
+      "mnemonic": encryptedMnemonic, // 🔥 SAVE SECURELY
     };
 
     wallets.add(wallet);
@@ -189,6 +193,27 @@ class StorageService {
       if (wallet.isEmpty) return null;
 
       final decrypted = await _decrypt(wallet["privateKey"]);
+
+      if (decrypted.isEmpty) return null;
+
+      return decrypted;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<String?> getMnemonic(String address) async {
+    try {
+      final wallets = await getWallets();
+
+      final wallet = wallets.firstWhere(
+        (w) => w["address"] == address,
+        orElse: () => {},
+      );
+
+      if (wallet.isEmpty) return null;
+
+      final decrypted = await _decrypt(wallet["mnemonic"]);
 
       if (decrypted.isEmpty) return null;
 
