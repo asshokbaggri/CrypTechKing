@@ -223,6 +223,29 @@ class StorageService {
     }
   }
 
+
+  // =========================================================
+  // ✏️ UPDATE WALLET NAME
+  // =========================================================
+
+  static Future<void> updateWalletName({
+    required String address,
+    required String newName,
+  }) async {
+    final wallets = await getWallets();
+
+    for (var w in wallets) {
+      if (w["address"] == address) {
+        w["name"] = newName.trim();
+      }
+    }
+
+    await _storage.write(
+      key: _walletsKey,
+      value: jsonEncode(wallets),
+    );
+  }
+
   // =========================================================
   // 🪙 TOKEN SYSTEM
   // =========================================================
