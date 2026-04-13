@@ -758,6 +758,11 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
               price: price,
               change: change,
               walletAddress: currentAddress,
+
+              // 🔥 THIS IS THE MAIN FIX
+              network: widget.network,
+              contract: token["contract"] ?? "",
+              isNative: token["isNative"] ?? false,
             ),
           ),
         );
