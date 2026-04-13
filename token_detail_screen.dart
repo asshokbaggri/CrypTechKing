@@ -25,37 +25,103 @@ class TokenDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(symbol),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 14,
+              backgroundColor: Colors.white,
+              child: Text(
+                symbol.substring(0, 1),
+                style: const TextStyle(color: Colors.black),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(symbol),
+          ],
+        ),
       ),
 
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // 🔥 BALANCE
-            Text(
-              balance.toStringAsFixed(6),
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
+            // 🔥 PRICE SECTION
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    "\$${price.toStringAsFixed(4)}",
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    "${change >= 0 ? "+" : ""}${change.toStringAsFixed(2)}%",
+                    style: TextStyle(
+                      color: change >= 0 ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(height: 5),
+            const SizedBox(height: 25),
 
-            Text(
-              "\$${usdValue.toStringAsFixed(2)}",
-              style: const TextStyle(color: Colors.grey),
+            // 🔥 CHART PLACEHOLDER
+            Container(
+              height: 180,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Center(
+                child: Text("Chart Coming Soon 📊"),
+              ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 25),
 
-            Text(
-              "${change >= 0 ? "+" : ""}${change.toStringAsFixed(2)}%",
-              style: TextStyle(
-                color: change >= 0 ? Colors.green : Colors.red,
-                fontWeight: FontWeight.w600,
+            // 🔥 HOLDINGS
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Your Holdings"),
+                      Text(
+                        balance.toStringAsFixed(6),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 5),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Value"),
+                      Text(
+                        "\$${usdValue.toStringAsFixed(2)}",
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
 
@@ -96,12 +162,26 @@ class TokenDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // 🔥 PLACEHOLDER (Next step)
+            // 🔥 TRANSACTION HISTORY
             const Text(
-              "Transaction History (Coming Soon)",
-              style: TextStyle(color: Colors.grey),
+              "Transaction History",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
 
+            const SizedBox(height: 10),
+
+            Container(
+              height: 120,
+              width: double.infinity,
+              alignment: Alignment.center,
+              child: const Text(
+                "Coming Soon",
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
           ],
         ),
       ),
