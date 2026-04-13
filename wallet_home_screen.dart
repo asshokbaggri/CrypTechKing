@@ -394,6 +394,20 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                 ),
               ),
 
+              const SizedBox(height: 15),
+
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.edit),
+                title: const Text("Edit Wallet Name"),
+                onTap: () {
+                  Navigator.pop(context);
+                  showRenameDialog(wallet);
+                },
+              ),
+
+              const SizedBox(height: 10),
+
               const SizedBox(height: 25),
 
               const Text(
@@ -559,9 +573,11 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
       builder: (_) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
+            return Container(
+              color: Colors.white, // 🔥 ADD THIS
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
 
@@ -573,7 +589,11 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                   const Text(
                     "This secret phrase unlocks your wallet",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black, // 🔥 ADD
+                    ),
                   ),
 
                   const SizedBox(height: 20),
@@ -581,22 +601,43 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                   CheckboxListTile(
                     value: c1,
                     onChanged: (v) => setState(() => c1 = v!),
+                    activeColor: const Color(0xFF3375BB),
+                    checkColor: Colors.white,
                     title: const Text(
-                        "If I lose it, I will lose my funds."),
+                      "If I lose it, I will lose my funds.",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87, // 🔥 FIX
+                      ),
+                    ),
                   ),
 
                   CheckboxListTile(
                     value: c2,
                     onChanged: (v) => setState(() => c2 = v!),
+                    activeColor: const Color(0xFF3375BB),
+                    checkColor: Colors.white,
                     title: const Text(
-                        "If I share it, others can access my wallet."),
+                        "If I share it, others can access my wallet.",
+                        style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87, // 🔥 FIX
+                      ),
+                    ),
                   ),
 
                   CheckboxListTile(
                     value: c3,
                     onChanged: (v) => setState(() => c3 = v!),
+                    activeColor: const Color(0xFF3375BB),
+                    checkColor: Colors.white,
                     title: const Text(
-                        "I understand and will keep it safe."),
+                        "I understand and will keep it safe.",
+                        style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87, // 🔥 FIX
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 10),
@@ -621,9 +662,13 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                       backgroundColor: const Color(0xFF3375BB),
                       minimumSize: const Size(double.infinity, 50),
                     ),
-                    child: const Text("Continue"),
+                    child: const Text(
+                      "Continue",
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
+               ),
               ),
             );
           },
