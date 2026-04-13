@@ -473,8 +473,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                 if (newName.isEmpty) return;
 
                 await StorageService.updateWalletName(
-                  wallet["address"],
-                  newName,
+                  address: wallet["address"],
+                  newName: newName,
                 );
 
                 Navigator.pop(context);
