@@ -152,14 +152,22 @@ class _SeedPhraseScreenState extends State<SeedPhraseScreen> {
             else
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ConfirmPhraseScreen(
+                        seedWords: _seedWords,
+                        mnemonic: _mnemonic,
+                      ),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3375BB),
                   minimumSize: const Size(double.infinity, 50),
                 ),
                 child: const Text(
-                  "Done",
+                  "Continue",
                   style: TextStyle(color: Colors.white),
                 ),
               ),
