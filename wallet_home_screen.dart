@@ -491,7 +491,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
 
   void showBackupWarning(Map<String, dynamic> wallet) {
 
-    final mnemonic = wallet["mnemonic"];
+    final mnemonic = await StorageService.getMnemonic(wallet["address"]);
 
     if (mnemonic == null) {
       ScaffoldMessenger.of(context).showSnackBar(
