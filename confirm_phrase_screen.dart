@@ -1,3 +1,5 @@
+// app/lib/screens/confirm_phrase_screen.dart
+
 import 'package:flutter/material.dart';
 import '../core/app_shell.dart';
 import '../core/wallet_service.dart';
@@ -5,13 +7,13 @@ import '../core/wallet_service.dart';
 class ConfirmPhraseScreen extends StatefulWidget {
   final List<String> seedWords;
   final String mnemonic;
-  final bool isBackup; // 🔥 NEW
+  final bool isBackup;
 
   const ConfirmPhraseScreen({
     super.key,
     required this.seedWords,
     required this.mnemonic,
-    this.isBackup = false, // 🔥 NEW
+    this.isBackup = false,
   });
 
   @override
@@ -68,16 +70,15 @@ class _ConfirmPhraseScreenState extends State<ConfirmPhraseScreen> {
 
   Future<void> handleContinue() async {
 
-    if (!isCorrect()) {
+    // 🔥 SAFETY CHECK (optional but good)
+    if (selectedWords.length != correctWords.length || !isCorrect()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Wrong order ❌ Try again")),
       );
       return;
     }
 
-    // 🔥 DIFFERENT FLOW
     if (widget.isBackup) {
-      // ✅ Backup complete → just go back
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -86,7 +87,6 @@ class _ConfirmPhraseScreenState extends State<ConfirmPhraseScreen> {
 
       Navigator.popUntil(context, (route) => route.isFirst);
     } else {
-      // ✅ New wallet create
       final wallet = await WalletService.createWallet(widget.mnemonic);
 
       if (!mounted) return;
@@ -202,12 +202,17 @@ class _ConfirmPhraseScreenState extends State<ConfirmPhraseScreen> {
 
             const SizedBox(height: 10),
 
+            // 🔥 MAIN FIX HERE
             ElevatedButton(
-              onPressed: handleContinue, // 🔥 UPDATED
+              onPressed: (selectedWords.length == correctWords.length && isCorrect())
+                  ? handleContinue
+                  : null, // ❌ disable until correct
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3375BB),
                 minimumSize: const Size(double.infinity, 50),
               ),
+
               child: const Text(
                 "Continue",
                 style: TextStyle(color: Colors.white),
