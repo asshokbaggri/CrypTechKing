@@ -473,8 +473,8 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
                 if (newName.isEmpty) return;
 
                 await StorageService.updateWalletName(
-                  wallet["address"],
-                  newName,
+                  address: wallet["address"],
+                  newName: newName,
                 );
 
                 Navigator.pop(context);
@@ -489,7 +489,7 @@ class _WalletHomeScreenState extends State<WalletHomeScreen> {
     );
   }
 
-  void showBackupWarning(Map<String, dynamic> wallet) {
+  Future<void> showBackupWarning(Map<String, dynamic> wallet) async
 
     final mnemonic = await StorageService.getMnemonic(wallet["address"]);
 
