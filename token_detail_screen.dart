@@ -1,4 +1,9 @@
+// app/lib/screens/token_detail_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import '../core/wallet_service.dart';
 import 'send_screen.dart';
 import 'receive_screen.dart';
 
@@ -9,6 +14,11 @@ class TokenDetailScreen extends StatelessWidget {
   final double change;
   final String walletAddress;
 
+  // 🔥 NEW (IMPORTANT FOR ICON FIX)
+  final String network;
+  final String contract;
+  final bool isNative;
+
   const TokenDetailScreen({
     super.key,
     required this.symbol,
@@ -16,6 +26,11 @@ class TokenDetailScreen extends StatelessWidget {
     required this.price,
     required this.change,
     required this.walletAddress,
+
+    // 🔥 ADD THESE
+    required this.network,
+    required this.contract,
+    required this.isNative,
   });
 
   @override
@@ -23,20 +38,47 @@ class TokenDetailScreen extends StatelessWidget {
 
     final usdValue = balance * price;
 
+    // 🔥 ICON PATHS
+    final iconPath = WalletService.resolveLocalIcon(symbol);
+
+    final fallbackUrl = WalletService.resolveFallbackIcon(
+      network: network,
+      contract: contract,
+      isNative: isNative,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+
+            // 🔥 FIXED ICON SYSTEM
             CircleAvatar(
-              radius: 14,
+              radius: 16,
               backgroundColor: Colors.white,
-              child: Text(
-                symbol.substring(0, 1),
-                style: const TextStyle(color: Colors.black),
+              child: ClipOval(
+                child: SvgPicture.asset(
+                  iconPath,
+                  width: 22,
+                  height: 22,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) {
+                    return Image.network(
+                      fallbackUrl,
+                      width: 22,
+                      height: 22,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.currency_bitcoin, size: 20),
+                    );
+                  },
+                ),
               ),
             ),
+
             const SizedBox(width: 8),
+
             Text(symbol),
           ],
         ),
@@ -59,7 +101,9 @@ class TokenDetailScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
                   const SizedBox(height: 5),
+
                   Text(
                     "${change >= 0 ? "+" : ""}${change.toStringAsFixed(2)}%",
                     style: TextStyle(
