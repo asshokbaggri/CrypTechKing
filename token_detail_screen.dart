@@ -46,7 +46,8 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   double livePrice = 0;
   double liveChange = 0;
 
-  String selectedTime = "1D";
+  // ✅ FIX 1: DEFAULT LIVE
+  String selectedTime = "LIVE";
 
   Timer? priceTimer;
 
@@ -95,7 +96,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   }
 
   // ============================
-  // 🔥 TIMEFRAME → DAYS MAP
+  // 🔥 TIMEFRAME MAP
   // ============================
 
   int getDays() {
@@ -122,6 +123,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
   Future<void> loadChart() async {
 
+    // ❌ REMOVE FULL SCREEN LOADER JUMP
     setState(() => isLoadingChart = true);
 
     try {
@@ -214,7 +216,6 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
         child: Column(
           children: [
 
-            // 🔥 PRICE
             Text(
               "\$${livePrice.toStringAsFixed(4)}",
               style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
@@ -231,12 +232,15 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
             const SizedBox(height: 20),
 
-            // 🔥 CHART
-            isLoadingChart
-                ? const CircularProgressIndicator()
-                : SizedBox(
-                    height: 200,
-                    child: LineChart(
+            // ✅ FIX 2: NO UI JUMP (STACK)
+            SizedBox(
+              height: 200,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+
+                  if (chartData.isNotEmpty)
+                    LineChart(
                       LineChartData(
                         borderData: FlBorderData(show: false),
                         gridData: FlGridData(show: false),
@@ -246,18 +250,21 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                             spots: chartData,
                             isCurved: true,
                             dotData: FlDotData(show: false),
-                            belowBarData: BarAreaData(show: false),
                             color: const Color(0xFF00AEEF),
                             barWidth: 2,
                           ),
                         ],
                       ),
                     ),
-                  ),
+
+                  if (isLoadingChart)
+                    const CircularProgressIndicator(),
+                ],
+              ),
+            ),
 
             const SizedBox(height: 15),
 
-            // 🔥 TRUST WALLET STYLE TIMEFRAME
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -273,7 +280,6 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
             const SizedBox(height: 25),
 
-            // 🔥 HOLDINGS
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -306,7 +312,6 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
             const SizedBox(height: 25),
 
-            // 🔥 ACTION BUTTONS
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -348,6 +353,8 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
     return GestureDetector(
       onTap: () {
+        if (selectedTime == label) return; // ✅ NO RELOAD SAME
+
         setState(() => selectedTime = label);
         loadChart();
       },
