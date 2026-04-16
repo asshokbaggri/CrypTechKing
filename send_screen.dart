@@ -6,6 +6,7 @@ import 'package:http/http.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
+import 'dart:math';
 
 import '../core/storage_service.dart';
 import '../core/wallet_service.dart';
@@ -202,8 +203,9 @@ class _SendScreenState extends State<SendScreen> {
         final decimals =
             int.tryParse(selectedToken!["decimals"].toString()) ?? 18;
 
-        final amountInWei =
-            BigInt.from(amount * (10.pow(decimals)));
+        final amountInWei = BigInt.from(
+          amount * (pow(10, decimals).toDouble()),
+        );
 
         final tx = Transaction.callContract(
           contract: contract,
