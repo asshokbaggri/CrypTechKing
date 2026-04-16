@@ -38,7 +38,7 @@ class WalletService {
 // 🔥 EXPLORER CONFIG (ETHERSCAN V2 - SINGLE KEY)
 // =========================================================
 
-static const String explorerApiKey = "PASTE_YOUR_ETHERSCAN_KEY";
+static const String explorerApiKey = "S97UPFBS6EJRSNUHQU1PD25KNT89UJKX6C";
 
 static const Map<String, int> explorerChainIds = {
   "Ethereum": 1,
