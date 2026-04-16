@@ -95,7 +95,29 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   }
 
   // ============================
-  // 🔥 CHART DATA FETCH
+  // 🔥 TIMEFRAME → DAYS MAP
+  // ============================
+
+  int getDays() {
+    switch (selectedTime) {
+      case "LIVE":
+      case "1m":
+      case "15m":
+      case "1H":
+        return 1;
+      case "1D":
+        return 1;
+      case "1W":
+        return 7;
+      case "1M":
+        return 30;
+      default:
+        return 1;
+    }
+  }
+
+  // ============================
+  // 🔥 CHART DATA
   // ============================
 
   Future<void> loadChart() async {
@@ -103,23 +125,10 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
     setState(() => isLoadingChart = true);
 
     try {
-
       final id = await WalletService.resolveCoinGeckoId(widget.symbol);
-
       if (id == null) return;
 
-      int days = 1;
-
-      switch (selectedTime) {
-        case "LIVE": days = 1; break;
-        case "1M": days = 1; break;
-        case "15M": days = 1; break;
-        case "1H": days = 1; break;
-        case "1D": days = 1; break;
-        case "3D": days = 3; break;
-        case "1W": days = 7; break;
-        case "1MTH": days = 30; break;
-      }
+      final days = getDays();
 
       final url = Uri.parse(
         "https://api.coingecko.com/api/v3/coins/$id/market_chart?vs_currency=usd&days=$days",
@@ -205,7 +214,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
         child: Column(
           children: [
 
-            // 🔥 LIVE PRICE
+            // 🔥 PRICE
             Text(
               "\$${livePrice.toStringAsFixed(4)}",
               style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
@@ -238,6 +247,8 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                             isCurved: true,
                             dotData: FlDotData(show: false),
                             belowBarData: BarAreaData(show: false),
+                            color: const Color(0xFF00AEEF),
+                            barWidth: 2,
                           ),
                         ],
                       ),
@@ -246,14 +257,17 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
             const SizedBox(height: 15),
 
-            // 🔥 TIME FILTER
+            // 🔥 TRUST WALLET STYLE TIMEFRAME
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                _timeBtn("LIVE"),
+                _timeBtn("1m"),
+                _timeBtn("15m"),
+                _timeBtn("1H"),
                 _timeBtn("1D"),
-                _timeBtn("3D"),
                 _timeBtn("1W"),
-                _timeBtn("1MTH"),
+                _timeBtn("1M"),
               ],
             ),
 
@@ -292,7 +306,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
             const SizedBox(height: 25),
 
-            // 🔥 BUTTONS
+            // 🔥 ACTION BUTTONS
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -325,18 +339,30 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
     );
   }
 
+  // ============================
+  // 🔥 TIME BUTTON
+  // ============================
+
   Widget _timeBtn(String label) {
+    final isActive = selectedTime == label;
+
     return GestureDetector(
       onTap: () {
         setState(() => selectedTime = label);
         loadChart();
       },
-      child: Text(
-        label,
-        style: TextStyle(
-          color: selectedTime == label
-              ? const Color(0xFF3375BB)
-              : Colors.grey,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFF3375BB) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isActive ? Colors.white : Colors.grey,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );
