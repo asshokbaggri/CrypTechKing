@@ -46,7 +46,6 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   double livePrice = 0;
   double liveChange = 0;
 
-  // ✅ FIX 1: DEFAULT LIVE
   String selectedTime = "LIVE";
 
   Timer? priceTimer;
@@ -69,11 +68,11 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   }
 
   // ============================
-  // 🔥 LIVE PRICE SYNC
+  // 🔥 LIVE PRICE
   // ============================
 
   void startLivePrice() {
-    priceTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+    priceTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
 
       final prices = await WalletService.getLivePricesAdvanced(
         [
@@ -96,56 +95,54 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   }
 
   // ============================
-  // 🔥 TIMEFRAME MAP
+  // 🔥 TIMEFRAME → BINANCE INTERVAL
   // ============================
 
-  int getDays() {
+  String getInterval() {
     switch (selectedTime) {
       case "LIVE":
       case "1m":
+        return "1m";
       case "15m":
+        return "15m";
       case "1H":
-        return 1;
+        return "1h";
       case "1D":
-        return 1;
+        return "1d";
       case "1W":
-        return 7;
+        return "1w";
       case "1M":
-        return 30;
+        return "1M";
       default:
-        return 1;
+        return "1m";
     }
   }
 
   // ============================
-  // 🔥 CHART DATA
+  // 🔥 REAL CHART (BINANCE)
   // ============================
 
   Future<void> loadChart() async {
 
-    // ❌ REMOVE FULL SCREEN LOADER JUMP
     setState(() => isLoadingChart = true);
 
     try {
-      final id = await WalletService.resolveCoinGeckoId(widget.symbol);
-      if (id == null) return;
-
-      final days = getDays();
+      final pair = "${widget.symbol.toUpperCase()}USDT";
+      final interval = getInterval();
 
       final url = Uri.parse(
-        "https://api.coingecko.com/api/v3/coins/$id/market_chart?vs_currency=usd&days=$days",
+        "https://api.binance.com/api/v3/klines?symbol=$pair&interval=$interval&limit=120",
       );
 
       final res = await http.get(url);
       final data = jsonDecode(res.body);
 
-      final prices = data["prices"] as List;
-
       List<FlSpot> spots = [];
 
-      for (int i = 0; i < prices.length; i++) {
-        final p = prices[i];
-        spots.add(FlSpot(i.toDouble(), (p[1] as num).toDouble()));
+      for (int i = 0; i < data.length; i++) {
+        final candle = data[i];
+        final close = double.parse(candle[4]); // close price
+        spots.add(FlSpot(i.toDouble(), close));
       }
 
       if (!mounted) return;
@@ -191,7 +188,6 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                   iconPath,
                   width: 22,
                   height: 22,
-                  fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) {
                     return Image.network(
                       fallbackUrl,
@@ -232,9 +228,9 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
             const SizedBox(height: 20),
 
-            // ✅ FIX 2: NO UI JUMP (STACK)
+            // 🔥 REAL CHART FEEL
             SizedBox(
-              height: 200,
+              height: 220,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -242,16 +238,19 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                   if (chartData.isNotEmpty)
                     LineChart(
                       LineChartData(
-                        borderData: FlBorderData(show: false),
+                        minY: chartData.map((e) => e.y).reduce((a, b) => a < b ? a : b),
+                        maxY: chartData.map((e) => e.y).reduce((a, b) => a > b ? a : b),
                         gridData: FlGridData(show: false),
                         titlesData: FlTitlesData(show: false),
+                        borderData: FlBorderData(show: false),
+
                         lineBarsData: [
                           LineChartBarData(
                             spots: chartData,
-                            isCurved: true,
-                            dotData: FlDotData(show: false),
-                            color: const Color(0xFF00AEEF),
+                            isCurved: false, // 🔥 sharp = real feel
                             barWidth: 2,
+                            color: const Color(0xFF00AEEF),
+                            dotData: FlDotData(show: false),
                           ),
                         ],
                       ),
@@ -315,16 +314,8 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _btn(Icons.send, "Send", () {
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => SendScreen(walletAddress: widget.walletAddress),
-                  ));
-                }),
-                _btn(Icons.download, "Receive", () {
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => ReceiveScreen(walletAddress: widget.walletAddress),
-                  ));
-                }),
+                _btn(Icons.send, "Send", () {}),
+                _btn(Icons.download, "Receive", () {}),
                 _btn(Icons.swap_horiz, "Swap", () {}),
                 _btn(Icons.shopping_cart, "Buy", () {}),
               ],
@@ -344,16 +335,12 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
     );
   }
 
-  // ============================
-  // 🔥 TIME BUTTON
-  // ============================
-
   Widget _timeBtn(String label) {
     final isActive = selectedTime == label;
 
     return GestureDetector(
       onTap: () {
-        if (selectedTime == label) return; // ✅ NO RELOAD SAME
+        if (selectedTime == label) return;
 
         setState(() => selectedTime = label);
         loadChart();
@@ -368,7 +355,6 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
           label,
           style: TextStyle(
             color: isActive ? Colors.white : Colors.grey,
-            fontWeight: FontWeight.w500,
           ),
         ),
       ),
