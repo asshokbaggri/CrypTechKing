@@ -29,7 +29,7 @@ class _SendScreenState extends State<SendScreen> {
 
   bool isLoading = false;
   bool isScanning = false;
-  bool isInitializing = true; // 🔥 FIX
+  bool isInitializing = true;
 
   String selectedNetwork = "BSC";
   String symbol = "BNB";
@@ -70,25 +70,31 @@ class _SendScreenState extends State<SendScreen> {
       chainId = getChainId(net);
       currentBalance = double.tryParse(bal) ?? 0;
 
-      isInitializing = false; // 🔥 IMPORTANT
+      isInitializing = false;
     });
   }
 
   int getChainId(String network) {
     switch (network) {
-      case "Ethereum":
-        return 1;
-      case "Polygon":
-        return 137;
+      case "Ethereum": return 1;
+      case "Polygon": return 137;
       case "BSC":
-      default:
-        return 56;
+      default: return 56;
     }
   }
 
+  // 🔥 SMART MAX (gas safe)
   void setMaxAmount() {
     if (currentBalance <= 0) return;
-    final max = currentBalance * 0.98;
+
+    final isNative = selectedToken?["isNative"] == true;
+
+    double max = currentBalance;
+
+    if (isNative) {
+      max = currentBalance * 0.95; // keep gas
+    }
+
     amountController.text = max.toStringAsFixed(6);
   }
 
@@ -99,15 +105,22 @@ class _SendScreenState extends State<SendScreen> {
     }
   }
 
+  // ============================
+  // 🔥 MAIN TRANSACTION ENGINE
+  // ============================
+
   Future<void> sendTransaction() async {
 
     final toAddress = addressController.text.trim();
     final amountText = amountController.text.trim();
 
     if (toAddress.isEmpty || amountText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Fill all fields")),
-      );
+      showMsg("Fill all fields");
+      return;
+    }
+
+    if (!toAddress.startsWith("0x") || toAddress.length != 42) {
+      showMsg("Invalid address");
       return;
     }
 
@@ -115,9 +128,12 @@ class _SendScreenState extends State<SendScreen> {
     try {
       amount = double.parse(amountText);
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid amount")),
-      );
+      showMsg("Invalid amount");
+      return;
+    }
+
+    if (amount <= 0) {
+      showMsg("Amount must be greater than 0");
       return;
     }
 
@@ -133,32 +149,94 @@ class _SendScreenState extends State<SendScreen> {
       final credentials = EthPrivateKey.fromHex(privateKey!);
       final receiver = EthereumAddress.fromHex(toAddress);
 
-      final txHash = await client.sendTransaction(
-        credentials,
-        Transaction(
-          to: receiver,
-          value: EtherAmount.fromUnitAndValue(
-            EtherUnit.ether,
-            amount,
-          ),
-        ),
-        chainId: chainId,
-      );
+      final isNative = selectedToken?["isNative"] == true;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("TX Sent: $txHash")),
-      );
+      String txHash;
+
+      // ============================
+      // 🔥 NATIVE TRANSFER
+      // ============================
+      if (isNative) {
+
+        txHash = await client.sendTransaction(
+          credentials,
+          Transaction(
+            to: receiver,
+            value: EtherAmount.fromUnitAndValue(
+              EtherUnit.ether,
+              amount,
+            ),
+          ),
+          chainId: chainId,
+        );
+
+      } else {
+
+        // ============================
+        // 🔥 ERC20 TRANSFER
+        // ============================
+
+        final contractAddress =
+            EthereumAddress.fromHex(selectedToken!["contract"]);
+
+        final abi = ContractAbi.fromJson(
+          '''
+          [
+            {
+              "constant": false,
+              "inputs": [
+                {"name": "_to","type": "address"},
+                {"name": "_value","type": "uint256"}
+              ],
+              "name": "transfer",
+              "outputs": [{"name": "","type": "bool"}],
+              "type": "function"
+            }
+          ]
+          ''',
+          "ERC20",
+        );
+
+        final contract = DeployedContract(abi, contractAddress);
+
+        final decimals =
+            int.tryParse(selectedToken!["decimals"].toString()) ?? 18;
+
+        final amountInWei =
+            BigInt.from(amount * (10.pow(decimals)));
+
+        final tx = Transaction.callContract(
+          contract: contract,
+          function: contract.function("transfer"),
+          parameters: [receiver, amountInWei],
+        );
+
+        txHash = await client.sendTransaction(
+          credentials,
+          tx,
+          chainId: chainId,
+        );
+      }
+
+      showMsg("TX Sent ✔\n$txHash");
 
       Navigator.pop(context);
 
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      showMsg(e.toString());
     }
 
     setState(() => isLoading = false);
   }
+
+  void showMsg(String msg) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  // ============================
+  // UI
+  // ============================
 
   void openScanner() {
     isScanning = false;
@@ -243,8 +321,6 @@ class _SendScreenState extends State<SendScreen> {
       );
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: Text("Send ($symbol)"),
@@ -259,29 +335,6 @@ class _SendScreenState extends State<SendScreen> {
 
             const SizedBox(height: 20),
 
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.account_balance_wallet, size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      widget.walletAddress,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 🔥 ADDRESS INPUT (FIXED BUTTON STYLE)
             TextField(
               controller: addressController,
               decoration: InputDecoration(
@@ -294,12 +347,8 @@ class _SendScreenState extends State<SendScreen> {
                       onTap: pasteAddress,
                       child: const Padding(
                         padding: EdgeInsets.only(right: 10),
-                        child: Text(
-                          "Paste",
-                          style: TextStyle(
-                            color: Color(0xFF3375BB),
-                            fontWeight: FontWeight.w500,
-                          ),
+                        child: Text("Paste",
+                          style: TextStyle(color: Color(0xFF3375BB)),
                         ),
                       ),
                     ),
@@ -315,7 +364,6 @@ class _SendScreenState extends State<SendScreen> {
 
             const SizedBox(height: 20),
 
-            // 🔥 AMOUNT INPUT (FIXED BUTTON STYLE)
             TextField(
               controller: amountController,
               keyboardType: TextInputType.number,
@@ -325,25 +373,11 @@ class _SendScreenState extends State<SendScreen> {
                   onTap: setMaxAmount,
                   child: const Padding(
                     padding: EdgeInsets.only(right: 10),
-                    child: Text(
-                      "Max",
-                      style: TextStyle(
-                        color: Color(0xFF3375BB),
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Text("Max",
+                      style: TextStyle(color: Color(0xFF3375BB)),
                     ),
                   ),
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Balance: ${currentBalance.toStringAsFixed(6)} $symbol",
-                style: const TextStyle(color: Colors.grey),
               ),
             ),
 
@@ -351,16 +385,9 @@ class _SendScreenState extends State<SendScreen> {
 
             ElevatedButton(
               onPressed: isLoading ? null : sendTransaction,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3375BB),
-                minimumSize: const Size(double.infinity, 55),
-              ),
               child: isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      "Send",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                  ? const CircularProgressIndicator()
+                  : const Text("Send"),
             ),
           ],
         ),
