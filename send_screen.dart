@@ -1,5 +1,3 @@
-// app/lib/screens/send_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
@@ -48,6 +46,10 @@ class _SendScreenState extends State<SendScreen> {
     initNetwork();
   }
 
+  // ============================
+  // 🔥 INIT NETWORK + BALANCE
+  // ============================
+
   Future<void> initNetwork() async {
 
     final net = await StorageService.getSelectedNetwork();
@@ -57,19 +59,34 @@ class _SendScreenState extends State<SendScreen> {
 
     final allTokens = [...defaultTokens, ...customTokens];
 
-    final bal = await WalletService.getBalance(
-      widget.walletAddress,
-      net,
-    );
+    double balValue = 0;
+
+    final firstToken = allTokens.first;
+
+    if (firstToken["isNative"] == true) {
+      final bal = await WalletService.getBalance(
+        widget.walletAddress,
+        net,
+      );
+      balValue = double.tryParse(bal) ?? 0;
+    } else {
+      final bal = await WalletService.getTokenBalance(
+        address: widget.walletAddress,
+        contract: firstToken["contract"],
+        decimals: firstToken["decimals"],
+        network: net,
+      );
+      balValue = double.tryParse(bal) ?? 0;
+    }
 
     setState(() {
       selectedNetwork = net;
       tokens = allTokens;
-      selectedToken = allTokens.first;
+      selectedToken = firstToken;
 
       symbol = selectedToken!["symbol"];
       chainId = getChainId(net);
-      currentBalance = double.tryParse(bal) ?? 0;
+      currentBalance = balValue;
 
       isInitializing = false;
     });
@@ -84,7 +101,10 @@ class _SendScreenState extends State<SendScreen> {
     }
   }
 
-  // 🔥 SMART MAX (gas safe)
+  // ============================
+  // 🔥 SMART MAX
+  // ============================
+
   void setMaxAmount() {
     if (currentBalance <= 0) return;
 
@@ -93,7 +113,7 @@ class _SendScreenState extends State<SendScreen> {
     double max = currentBalance;
 
     if (isNative) {
-      max = currentBalance * 0.95; // keep gas
+      max = currentBalance * 0.95;
     }
 
     amountController.text = max.toStringAsFixed(6);
@@ -155,18 +175,19 @@ class _SendScreenState extends State<SendScreen> {
       String txHash;
 
       // ============================
-      // 🔥 NATIVE TRANSFER
+      // 🔥 NATIVE TRANSFER FIXED
       // ============================
       if (isNative) {
+
+        final amountInWei = BigInt.parse(
+          (amount * pow(10, 18)).toStringAsFixed(0),
+        );
 
         txHash = await client.sendTransaction(
           credentials,
           Transaction(
             to: receiver,
-            value: EtherAmount.fromUnitAndValue(
-              EtherUnit.ether,
-              amount,
-            ),
+            value: EtherAmount.inWei(amountInWei),
           ),
           chainId: chainId,
         );
@@ -174,7 +195,7 @@ class _SendScreenState extends State<SendScreen> {
       } else {
 
         // ============================
-        // 🔥 ERC20 TRANSFER
+        // 🔥 ERC20 TRANSFER FIXED
         // ============================
 
         final contractAddress =
@@ -203,8 +224,8 @@ class _SendScreenState extends State<SendScreen> {
         final decimals =
             int.tryParse(selectedToken!["decimals"].toString()) ?? 18;
 
-        final amountInWei = BigInt.from(
-          amount * (pow(10, decimals).toDouble()),
+        final amountInWei = BigInt.parse(
+          (amount * pow(10, decimals)).toStringAsFixed(0),
         );
 
         final tx = Transaction.callContract(
@@ -237,37 +258,8 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // UI
+  // 🔥 TOKEN SELECTOR FIXED
   // ============================
-
-  void openScanner() {
-    isScanning = false;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => Scaffold(
-          appBar: AppBar(title: const Text("Scan QR")),
-          body: MobileScanner(
-            onDetect: (barcodeCapture) {
-              if (isScanning) return;
-
-              final code = barcodeCapture.barcodes.first.rawValue;
-
-              if (code != null) {
-                isScanning = true;
-                addressController.text = code;
-
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  Navigator.pop(context);
-                });
-              }
-            },
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget buildTokenSelector() {
     return Container(
@@ -302,14 +294,66 @@ class _SendScreenState extends State<SendScreen> {
             ),
           );
         }).toList(),
-        onChanged: (val) {
+        onChanged: (val) async {
           if (val == null) return;
+
+          double balValue = 0;
+
+          if (val["isNative"] == true) {
+            final bal = await WalletService.getBalance(
+              widget.walletAddress,
+              selectedNetwork,
+            );
+            balValue = double.tryParse(bal) ?? 0;
+          } else {
+            final bal = await WalletService.getTokenBalance(
+              address: widget.walletAddress,
+              contract: val["contract"],
+              decimals: val["decimals"],
+              network: selectedNetwork,
+            );
+            balValue = double.tryParse(bal) ?? 0;
+          }
 
           setState(() {
             selectedToken = val;
             symbol = val["symbol"];
+            currentBalance = balValue;
           });
         },
+      ),
+    );
+  }
+
+  // ============================
+  // UI
+  // ============================
+
+  void openScanner() {
+    isScanning = false;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          appBar: AppBar(title: const Text("Scan QR")),
+          body: MobileScanner(
+            onDetect: (barcodeCapture) {
+              if (isScanning) return;
+
+              final code = barcodeCapture.barcodes.first.rawValue;
+
+              if (code != null) {
+                isScanning = true;
+                addressController.text = code;
+
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  Navigator.pop(context);
+                });
+              }
+            },
+          ),
+        ),
       ),
     );
   }
@@ -383,13 +427,30 @@ class _SendScreenState extends State<SendScreen> {
               ),
             ),
 
+            const SizedBox(height: 10),
+
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Balance: ${currentBalance.toStringAsFixed(6)} $symbol",
+                style: const TextStyle(color: Colors.grey),
+              ),
+            ),
+
             const Spacer(),
 
             ElevatedButton(
               onPressed: isLoading ? null : sendTransaction,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3375BB),
+                minimumSize: const Size(double.infinity, 55),
+              ),
               child: isLoading
-                  ? const CircularProgressIndicator()
-                  : const Text("Send"),
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text(
+                      "Send",
+                      style: TextStyle(color: Colors.white),
+                    ),
             ),
           ],
         ),
