@@ -40,7 +40,6 @@ class _SendScreenState extends State<SendScreen> {
 
   List<Map<String, dynamic>> tokens = [];
 
-  // ✅ FIXED SELECTION SYSTEM
   String selectedTokenKey = "";
 
   double currentBalance = 0;
@@ -54,11 +53,12 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // 🔥 UNIQUE TOKEN KEY
+  // 🔥 FIXED TOKEN KEY (NO NETWORK)
   // ============================
 
   String getTokenKey(Map<String, dynamic> t) {
-    return "${t["symbol"]}_${t["contract"]}_${t["network"] ?? selectedNetwork}";
+    final contract = (t["contract"] ?? "").toString().toLowerCase();
+    return "${t["symbol"]}_$contract";
   }
 
   Map<String, dynamic> get currentToken {
@@ -68,7 +68,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // 🔥 FAST BALANCE (CACHE)
+  // 🔥 FAST BALANCE (FIXED NETWORK)
   // ============================
 
   Future<double> getTokenBalanceFast(Map<String, dynamic> token) async {
@@ -81,10 +81,12 @@ class _SendScreenState extends State<SendScreen> {
 
     double balValue = 0;
 
+    final tokenNetwork = token["network"] ?? selectedNetwork;
+
     if (token["isNative"] == true) {
       final bal = await WalletService.getBalance(
         widget.walletAddress,
-        selectedNetwork,
+        tokenNetwork,
       );
       balValue = double.tryParse(bal) ?? 0;
     } else {
@@ -92,12 +94,13 @@ class _SendScreenState extends State<SendScreen> {
         address: widget.walletAddress,
         contract: token["contract"],
         decimals: token["decimals"],
-        network: selectedNetwork,
+        network: tokenNetwork,
       );
       balValue = double.tryParse(bal) ?? 0;
     }
 
     balanceCache[key] = balValue;
+
     return balValue;
   }
 
@@ -270,7 +273,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // 🔥 TOKEN SELECTOR (FINAL FIX)
+  // 🔥 TOKEN SELECTOR (FIXED)
   // ============================
 
   Widget buildTokenSelector() {
@@ -314,7 +317,6 @@ class _SendScreenState extends State<SendScreen> {
             (t) => getTokenKey(t) == key,
           );
 
-          // ⚡ instant UI update
           setState(() {
             selectedTokenKey = key;
             symbol = token["symbol"];
