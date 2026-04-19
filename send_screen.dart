@@ -83,7 +83,10 @@ class _SendScreenState extends State<SendScreen> {
 
     final tokenNetwork = token["network"] ?? selectedNetwork;
 
-    if (token["isNative"] == true) {
+    final isNative = token["isNative"] == true;
+    final decimals = int.tryParse(token["decimals"].toString()) ?? 18;
+
+    if (isNative) {
       final bal = await WalletService.getBalance(
         widget.walletAddress,
         tokenNetwork,
@@ -93,7 +96,7 @@ class _SendScreenState extends State<SendScreen> {
       final bal = await WalletService.getTokenBalance(
         address: widget.walletAddress,
         contract: token["contract"],
-        decimals: token["decimals"],
+        decimals: decimals,
         network: tokenNetwork,
       );
       balValue = double.tryParse(bal) ?? 0;
