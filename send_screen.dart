@@ -46,7 +46,7 @@ class _SendScreenState extends State<SendScreen> {
 
   Map<String, double> balanceCache = {};
 
-  // 🔥 NEW VALIDATION
+  // 🔥 NEW VALIDATION STATE
   String errorText = "";
   bool isValid = false;
 
@@ -57,7 +57,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // TOKEN KEY
+  // 🔥 TOKEN KEY
   // ============================
 
   String getTokenKey(Map<String, dynamic> t) {
@@ -72,7 +72,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // VALIDATION
+  // 🔥 VALIDATION
   // ============================
 
   void validateInput() {
@@ -102,7 +102,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // BALANCE
+  // 🔥 BALANCE
   // ============================
 
   Future<double> getTokenBalanceFast(Map<String, dynamic> token) async {
@@ -137,12 +137,11 @@ class _SendScreenState extends State<SendScreen> {
     }
 
     balanceCache[key] = balValue;
-
     return balValue;
   }
 
   // ============================
-  // INIT
+  // 🔥 INIT
   // ============================
 
   Future<void> initNetwork() async {
@@ -181,7 +180,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // MAX
+  // 🔥 MAX
   // ============================
 
   void setMaxAmount() {
@@ -208,7 +207,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // SEND
+  // 🔥 SEND
   // ============================
 
   Future<void> sendTransaction() async {
@@ -312,7 +311,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // TOKEN SELECTOR
+  // 🔥 TOKEN SELECTOR
   // ============================
 
   Widget buildTokenSelector() {
@@ -429,6 +428,7 @@ class _SendScreenState extends State<SendScreen> {
       appBar: AppBar(
         title: Text("Send ($symbol)"),
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -443,6 +443,24 @@ class _SendScreenState extends State<SendScreen> {
               onChanged: (_) => validateInput(),
               decoration: InputDecoration(
                 labelText: "Recipient Address",
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: pasteAddress,
+                      child: const Padding(
+                        padding: EdgeInsets.only(right: 10),
+                        child: Text("Paste",
+                          style: TextStyle(color: Color(0xFF3375BB)),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.qr_code_scanner),
+                      onPressed: openScanner,
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -454,6 +472,15 @@ class _SendScreenState extends State<SendScreen> {
               onChanged: (_) => validateInput(),
               decoration: InputDecoration(
                 labelText: "Amount ($symbol)",
+                suffixIcon: GestureDetector(
+                  onTap: setMaxAmount,
+                  child: const Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: Text("Max",
+                      style: TextStyle(color: Color(0xFF3375BB)),
+                    ),
+                  ),
+                ),
               ),
             ),
 
@@ -472,7 +499,10 @@ class _SendScreenState extends State<SendScreen> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   errorText,
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 13,
+                  ),
                 ),
               ),
 
@@ -482,6 +512,7 @@ class _SendScreenState extends State<SendScreen> {
               onPressed: (isLoading || !isValid)
                   ? null
                   : () {
+
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -498,7 +529,16 @@ class _SendScreenState extends State<SendScreen> {
                         ),
                       );
                     },
-              child: const Text("Next"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3375BB),
+                minimumSize: const Size(double.infinity, 55),
+              ),
+              child: isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text(
+                      "Next",
+                      style: TextStyle(color: Colors.white),
+                    ),
             ),
           ],
         ),
