@@ -1,3 +1,5 @@
+// app/lib/screens/send_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
@@ -8,6 +10,7 @@ import 'dart:math';
 
 import '../core/storage_service.dart';
 import '../core/wallet_service.dart';
+import 'transaction_preview_screen.dart';
 
 class SendScreen extends StatefulWidget {
   final String walletAddress;
@@ -40,6 +43,9 @@ class _SendScreenState extends State<SendScreen> {
 
   double currentBalance = 0;
 
+  // 🔥 CACHE (NO LAG)
+  Map<String, double> balanceCache = {};
+
   @override
   void initState() {
     super.initState();
@@ -47,7 +53,42 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // 🔥 INIT NETWORK + BALANCE
+  // 🔥 FAST BALANCE FETCH (CACHE)
+  // ============================
+
+  Future<double> getTokenBalanceFast(Map<String, dynamic> token) async {
+
+    final key = "${token["symbol"]}_${token["contract"]}";
+
+    if (balanceCache.containsKey(key)) {
+      return balanceCache[key]!;
+    }
+
+    double balValue = 0;
+
+    if (token["isNative"] == true) {
+      final bal = await WalletService.getBalance(
+        widget.walletAddress,
+        selectedNetwork,
+      );
+      balValue = double.tryParse(bal) ?? 0;
+    } else {
+      final bal = await WalletService.getTokenBalance(
+        address: widget.walletAddress,
+        contract: token["contract"],
+        decimals: token["decimals"],
+        network: selectedNetwork,
+      );
+      balValue = double.tryParse(bal) ?? 0;
+    }
+
+    balanceCache[key] = balValue;
+
+    return balValue;
+  }
+
+  // ============================
+  // 🔥 INIT
   // ============================
 
   Future<void> initNetwork() async {
@@ -59,25 +100,8 @@ class _SendScreenState extends State<SendScreen> {
 
     final allTokens = [...defaultTokens, ...customTokens];
 
-    double balValue = 0;
-
     final firstToken = allTokens.first;
-
-    if (firstToken["isNative"] == true) {
-      final bal = await WalletService.getBalance(
-        widget.walletAddress,
-        net,
-      );
-      balValue = double.tryParse(bal) ?? 0;
-    } else {
-      final bal = await WalletService.getTokenBalance(
-        address: widget.walletAddress,
-        contract: firstToken["contract"],
-        decimals: firstToken["decimals"],
-        network: net,
-      );
-      balValue = double.tryParse(bal) ?? 0;
-    }
+    final balValue = await getTokenBalanceFast(firstToken);
 
     setState(() {
       selectedNetwork = net;
@@ -102,7 +126,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // 🔥 SMART MAX
+  // 🔥 MAX
   // ============================
 
   void setMaxAmount() {
@@ -127,7 +151,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // 🔥 MAIN TRANSACTION ENGINE
+  // 🔥 REAL SEND ENGINE
   // ============================
 
   Future<void> sendTransaction() async {
@@ -135,28 +159,7 @@ class _SendScreenState extends State<SendScreen> {
     final toAddress = addressController.text.trim();
     final amountText = amountController.text.trim();
 
-    if (toAddress.isEmpty || amountText.isEmpty) {
-      showMsg("Fill all fields");
-      return;
-    }
-
-    if (!toAddress.startsWith("0x") || toAddress.length != 42) {
-      showMsg("Invalid address");
-      return;
-    }
-
-    double amount;
-    try {
-      amount = double.parse(amountText);
-    } catch (_) {
-      showMsg("Invalid amount");
-      return;
-    }
-
-    if (amount <= 0) {
-      showMsg("Amount must be greater than 0");
-      return;
-    }
+    double amount = double.parse(amountText);
 
     setState(() => isLoading = true);
 
@@ -174,9 +177,6 @@ class _SendScreenState extends State<SendScreen> {
 
       String txHash;
 
-      // ============================
-      // 🔥 NATIVE TRANSFER FIXED
-      // ============================
       if (isNative) {
 
         final amountInWei = BigInt.parse(
@@ -193,10 +193,6 @@ class _SendScreenState extends State<SendScreen> {
         );
 
       } else {
-
-        // ============================
-        // 🔥 ERC20 TRANSFER FIXED
-        // ============================
 
         final contractAddress =
             EthereumAddress.fromHex(selectedToken!["contract"]);
@@ -258,7 +254,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // 🔥 TOKEN SELECTOR FIXED
+  // 🔥 TOKEN SELECTOR (FAST)
   // ============================
 
   Widget buildTokenSelector() {
@@ -297,23 +293,7 @@ class _SendScreenState extends State<SendScreen> {
         onChanged: (val) async {
           if (val == null) return;
 
-          double balValue = 0;
-
-          if (val["isNative"] == true) {
-            final bal = await WalletService.getBalance(
-              widget.walletAddress,
-              selectedNetwork,
-            );
-            balValue = double.tryParse(bal) ?? 0;
-          } else {
-            final bal = await WalletService.getTokenBalance(
-              address: widget.walletAddress,
-              contract: val["contract"],
-              decimals: val["decimals"],
-              network: selectedNetwork,
-            );
-            balValue = double.tryParse(bal) ?? 0;
-          }
+          final balValue = await getTokenBalanceFast(val);
 
           setState(() {
             selectedToken = val;
@@ -440,7 +420,32 @@ class _SendScreenState extends State<SendScreen> {
             const Spacer(),
 
             ElevatedButton(
-              onPressed: isLoading ? null : sendTransaction,
+              onPressed: isLoading ? null : () {
+
+                final toAddress = addressController.text.trim();
+                final amountText = amountController.text.trim();
+
+                if (toAddress.isEmpty || amountText.isEmpty) {
+                  showMsg("Fill all fields");
+                  return;
+                }
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TransactionPreviewScreen(
+                      toAddress: toAddress,
+                      amount: amountText,
+                      symbol: symbol,
+                      network: selectedNetwork,
+                      onConfirm: () {
+                        Navigator.pop(context);
+                        sendTransaction();
+                      },
+                    ),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3375BB),
                 minimumSize: const Size(double.infinity, 55),
