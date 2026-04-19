@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import '../core/wallet_service.dart';
 
 class TransactionPreviewScreen extends StatefulWidget {
   final String toAddress;
@@ -38,60 +41,41 @@ class _TransactionPreviewScreenState
   }
 
   // ============================
-  // 🔥 GET RPC BY NETWORK
+  // 🔥 RPC
   // ============================
 
   String getRpc() {
-    switch (widget.network) {
-      case "Ethereum":
-        return "https://mainnet.infura.io/v3/339315f5c81347debe3b12374712fa4d";
-      case "Polygon":
-        return "https://polygon-rpc.com/";
-      case "BSC":
-      default:
-        return "https://bsc-dataseed.binance.org/";
-    }
-  }
-
-  int getChainId() {
-    switch (widget.network) {
-      case "Ethereum":
-        return 1;
-      case "Polygon":
-        return 137;
-      case "BSC":
-      default:
-        return 56;
-    }
+    return WalletService.networks[widget.network]!["rpc"]!;
   }
 
   // ============================
-  // 🔥 GAS ESTIMATION
+  // 🔥 FIXED GAS (REAL)
   // ============================
 
   Future<void> estimateGas() async {
     try {
-      final rpc = getRpc();
+      final client = Web3Client(getRpc(), Client());
 
-      final client = Web3Client(rpc, Client());
-
+      // 🔥 REAL GAS PRICE
       final gasPrice = await client.getGasPrice();
 
-      final estimatedGas = await client.estimateGas(
-        sender: EthereumAddress.fromHex(
-            "0x0000000000000000000000000000000000000000"),
-        to: EthereumAddress.fromHex(widget.toAddress),
-        value: EtherAmount.fromUnitAndValue(
-          EtherUnit.ether,
-          double.parse(widget.amount),
-        ),
-      );
+      // 🔥 SAFE GAS LIMIT (NO ZERO ADDRESS BUG)
+      int gasLimit = 21000;
 
-      final gasInWei = gasPrice.getInWei * estimatedGas;
+      // ERC20 case (higher gas)
+      if (widget.symbol.toLowerCase() !=
+          WalletService.getSymbol(widget.network).toLowerCase()) {
+        gasLimit = 65000;
+      }
 
-      final fee = gasInWei / BigInt.from(10).pow(18);
+      final gasInWei =
+          gasPrice.getInWei * BigInt.from(gasLimit);
 
-      final feeDouble = double.parse(fee.toString());
+      final feeEth =
+          gasInWei / BigInt.from(10).pow(18);
+
+      final feeDouble =
+          double.tryParse(feeEth.toString()) ?? 0;
 
       setState(() {
         gasFee = feeDouble;
@@ -102,6 +86,7 @@ class _TransactionPreviewScreenState
       client.dispose();
 
     } catch (e) {
+      // 🔥 fallback safe
       setState(() {
         gasFee = 0.0003;
         total = double.parse(widget.amount) + gasFee;
@@ -111,7 +96,39 @@ class _TransactionPreviewScreenState
   }
 
   // ============================
-  // 🔥 UI
+  // 🔥 ICON BUILDER
+  // ============================
+
+  Widget buildTokenIcon() {
+    final local =
+        WalletService.resolveLocalIcon(widget.symbol);
+
+    final fallback =
+        WalletService.resolveFallbackIcon(
+      network: widget.network,
+      contract: "",
+      isNative: true,
+    );
+
+    return SizedBox(
+      width: 60,
+      height: 60,
+      child: SvgPicture.asset(
+        local,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) {
+          return Image.network(
+            fallback,
+            errorBuilder: (_, __, ___) =>
+                const Icon(Icons.currency_bitcoin, size: 50),
+          );
+        },
+      ),
+    );
+  }
+
+  // ============================
+  // UI
   // ============================
 
   @override
@@ -133,8 +150,8 @@ class _TransactionPreviewScreenState
                   // 🔥 ICON + AMOUNT
                   Column(
                     children: [
-                      const Icon(Icons.account_balance_wallet,
-                          size: 60, color: Color(0xFF3375BB)),
+
+                      buildTokenIcon(),
 
                       const SizedBox(height: 10),
 
@@ -157,7 +174,7 @@ class _TransactionPreviewScreenState
 
                   const SizedBox(height: 25),
 
-                  // 🔥 DETAILS CARD
+                  // 🔥 CARD
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -210,10 +227,6 @@ class _TransactionPreviewScreenState
             ),
     );
   }
-
-  // ============================
-  // 🔥 ROW WIDGET
-  // ============================
 
   Widget _row(IconData icon, String label, String value) {
     return Padding(
