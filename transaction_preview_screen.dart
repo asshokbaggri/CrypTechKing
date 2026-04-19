@@ -74,6 +74,23 @@ class _TransactionPreviewScreenState
   }
 
   // ============================
+  // 🔥 SMART NETWORK NAME
+  // ============================
+
+  String getDisplayNetworkName(String net) {
+    switch (net) {
+      case "BSC":
+        return "BNB Smart Chain";
+      case "Ethereum":
+        return "Ethereum Mainnet";
+      case "Polygon":
+        return "Polygon Network";
+      default:
+        return net;
+    }
+  }
+
+  // ============================
   // 🔥 RPC
   // ============================
 
@@ -173,24 +190,6 @@ class _TransactionPreviewScreenState
   }
 
   // ============================
-  // 🔥 NETWORK ICON
-  // ============================
-
-  Widget buildNetworkIcon() {
-    final fallback =
-        WalletService.resolveFallbackIcon(
-      network: widget.network,
-      contract: "",
-      isNative: true,
-    );
-
-    return CircleAvatar(
-      radius: 12,
-      backgroundImage: NetworkImage(fallback),
-    );
-  }
-
-  // ============================
   // 🔥 SHORT ADDRESS
   // ============================
 
@@ -273,22 +272,11 @@ class _TransactionPreviewScreenState
                           value: shortAddress(widget.toAddress),
                         ),
 
-                        // NETWORK
-                        Row(
-                          children: [
-                            const Icon(Icons.account_tree,
-                                size: 20, color: Colors.grey),
-                            const SizedBox(width: 10),
-                            const Expanded(
-                              child: Text(
-                                "Network",
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ),
-                            buildNetworkIcon(),
-                            const SizedBox(width: 6),
-                            Text(widget.network),
-                          ],
+                        // ✅ NETWORK (FIXED)
+                        _rowCustom(
+                          icon: Icons.account_tree,
+                          label: "Network",
+                          value: getDisplayNetworkName(widget.network),
                         ),
 
                         const Divider(height: 25),
@@ -369,7 +357,7 @@ class _TransactionPreviewScreenState
               value,
               textAlign: TextAlign.right,
               style: const TextStyle(
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
