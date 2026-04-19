@@ -39,11 +39,12 @@ class _SendScreenState extends State<SendScreen> {
   int chainId = 56;
 
   List<Map<String, dynamic>> tokens = [];
-  Map<String, dynamic>? selectedToken;
+
+  // ✅ FIXED SELECTION SYSTEM
+  String selectedTokenKey = "";
 
   double currentBalance = 0;
 
-  // 🔥 CACHE (NO LAG)
   Map<String, double> balanceCache = {};
 
   @override
@@ -53,12 +54,26 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // 🔥 FAST BALANCE FETCH (CACHE)
+  // 🔥 UNIQUE TOKEN KEY
+  // ============================
+
+  String getTokenKey(Map<String, dynamic> t) {
+    return "${t["symbol"]}_${t["contract"]}_${t["network"] ?? selectedNetwork}";
+  }
+
+  Map<String, dynamic> get currentToken {
+    return tokens.firstWhere(
+      (t) => getTokenKey(t) == selectedTokenKey,
+    );
+  }
+
+  // ============================
+  // 🔥 FAST BALANCE (CACHE)
   // ============================
 
   Future<double> getTokenBalanceFast(Map<String, dynamic> token) async {
 
-    final key = "${token["symbol"]}_${token["contract"]}";
+    final key = getTokenKey(token);
 
     if (balanceCache.containsKey(key)) {
       return balanceCache[key]!;
@@ -83,7 +98,6 @@ class _SendScreenState extends State<SendScreen> {
     }
 
     balanceCache[key] = balValue;
-
     return balValue;
   }
 
@@ -106,9 +120,10 @@ class _SendScreenState extends State<SendScreen> {
     setState(() {
       selectedNetwork = net;
       tokens = allTokens;
-      selectedToken = firstToken;
 
-      symbol = selectedToken!["symbol"];
+      selectedTokenKey = getTokenKey(firstToken);
+      symbol = firstToken["symbol"];
+
       chainId = getChainId(net);
       currentBalance = balValue;
 
@@ -132,7 +147,7 @@ class _SendScreenState extends State<SendScreen> {
   void setMaxAmount() {
     if (currentBalance <= 0) return;
 
-    final isNative = selectedToken?["isNative"] == true;
+    final isNative = currentToken["isNative"] == true;
 
     double max = currentBalance;
 
@@ -151,7 +166,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // 🔥 REAL SEND ENGINE
+  // 🔥 SEND
   // ============================
 
   Future<void> sendTransaction() async {
@@ -173,7 +188,8 @@ class _SendScreenState extends State<SendScreen> {
       final credentials = EthPrivateKey.fromHex(privateKey!);
       final receiver = EthereumAddress.fromHex(toAddress);
 
-      final isNative = selectedToken?["isNative"] == true;
+      final token = currentToken;
+      final isNative = token["isNative"] == true;
 
       String txHash;
 
@@ -195,7 +211,7 @@ class _SendScreenState extends State<SendScreen> {
       } else {
 
         final contractAddress =
-            EthereumAddress.fromHex(selectedToken!["contract"]);
+            EthereumAddress.fromHex(token["contract"]);
 
         final abi = ContractAbi.fromJson(
           '''
@@ -218,7 +234,7 @@ class _SendScreenState extends State<SendScreen> {
         final contract = DeployedContract(abi, contractAddress);
 
         final decimals =
-            int.tryParse(selectedToken!["decimals"].toString()) ?? 18;
+            int.tryParse(token["decimals"].toString()) ?? 18;
 
         final amountInWei = BigInt.parse(
           (amount * pow(10, decimals)).toStringAsFixed(0),
@@ -254,7 +270,7 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   // ============================
-  // 🔥 TOKEN SELECTOR (FAST)
+  // 🔥 TOKEN SELECTOR (FINAL FIX)
   // ============================
 
   Widget buildTokenSelector() {
@@ -264,17 +280,18 @@ class _SendScreenState extends State<SendScreen> {
         borderRadius: BorderRadius.circular(12),
         color: Colors.grey.shade100,
       ),
-      child: DropdownButton<Map<String, dynamic>>(
-        value: selectedToken,
+      child: DropdownButton<String>(
+        value: selectedTokenKey,
         isExpanded: true,
         underline: const SizedBox(),
         items: tokens.map((t) {
 
+          final key = getTokenKey(t);
           final iconPath =
               WalletService.resolveLocalIcon(t["symbol"]);
 
-          return DropdownMenuItem(
-            value: t,
+          return DropdownMenuItem<String>(
+            value: key,
             child: Row(
               children: [
                 SvgPicture.asset(
@@ -290,14 +307,25 @@ class _SendScreenState extends State<SendScreen> {
             ),
           );
         }).toList(),
-        onChanged: (val) async {
-          if (val == null) return;
+        onChanged: (key) async {
+          if (key == null) return;
 
-          final balValue = await getTokenBalanceFast(val);
+          final token = tokens.firstWhere(
+            (t) => getTokenKey(t) == key,
+          );
+
+          // ⚡ instant UI update
+          setState(() {
+            selectedTokenKey = key;
+            symbol = token["symbol"];
+            currentBalance = 0;
+          });
+
+          final balValue = await getTokenBalanceFast(token);
+
+          if (!mounted) return;
 
           setState(() {
-            selectedToken = val;
-            symbol = val["symbol"];
             currentBalance = balValue;
           });
         },
@@ -368,7 +396,6 @@ class _SendScreenState extends State<SendScreen> {
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-
                     GestureDetector(
                       onTap: pasteAddress,
                       child: const Padding(
@@ -378,7 +405,6 @@ class _SendScreenState extends State<SendScreen> {
                         ),
                       ),
                     ),
-
                     IconButton(
                       icon: const Icon(Icons.qr_code_scanner),
                       onPressed: openScanner,
@@ -453,7 +479,7 @@ class _SendScreenState extends State<SendScreen> {
               child: isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : const Text(
-                      "Send",
+                      "Next",
                       style: TextStyle(color: Colors.white),
                     ),
             ),
