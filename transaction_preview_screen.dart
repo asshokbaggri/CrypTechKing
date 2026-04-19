@@ -158,7 +158,7 @@ class _TransactionPreviewScreenState
   }
 
   // ============================
-  // 🔥 ICON BUILDER
+  // 🔥 TOKEN ICON
   // ============================
 
   Widget buildTokenIcon() {
@@ -272,7 +272,7 @@ class _TransactionPreviewScreenState
                           value: shortAddress(widget.toAddress),
                         ),
 
-                        // ✅ NETWORK (FIXED)
+                        // NETWORK (🔥 FIXED)
                         _rowCustom(
                           icon: Icons.account_tree,
                           label: "Network",
