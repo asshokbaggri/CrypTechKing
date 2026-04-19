@@ -1,5 +1,3 @@
-// app/lib/screens/transaction_preview_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
@@ -30,20 +28,17 @@ class _TransactionPreviewScreenState
 
   bool isLoading = true;
 
-  double gasPriceGwei = 0;
   double gasFee = 0;
   double total = 0;
-
-  int gasLimit = 21000;
 
   @override
   void initState() {
     super.initState();
-    loadGas();
+    estimateGas();
   }
 
   // ============================
-  // 🔥 NETWORK RPC
+  // 🔥 GET RPC BY NETWORK
   // ============================
 
   String getRpc() {
@@ -58,48 +53,65 @@ class _TransactionPreviewScreenState
     }
   }
 
+  int getChainId() {
+    switch (widget.network) {
+      case "Ethereum":
+        return 1;
+      case "Polygon":
+        return 137;
+      case "BSC":
+      default:
+        return 56;
+    }
+  }
+
   // ============================
-  // 🔥 LIVE GAS FETCH
+  // 🔥 GAS ESTIMATION
   // ============================
 
-  Future<void> loadGas() async {
-
+  Future<void> estimateGas() async {
     try {
-      final client = Web3Client(getRpc(), Client());
+      final rpc = getRpc();
+
+      final client = Web3Client(rpc, Client());
 
       final gasPrice = await client.getGasPrice();
 
-      // wei -> gwei
-      gasPriceGwei = gasPrice.getInWei.toDouble() / 1e9;
+      final estimatedGas = await client.estimateGas(
+        sender: EthereumAddress.fromHex(
+            "0x0000000000000000000000000000000000000000"),
+        to: EthereumAddress.fromHex(widget.toAddress),
+        value: EtherAmount.fromUnitAndValue(
+          EtherUnit.ether,
+          double.parse(widget.amount),
+        ),
+      );
 
-      // gas limit (simple transfer)
-      gasLimit = 21000;
+      final gasInWei = gasPrice.getInWei * estimatedGas;
 
-      // gas fee = gasPrice * gasLimit
-      gasFee =
-          (gasPrice.getInWei.toDouble() * gasLimit) / 1e18;
+      final fee = gasInWei / BigInt.from(10).pow(18);
 
-      final amt = double.tryParse(widget.amount) ?? 0;
+      final feeDouble = double.parse(fee.toString());
 
-      total = amt + gasFee;
+      setState(() {
+        gasFee = feeDouble;
+        total = double.parse(widget.amount) + gasFee;
+        isLoading = false;
+      });
 
       client.dispose();
 
     } catch (e) {
-      gasPriceGwei = 5;
-      gasFee = 0.0003;
-      total = (double.tryParse(widget.amount) ?? 0) + gasFee;
+      setState(() {
+        gasFee = 0.0003;
+        total = double.parse(widget.amount) + gasFee;
+        isLoading = false;
+      });
     }
-
-    if (!mounted) return;
-
-    setState(() {
-      isLoading = false;
-    });
   }
 
   // ============================
-  // UI
+  // 🔥 UI
   // ============================
 
   @override
@@ -108,6 +120,7 @@ class _TransactionPreviewScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text("Confirm Transaction"),
+        centerTitle: true,
       ),
 
       body: isLoading
@@ -117,61 +130,64 @@ class _TransactionPreviewScreenState
               child: Column(
                 children: [
 
-                  // 🔥 MAIN CARD
+                  // 🔥 ICON + AMOUNT
+                  Column(
+                    children: [
+                      const Icon(Icons.account_balance_wallet,
+                          size: 60, color: Color(0xFF3375BB)),
+
+                      const SizedBox(height: 10),
+
+                      Text(
+                        "${widget.amount} ${widget.symbol}",
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 5),
+
+                      const Text(
+                        "Sending",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // 🔥 DETAILS CARD
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(16),
+                      color: Colors.grey.shade100,
                     ),
                     child: Column(
                       children: [
 
-                        _row("Network", widget.network),
+                        _row(Icons.account_tree, "Network", widget.network),
 
-                        const SizedBox(height: 6),
+                        _row(Icons.person, "To", widget.toAddress),
 
-                        _row("To", widget.toAddress),
-
-                        const SizedBox(height: 6),
-
-                        _row("Amount",
+                        _row(Icons.payments, "Amount",
                             "${widget.amount} ${widget.symbol}"),
 
-                        const SizedBox(height: 10),
+                        const Divider(height: 25),
 
-                        const Divider(),
-
-                        const SizedBox(height: 10),
-
-                        // 🔥 GAS DETAILS
-                        _row("Gas Price",
-                            "${gasPriceGwei.toStringAsFixed(2)} Gwei"),
-
-                        _row("Gas Limit", gasLimit.toString()),
-
-                        _row("Network Fee",
+                        _row(Icons.local_gas_station, "Gas Fee",
                             "${gasFee.toStringAsFixed(6)} ${widget.symbol}"),
 
-                        const SizedBox(height: 10),
-
-                        const Divider(),
-
-                        const SizedBox(height: 10),
-
-                        // 🔥 TOTAL
-                        _row(
-                          "Total",
-                          "${total.toStringAsFixed(6)} ${widget.symbol}",
-                          isBold: true,
-                        ),
+                        _row(Icons.calculate, "Total",
+                            "${total.toStringAsFixed(6)} ${widget.symbol}"),
                       ],
                     ),
                   ),
 
                   const Spacer(),
 
-                  // 🔥 CONFIRM BUTTON
+                  // 🔥 BUTTON
                   ElevatedButton(
                     onPressed: widget.onConfirm,
                     style: ElevatedButton.styleFrom(
@@ -183,7 +199,10 @@ class _TransactionPreviewScreenState
                     ),
                     child: const Text(
                       "Confirm & Send",
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ],
@@ -193,34 +212,32 @@ class _TransactionPreviewScreenState
   }
 
   // ============================
-  // 🔥 ROW UI
+  // 🔥 ROW WIDGET
   // ============================
 
-  Widget _row(String label, String value, {bool isBold = false}) {
+  Widget _row(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey.shade700,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          Icon(icon, size: 20, color: Colors.grey),
+
+          const SizedBox(width: 10),
+
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: Colors.grey),
             ),
           ),
-
-          const Spacer(),
 
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.right,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
         ],
