@@ -314,8 +314,35 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _btn(Icons.send, "Send", () {}),
-                _btn(Icons.download, "Receive", () {}),
+                _btn(Icons.send, "Send", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SendScreen(
+                        walletAddress: widget.walletAddress,
+                        initialToken: {
+                          "symbol": widget.symbol,
+                          "contract": widget.contract,
+                          "network": widget.network,
+                          "isNative": widget.isNative,
+                          "decimals": 18, // safe default
+                        },
+                      ),
+                    ),
+                  );
+                }),
+                _btn(Icons.download, "Receive", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ReceiveScreen(
+                        address: widget.walletAddress,
+                        symbol: widget.symbol,
+                        network: widget.network,
+                      ),
+                    ),
+                  );
+                }),
                 _btn(Icons.swap_horiz, "Swap", () {}),
                 _btn(Icons.shopping_cart, "Buy", () {}),
               ],
