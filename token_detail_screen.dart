@@ -336,9 +336,14 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (_) => ReceiveScreen(
-                        address: widget.walletAddress,
-                        symbol: widget.symbol,
-                        network: widget.network,
+                        walletAddress: widget.walletAddress,
+                        initialToken: {
+                          "symbol": widget.symbol,
+                          "contract": widget.contract,
+                          "network": widget.network,
+                          "isNative": widget.isNative,
+                          "decimals": 18,
+                        },
                       ),
                     ),
                   );
