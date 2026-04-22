@@ -112,13 +112,13 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
       final txs = await WalletService.getTransactionHistory(
         address: widget.walletAddress,
         network: widget.network,
+        contract: widget.isNative ? "" : widget.contract,
       );
 
-      List<Map<String, dynamic>> filtered = [];
-
-      for (var tx in txs) {
-        filtered.add(tx);
-      }
+      setState(() {
+        transactions = txs;
+        isLoadingTx = false;
+      });
 
       if (!mounted) return;
 
