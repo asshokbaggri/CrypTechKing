@@ -115,6 +115,10 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   // ============================
 
   Future<void> loadTransactions() async {
+
+    // ✅ ADD THIS LINE
+    setState(() => isLoadingTx = true);
+    
     try {
       final list = await WalletService.getTransactionHistory(
         address: widget.walletAddress,
@@ -419,9 +423,17 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                 itemBuilder: (context, i) {
                   final tx = txs[i];
 
+                  final to = tx["to"]?.toString() ?? "";
+
+                  final shortAddr = to.length > 10
+                      ? "${to.substring(0, 6)}...${to.substring(to.length - 4)}"
+                      : to;
+
                   final isSent = tx["isSent"] == true;
-                  final value = tx["value"];
-                  final time = tx["time"] as DateTime;
+                  final value = tx["value"]?.toString() ?? "0.000000";
+                  final time = tx["time"] is DateTime
+                      ? tx["time"]
+                      : DateTime.tryParse(tx["time"].toString()) ?? DateTime.now();
 
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
@@ -440,9 +452,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
 
-                    subtitle: Text(
-                      "${tx["to"].toString().substring(0, 6)}...${tx["to"].toString().substring(tx["to"].length - 4)}",
-                    ),
+                    subtitle: Text(shortAddr),
 
                     trailing: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -454,10 +464,18 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          "${time.day}/${time.month}",
-                          style: const TextStyle(fontSize: 11, color: Colors.grey),
-                        ),
+
+                        // 🔥 PENDING BADGE
+                        if (tx["status"] == false)
+                          const Text(
+                            "Pending",
+                            style: TextStyle(fontSize: 11, color: Colors.orange),
+                          )
+                        else
+                          Text(
+                            "${time.day}/${time.month}",
+                            style: const TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
                       ],
                     ),
                   );
