@@ -407,7 +407,8 @@ static const Map<String, int> explorerChainIds = {
   static Future<List<Map<String, dynamic>>> getTransactionHistory({
     required String address,
     required String network,
-    String contract = "", // 🔥 ADD THIS
+    String? contract, // 🔥 NEW
+    bool isNative = true, // 🔥 NEW
   }) async {
 
     List<Map<String, dynamic>> txs = [];
@@ -417,62 +418,121 @@ static const Map<String, int> explorerChainIds = {
       final chainId = explorerChainIds[network];
       if (chainId == null) return [];
 
-      final isToken = contract.isNotEmpty;
+      // ============================
+      // 🔥 NATIVE TX
+      // ============================
 
-      final url = Uri.parse(
-        "https://api.etherscan.io/api"
-        "?chainid=$chainId"
-        "&module=account"
-        "&action=${isToken ? "tokentx" : "txlist"}"
-        "&address=$address"
-        "${isToken ? "&contractaddress=$contract" : ""}"
-        "&startblock=0"
-        "&endblock=99999999"
-        "&sort=desc"
-        "&apikey=$explorerApiKey",
-      );
+      if (isNative) {
 
-      final res = await Client().get(url);
+        final url = Uri.parse(
+          "https://api.etherscan.io/api"
+          "?chainid=$chainId"
+          "&module=account"
+          "&action=txlist"
+          "&address=$address"
+          "&startblock=0"
+          "&endblock=99999999"
+          "&sort=desc"
+          "&apikey=$explorerApiKey",
+        );
 
-      if (res.statusCode != 200) return [];
+        final res = await Client().get(url);
 
-      final data = jsonDecode(res.body);
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
 
-      if (data["status"] != "1") return [];
+          if (data["status"] == "1") {
 
-      final list = data["result"] as List;
+            final list = data["result"] as List;
 
-      for (var tx in list.take(30)) {
+            for (var tx in list.take(30)) {
 
-        final isSent =
-            tx["from"].toString().toLowerCase() ==
-            address.toLowerCase();
+              final isSent =
+                 tx["from"].toString().toLowerCase() ==
+                  address.toLowerCase();
 
-        final valueRaw = BigInt.tryParse(tx["value"]) ?? BigInt.zero;
+              final valueWei =
+                  BigInt.tryParse(tx["value"]) ?? BigInt.zero;
 
-        int decimals = 18;
+              final valueEth =
+                  valueWei / BigInt.from(10).pow(18);
 
-        if (tx["tokenDecimal"] != null) {
-          decimals = int.tryParse(tx["tokenDecimal"]) ?? 18;
+              txs.add({
+                "hash": tx["hash"],
+                "from": tx["from"],
+                "to": tx["to"],
+                "value": valueEth.toStringAsFixed(6),
+                "time": DateTime.fromMillisecondsSinceEpoch(
+                  int.parse(tx["timeStamp"]) * 1000,
+                ),
+                "isSent": isSent,
+                "status": tx["txreceipt_status"] == "1",
+                "symbol": getSymbol(network),
+              });
+            }
+          }
         }
+      }
 
-        final divisor = BigInt.from(10).pow(decimals);
+      // ============================
+      // 🔥 TOKEN TX (ERC20)
+      // ============================
 
-        final valueFinal = valueRaw / divisor;
+      if (!isNative && contract != null && contract.isNotEmpty) {
 
-        txs.add({
-          "hash": tx["hash"],
-          "from": tx["from"],
-          "to": tx["to"],
-          "value": valueFinal.toStringAsFixed(6),
-          "symbol": tx["tokenSymbol"] ?? 
-              networks[network]?["symbol"],
-          "time": DateTime.fromMillisecondsSinceEpoch(
-            int.parse(tx["timeStamp"]) * 1000,
-          ),
-          "isSent": isSent,
-          "status": tx["txreceipt_status"] == "1",
-        });
+        final url = Uri.parse(
+          "https://api.etherscan.io/api"
+          "?chainid=$chainId"
+          "&module=account"
+          "&action=tokentx"
+          "&contractaddress=$contract"
+          "&address=$address"
+          "&page=1"
+          "&offset=30"
+          "&sort=desc"
+          "&apikey=$explorerApiKey",
+        );
+
+        final res = await Client().get(url);
+
+        if (res.statusCode == 200) {
+
+          final data = jsonDecode(res.body);
+
+          if (data["status"] == "1") {
+
+            final list = data["result"] as List;
+
+            for (var tx in list) {
+
+              final isSent =
+                  tx["from"].toString().toLowerCase() ==
+                  address.toLowerCase();
+
+              final valueWei =
+                  BigInt.tryParse(tx["value"]) ?? BigInt.zero;
+
+              final decimals =
+                  int.tryParse(tx["tokenDecimal"]) ?? 18;
+
+              final value =
+                  valueWei / BigInt.from(10).pow(decimals);
+
+              txs.add({
+                "hash": tx["hash"],
+                "from": tx["from"],
+                "to": tx["to"],
+                "value": value.toStringAsFixed(6),
+                "time": DateTime.fromMillisecondsSinceEpoch(
+                  int.parse(tx["timeStamp"]) * 1000,
+                ),
+                "isSent": isSent,
+                "status": true,
+                "symbol": tx["tokenSymbol"] ?? "",
+              });
+            }
+          }
+        }
       }
 
     } catch (e) {
