@@ -192,19 +192,6 @@ class _SendScreenState extends State<SendScreen> {
       isInitializing = false;
     });
 
-    setState(() {
-      selectedNetwork = net;
-      tokens = allTokens;
-
-      selectedTokenKey = getTokenKey(selected);
-      symbol = selected["symbol"];
-
-      chainId = getChainId(net);
-      currentBalance = balValue;
-
-      isInitializing = false;
-    });
-
     validateInput();
   }
 
@@ -333,6 +320,21 @@ class _SendScreenState extends State<SendScreen> {
       }
 
       showMsg("TX Sent ✔\n$txHash");
+
+      // ============================
+      // 🔥 SAVE PENDING TX (INSTANT UI)
+      // ============================
+
+      await StorageService.savePendingTx({
+        "hash": txHash,
+        "from": widget.walletAddress,
+        "to": toAddress,
+        "value": amount.toString(),
+        "time": DateTime.now().toIso8601String(),
+        "isSent": true,
+        "status": false, // pending
+        "symbol": symbol,
+      });
 
       Navigator.pop(context);
 
