@@ -505,6 +505,11 @@ static const Map<String, int> explorerChainIds = {
 
             for (var tx in list) {
 
+              // 🔥 STRICT CONTRACT FILTER
+              if (tx["contractAddress"]?.toString().toLowerCase() != contract.toLowerCase()) {
+                continue;
+              }
+
               final isSent =
                   tx["from"].toString().toLowerCase() ==
                   address.toLowerCase();
@@ -528,7 +533,7 @@ static const Map<String, int> explorerChainIds = {
                 ),
                 "isSent": isSent,
                 "status": true,
-                "symbol": tx["tokenSymbol"] ?? "",
+                "symbol": (tx["tokenSymbol"] ?? "").toString().toUpperCase(),
               });
             }
           }
@@ -540,34 +545,26 @@ static const Map<String, int> explorerChainIds = {
     }
 
     // ============================
-    // 🔥 MERGE PENDING TX (INSTANT)
+    // 🔥 MERGE CACHE (INSTANT UI)
     // ============================
 
     try {
-      final pending = await StorageService.getPendingTxs();
+      final symbolKey = isNative ? getSymbol(network) : (contract ?? "");
 
-      for (var p in pending) {
+      final cached = await StorageService.getTxCache(
+        address,
+        network,
+        symbolKey,
+      );
 
-        // 🔥 NETWORK + TOKEN MATCH
-        if (p["symbol"] == (isNative ? getSymbol(network) : p["symbol"])) {
-
+      // 🔥 MERGE (NO DUPLICATE)
+      for (var c in cached) {
+        final exists = txs.any((t) => t["hash"] == c["hash"]);
+        if (!exists) {
           txs.insert(0, {
-            "hash": p["hash"],
-            "from": p["from"],
-            "to": p["to"],
-            "value": p["value"],
-            "time": DateTime.parse(p["time"]),
-            "isSent": p["isSent"],
-            "status": false, // pending
-            "symbol": p["symbol"],
+            ...c,
+            "time": DateTime.tryParse(c["time"].toString()) ?? DateTime.now(),
           });
-        }
-      }
-
-      // 🔥 REMOVE CONFIRMED FROM PENDING
-      for (var tx in txs) {
-        if (tx["status"] == true) {
-          await StorageService.clearPendingTx(tx["hash"]);
         }
       }
 
