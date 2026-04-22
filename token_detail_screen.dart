@@ -50,6 +50,9 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
   Timer? priceTimer;
 
+  // 🔥 ADD HERE
+  int refreshCounter = 0;
+
   // 🔥 TX STATE
   List<Map<String, dynamic>> txs = [];
   bool isLoadingTx = true;
@@ -116,28 +119,14 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
       final list = await WalletService.getTransactionHistory(
         address: widget.walletAddress,
         network: widget.network,
+        contract: widget.contract,   // 🔥 ADD THIS
+        isNative: widget.isNative,   // 🔥 ADD THIS
       );
-
-      // 🔥 FILTER TOKEN SPECIFIC
-      List<Map<String, dynamic>> filtered = [];
-
-      for (var tx in list) {
-
-        // Native token → all tx
-        if (widget.isNative) {
-          filtered.add(tx);
-        } else {
-          // 🔥 ERC20 filter (basic fallback)
-          if (tx["value"] != "0.000000") {
-            filtered.add(tx);
-          }
-        }
-      }
 
       if (!mounted) return;
 
       setState(() {
-        txs = filtered;
+        txs = list;
         isLoadingTx = false;
       });
 
