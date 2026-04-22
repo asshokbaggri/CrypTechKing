@@ -407,6 +407,7 @@ static const Map<String, int> explorerChainIds = {
   static Future<List<Map<String, dynamic>>> getTransactionHistory({
     required String address,
     required String network,
+    String contract = "", // 🔥 ADD THIS
   }) async {
 
     List<Map<String, dynamic>> txs = [];
@@ -416,12 +417,15 @@ static const Map<String, int> explorerChainIds = {
       final chainId = explorerChainIds[network];
       if (chainId == null) return [];
 
+      final isToken = contract.isNotEmpty;
+
       final url = Uri.parse(
         "https://api.etherscan.io/api"
         "?chainid=$chainId"
         "&module=account"
-        "&action=txlist"
+        "&action=${isToken ? "tokentx" : "txlist"}"
         "&address=$address"
+        "${isToken ? "&contractaddress=$contract" : ""}"
         "&startblock=0"
         "&endblock=99999999"
         "&sort=desc"
@@ -444,16 +448,25 @@ static const Map<String, int> explorerChainIds = {
             tx["from"].toString().toLowerCase() ==
             address.toLowerCase();
 
-        final valueWei = BigInt.tryParse(tx["value"]) ?? BigInt.zero;
+        final valueRaw = BigInt.tryParse(tx["value"]) ?? BigInt.zero;
 
-        final valueEth =
-            valueWei / BigInt.from(10).pow(18);
+        int decimals = 18;
+
+        if (tx["tokenDecimal"] != null) {
+          decimals = int.tryParse(tx["tokenDecimal"]) ?? 18;
+        }
+
+        final divisor = BigInt.from(10).pow(decimals);
+
+        final valueFinal = valueRaw / divisor;
 
         txs.add({
           "hash": tx["hash"],
           "from": tx["from"],
           "to": tx["to"],
-          "value": valueEth.toStringAsFixed(6),
+          "value": valueFinal.toStringAsFixed(6),
+          "symbol": tx["tokenSymbol"] ?? 
+              networks[network]?["symbol"],
           "time": DateTime.fromMillisecondsSinceEpoch(
             int.parse(tx["timeStamp"]) * 1000,
           ),
