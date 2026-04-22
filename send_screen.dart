@@ -325,16 +325,27 @@ class _SendScreenState extends State<SendScreen> {
       // 🔥 SAVE PENDING TX (INSTANT UI)
       // ============================
 
-      await StorageService.savePendingTx({
+      final existing = await StorageService.getTxCache(
+        widget.walletAddress,
+        selectedNetwork,
+      );
+
+      final newTx = {
         "hash": txHash,
         "from": widget.walletAddress,
         "to": toAddress,
-        "value": amount.toString(),
+        "value": amount.toStringAsFixed(6),
         "time": DateTime.now().toIso8601String(),
         "isSent": true,
-        "status": false, // pending
+        "status": true, // ✅ pending नहीं दिखाना
         "symbol": symbol,
-      });
+      };
+
+      await StorageService.saveTxCache(
+        widget.walletAddress,
+        selectedNetwork,
+        [newTx, ...existing],
+      );
 
       Navigator.pop(context);
 
