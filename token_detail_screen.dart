@@ -115,15 +115,10 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
         contract: widget.isNative ? "" : widget.contract,
       );
 
-      setState(() {
-        transactions = txs;
-        isLoadingTx = false;
-      });
-
       if (!mounted) return;
 
       setState(() {
-        transactions = filtered;
+        transactions = txs;
         isLoadingTx = false;
       });
 
