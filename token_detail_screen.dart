@@ -159,9 +159,15 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
       final cacheList = await StorageService.getTxCache(
         widget.walletAddress,
         widget.network,
+        widget.isNative
+            ? widget.symbol
+            : widget.contract,
       );
 
-      final merged = [...cacheList, ...apiList];
+      final merged = [
+        ...(cacheList ?? []),
+        ...(apiList ?? []),
+      ];
 
       List<Map<String, dynamic>> filtered = [];
 
@@ -170,8 +176,8 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
         if (widget.isNative) {
           filtered.add(tx);
         } else {
-          if ((tx["symbol"] ?? "").toString().toLowerCase() ==
-              widget.symbol.toLowerCase()) {
+          if ((tx["symbol"] ?? "").toString().toUpperCase() ==
+              widget.symbol.toUpperCase()) {
             filtered.add(tx);
           }
         }
