@@ -50,8 +50,8 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
   Timer? priceTimer;
 
-  // 🔥 NEW TX STATE
-  List<Map<String, dynamic>> transactions = [];
+  // 🔥 TX STATE
+  List<Map<String, dynamic>> txs = [];
   bool isLoadingTx = true;
 
   @override
@@ -63,7 +63,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
     loadChart();
     startLivePrice();
-    loadTransactions(); // 🔥 ADD
+    loadTransactions();
   }
 
   @override
@@ -96,29 +96,48 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
         livePrice = prices[widget.symbol]?["price"] ?? livePrice;
         liveChange = prices[widget.symbol]?["change"] ?? liveChange;
       });
+
+      // 🔥 CONTROLLED TX REFRESH (हर ~15 सेकंड)
+      refreshCounter++;
+
+      if (refreshCounter >= 5) { // 5 * 3sec = 15 sec
+        refreshCounter = 0;
+        loadTransactions();
+      }
     });
   }
 
   // ============================
-  // 🔥 LOAD TX
+  // 🔥 LOAD TX HISTORY
   // ============================
 
   Future<void> loadTransactions() async {
-
-    setState(() => isLoadingTx = true);
-
     try {
-
-      final txs = await WalletService.getTransactionHistory(
+      final list = await WalletService.getTransactionHistory(
         address: widget.walletAddress,
         network: widget.network,
-        contract: widget.isNative ? "" : widget.contract,
       );
+
+      // 🔥 FILTER TOKEN SPECIFIC
+      List<Map<String, dynamic>> filtered = [];
+
+      for (var tx in list) {
+
+        // Native token → all tx
+        if (widget.isNative) {
+          filtered.add(tx);
+        } else {
+          // 🔥 ERC20 filter (basic fallback)
+          if (tx["value"] != "0.000000") {
+            filtered.add(tx);
+          }
+        }
+      }
 
       if (!mounted) return;
 
       setState(() {
-        transactions = txs;
+        txs = filtered;
         isLoadingTx = false;
       });
 
@@ -128,7 +147,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   }
 
   // ============================
-  // 🔥 TIMEFRAME
+  // 🔥 TIMEFRAME → BINANCE INTERVAL
   // ============================
 
   String getInterval() {
@@ -152,7 +171,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   }
 
   // ============================
-  // 🔥 CHART
+  // 🔥 REAL CHART (BINANCE)
   // ============================
 
   Future<void> loadChart() async {
@@ -174,7 +193,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
       for (int i = 0; i < data.length; i++) {
         final candle = data[i];
-        final close = double.parse(candle[4]);
+        final close = double.parse(candle[4]); // close price
         spots.add(FlSpot(i.toDouble(), close));
       }
 
@@ -188,26 +207,6 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
     } catch (e) {
       setState(() => isLoadingChart = false);
     }
-  }
-
-  // ============================
-  // 🔥 HELPERS
-  // ============================
-
-  String shortAddress(String addr) {
-    if (addr.length < 10) return addr;
-    return "${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}";
-  }
-
-  String formatTime(DateTime time) {
-    final now = DateTime.now();
-    final diff = now.difference(time);
-
-    if (diff.inMinutes < 1) return "Just now";
-    if (diff.inMinutes < 60) return "${diff.inMinutes}m ago";
-    if (diff.inHours < 24) return "${diff.inHours}h ago";
-
-    return "${time.day}/${time.month}";
   }
 
   // ============================
@@ -281,6 +280,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
             const SizedBox(height: 20),
 
+            // 🔥 REAL CHART FEEL
             SizedBox(
               height: 220,
               child: Stack(
@@ -295,10 +295,11 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                         gridData: FlGridData(show: false),
                         titlesData: FlTitlesData(show: false),
                         borderData: FlBorderData(show: false),
+
                         lineBarsData: [
                           LineChartBarData(
                             spots: chartData,
-                            isCurved: false,
+                            isCurved: false, // 🔥 sharp = real feel
                             barWidth: 2,
                             color: const Color(0xFF00AEEF),
                             dotData: FlDotData(show: false),
@@ -309,6 +310,53 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
                   if (isLoadingChart)
                     const CircularProgressIndicator(),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _timeBtn("LIVE"),
+                _timeBtn("1m"),
+                _timeBtn("15m"),
+                _timeBtn("1H"),
+                _timeBtn("1D"),
+                _timeBtn("1W"),
+                _timeBtn("1M"),
+              ],
+            ),
+
+            const SizedBox(height: 25),
+
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Your Holdings"),
+                      Text(widget.balance.toStringAsFixed(6)),
+                    ],
+                  ),
+
+                  const SizedBox(height: 5),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Value"),
+                      Text("\$${usdValue.toStringAsFixed(2)}"),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -324,6 +372,13 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                     MaterialPageRoute(
                       builder: (_) => SendScreen(
                         walletAddress: widget.walletAddress,
+                        initialToken: {
+                          "symbol": widget.symbol,
+                          "contract": widget.contract,
+                          "network": widget.network,
+                          "isNative": widget.isNative,
+                          "decimals": 18, // safe default
+                        },
                       ),
                     ),
                   );
@@ -334,51 +389,50 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                     MaterialPageRoute(
                       builder: (_) => ReceiveScreen(
                         walletAddress: widget.walletAddress,
+                        initialToken: {
+                          "symbol": widget.symbol,
+                          "contract": widget.contract,
+                          "network": widget.network,
+                          "isNative": widget.isNative,
+                          "decimals": 18,
+                        },
                       ),
                     ),
                   );
                 }),
+                _btn(Icons.swap_horiz, "Swap", () {}),
+                _btn(Icons.shopping_cart, "Buy", () {}),
               ],
             ),
 
             const SizedBox(height: 30),
 
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Transaction History",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
+            const Text("Transaction History",
+                style: TextStyle(fontWeight: FontWeight.bold)),
 
             const SizedBox(height: 10),
 
-            // 🔥 REAL TX LIST
             if (isLoadingTx)
               const Padding(
                 padding: EdgeInsets.all(20),
                 child: CircularProgressIndicator(),
               )
-            else if (transactions.isEmpty)
+            else if (txs.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(20),
-                child: Text(
-                  "No Transactions Found",
-                  style: TextStyle(color: Colors.grey),
-                ),
+                child: Text("No Transactions"),
               )
             else
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: transactions.length,
-                itemBuilder: (_, i) {
-                  final tx = transactions[i];
+                itemCount: txs.length,
+                itemBuilder: (context, i) {
+                  final tx = txs[i];
 
                   final isSent = tx["isSent"] == true;
                   final value = tx["value"];
-                  final time = tx["time"];
-                  final status = tx["status"];
+                  final time = tx["time"] as DateTime;
 
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
@@ -398,32 +452,55 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                     ),
 
                     subtitle: Text(
-                      "${shortAddress(tx["to"])} • ${formatTime(time)}",
-                      style: const TextStyle(fontSize: 12),
+                      "${tx["to"].toString().substring(0, 6)}...${tx["to"].toString().substring(tx["to"].length - 4)}",
                     ),
 
                     trailing: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          "${isSent ? "-" : "+"}$value ${widget.symbol}",
+                          "${isSent ? "-" : "+"}$value",
                           style: TextStyle(
                             color: isSent ? Colors.red : Colors.green,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Icon(
-                          status ? Icons.check_circle : Icons.pending,
-                          size: 14,
-                          color: status ? Colors.green : Colors.orange,
-                        )
+                        Text(
+                          "${time.day}/${time.month}",
+                          style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
                       ],
                     ),
                   );
                 },
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _timeBtn(String label) {
+    final isActive = selectedTime == label;
+
+    return GestureDetector(
+      onTap: () {
+        if (selectedTime == label) return;
+
+        setState(() => selectedTime = label);
+        loadChart();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFF3375BB) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isActive ? Colors.white : Colors.grey,
+          ),
         ),
       ),
     );
