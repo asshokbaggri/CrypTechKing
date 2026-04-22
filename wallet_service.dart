@@ -539,6 +539,40 @@ static const Map<String, int> explorerChainIds = {
       // silent fail
     }
 
+    // ============================
+    // 🔥 MERGE PENDING TX (INSTANT)
+    // ============================
+
+    try {
+      final pending = await StorageService.getPendingTxs();
+
+      for (var p in pending) {
+
+        // 🔥 NETWORK + TOKEN MATCH
+        if (p["symbol"] == (isNative ? getSymbol(network) : p["symbol"])) {
+
+          txs.insert(0, {
+            "hash": p["hash"],
+            "from": p["from"],
+            "to": p["to"],
+            "value": p["value"],
+            "time": DateTime.parse(p["time"]),
+            "isSent": p["isSent"],
+            "status": false, // pending
+            "symbol": p["symbol"],
+          });
+        }
+      }
+
+      // 🔥 REMOVE CONFIRMED FROM PENDING
+      for (var tx in txs) {
+        if (tx["status"] == true) {
+          await StorageService.clearPendingTx(tx["hash"]);
+        }
+      }
+
+    } catch (_) {}
+
     return txs;
   }
 
