@@ -349,7 +349,8 @@ class StorageService {
         cache = jsonDecode(data);
       }
 
-      final key = "$network-$address";
+      final symbol = txs.isNotEmpty ? txs.first["symbol"] : "";
+      final key = "$network-$address-$symbol";
 
       cache[key] = {
         "time": DateTime.now().millisecondsSinceEpoch,
@@ -374,7 +375,7 @@ class StorageService {
 
       final cache = jsonDecode(data);
 
-      final key = "$network-$address";
+      final key = "$network-$address-$symbol";
 
       if (!cache.containsKey(key)) return [];
 
@@ -395,67 +396,6 @@ class StorageService {
     } catch (_) {
       return [];
     }
-  }
-
-  // =========================================================
-  // 🚀 PENDING TRANSACTION SYSTEM (INSTANT TX)
-  // =========================================================
-
-  static const _pendingTxKey = "pending_txs";
-
-  // 🔥 SAVE PENDING TX
-  static Future<void> savePendingTx(Map<String, dynamic> tx) async {
-    try {
-      final data = await _storage.read(key: _pendingTxKey);
-
-      List list = [];
-
-      if (data != null && data.isNotEmpty) {
-        list = jsonDecode(data);
-      }
-
-      list.insert(0, tx); // latest first
-
-      await _storage.write(
-        key: _pendingTxKey,
-        value: jsonEncode(list),
-      );
-    } catch (_) {}
-  }
-
-  // 🔥 GET PENDING TX
-  static Future<List<Map<String, dynamic>>> getPendingTxs() async {
-    try {
-      final data = await _storage.read(key: _pendingTxKey);
-
-      if (data == null || data.isEmpty) return [];
-
-      final list = jsonDecode(data) as List;
-
-      return list
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    } catch (_) {
-      return [];
-    }
-  }
-
-  // 🔥 REMOVE CONFIRMED TX
-  static Future<void> clearPendingTx(String hash) async {
-    try {
-      final data = await _storage.read(key: _pendingTxKey);
-
-      if (data == null || data.isEmpty) return;
-
-      List list = jsonDecode(data);
-
-      list.removeWhere((e) => e["hash"] == hash);
-
-      await _storage.write(
-        key: _pendingTxKey,
-        value: jsonEncode(list),
-      );
-    } catch (_) {}
   }
 
   // =========================================================
