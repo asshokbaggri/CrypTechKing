@@ -350,7 +350,6 @@ class StorageService {
         cache = jsonDecode(data);
       }
 
-      final symbol = txs.isNotEmpty ? txs.first["symbol"] : "";
       final key = "$network-$address-$symbol";
 
       cache[key] = {
