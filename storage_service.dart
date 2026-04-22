@@ -338,6 +338,7 @@ class StorageService {
   static Future<void> saveTxCache(
     String address,
     String network,
+    String symbol, // 🔥 ADD THIS
     List<Map<String, dynamic>> txs,
   ) async {
     try {
@@ -367,6 +368,7 @@ class StorageService {
   static Future<List<Map<String, dynamic>>> getTxCache(
     String address,
     String network,
+    String symbol, // 🔥 ADD THIS
   ) async {
     try {
       final data = await _storage.read(key: _txCacheKey);
