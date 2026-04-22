@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 
+import '../core/storage_service.dart';
 import '../core/wallet_service.dart';
 import 'send_screen.dart';
 import 'receive_screen.dart';
@@ -75,6 +76,35 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
     super.dispose();
   }
 
+  Widget buildTxDetails(Map<String, dynamic> tx) {
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+
+          Text(
+            tx["isSent"] ? "Sent" : "Received", 
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+
+          const SizedBox(height: 20),
+
+          Text("Hash:\n${tx["hash"]}"),
+
+          const SizedBox(height: 10),
+
+          Text("To:\n${tx["to"]}"),
+
+          const SizedBox(height: 10),
+
+          Text("Value: ${tx["value"]} ${widget.symbol}"),
+        ],
+      ),
+    );
+  }
+
   // ============================
   // 🔥 LIVE PRICE
   // ============================
@@ -116,21 +146,41 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
   Future<void> loadTransactions() async {
 
-    // ✅ ADD THIS LINE
     setState(() => isLoadingTx = true);
-    
+
     try {
-      final list = await WalletService.getTransactionHistory(
+      final apiList = await WalletService.getTransactionHistory(
         address: widget.walletAddress,
         network: widget.network,
-        contract: widget.contract,   // 🔥 ADD THIS
-        isNative: widget.isNative,   // 🔥 ADD THIS
+        contract: widget.contract,
+        isNative: widget.isNative,
       );
+
+      final cacheList = await StorageService.getTxCache(
+        widget.walletAddress,
+        widget.network,
+      );
+
+      final merged = [...cacheList, ...apiList];
+
+      List<Map<String, dynamic>> filtered = [];
+
+      for (var tx in merged) {
+
+        if (widget.isNative) {
+          filtered.add(tx);
+        } else {
+          if ((tx["symbol"] ?? "").toString().toLowerCase() ==
+              widget.symbol.toLowerCase()) {
+            filtered.add(tx);
+          }
+        }
+      }
 
       if (!mounted) return;
 
       setState(() {
-        txs = list;
+        txs = filtered;
         isLoadingTx = false;
       });
 
@@ -435,48 +485,69 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                       ? tx["time"]
                       : DateTime.tryParse(tx["time"].toString()) ?? DateTime.now();
 
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-
-                    leading: CircleAvatar(
-                      backgroundColor:
-                          isSent ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
-                      child: Icon(
-                        isSent ? Icons.arrow_upward : Icons.arrow_downward,
-                        color: isSent ? Colors.red : Colors.green,
+                  return GestureDetector(
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) => buildTxDetails(tx),
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    ),
+                      child: Row(
+                        children: [
 
-                    title: Text(
-                      isSent ? "Sent" : "Received",
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-
-                    subtitle: Text(shortAddr),
-
-                    trailing: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          "${isSent ? "-" : "+"}$value",
-                          style: TextStyle(
-                            color: isSent ? Colors.red : Colors.green,
-                            fontWeight: FontWeight.bold,
+                          CircleAvatar(
+                            backgroundColor: isSent
+                                ? Colors.red.withOpacity(0.1)
+                                : Colors.green.withOpacity(0.1),
+                            child: Icon(
+                              isSent ? Icons.arrow_upward : Icons.arrow_downward,
+                              color: isSent ? Colors.red : Colors.green,
+                            ),
                           ),
-                        ),
 
-                        // 🔥 PENDING BADGE
-                        if (tx["status"] == false)
-                          const Text(
-                            "Pending",
-                            style: TextStyle(fontSize: 11, color: Colors.orange),
-                          )
-                        else
-                          Text(
-                            "${time.day}/${time.month}",
-                            style: const TextStyle(fontSize: 11, color: Colors.grey),
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isSent ? "Sent" : "Received",
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(shortAddr, style: const TextStyle(color: Colors.grey)),
+                              ],
+                            ),
                           ),
-                      ],
+
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "${isSent ? "-" : "+"}$value ${widget.symbol}",
+                                style: TextStyle(
+                                  color: isSent ? Colors.red : Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "${time.day}/${time.month}",
+                                style: const TextStyle(color: Colors.grey, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
