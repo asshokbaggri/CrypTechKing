@@ -328,6 +328,9 @@ class _SendScreenState extends State<SendScreen> {
       final existing = await StorageService.getTxCache(
         widget.walletAddress,
         selectedNetwork,
+        currentToken["isNative"] == true
+            ? currentToken["symbol"]
+            : currentToken["contract"],
       );
 
       final newTx = {
@@ -337,14 +340,20 @@ class _SendScreenState extends State<SendScreen> {
         "value": amount.toStringAsFixed(6),
         "time": DateTime.now().toIso8601String(),
         "isSent": true,
-        "status": true, // ✅ pending नहीं दिखाना
+        "status": true,
         "symbol": symbol,
       };
 
       await StorageService.saveTxCache(
         widget.walletAddress,
         selectedNetwork,
-        [newTx, ...existing],
+        currentToken["isNative"] == true
+            ? currentToken["symbol"]
+            : currentToken["contract"],
+        [
+          newTx,
+          ...(existing ?? []),
+        ],
       );
 
       Navigator.pop(context);
