@@ -570,6 +570,14 @@ static const Map<String, int> explorerChainIds = {
 
     } catch (_) {}
 
+    // 🔥 ADD THIS BLOCK (यहीं लगाना है)
+    await StorageService.saveTxCache(
+      address,
+      network,
+      isNative ? getSymbol(network) : (contract ?? ""),
+      txs,
+    );
+
     return txs;
   }
 
