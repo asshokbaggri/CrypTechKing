@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/storage_service.dart';
@@ -79,15 +80,26 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   }
 
   Future<void> openExplorer(String hash) async {
-    final chainId = WalletService.explorerChainIds[widget.network];
+    String baseUrl;
 
-    final url =
-        "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=$hash&chainid=$chainId";
+    switch (widget.network.toLowerCase()) {
+      case "bsc":
+        baseUrl = "https://bscscan.com/tx/";
+        break;
+      case "ethereum":
+        baseUrl = "https://etherscan.io/tx/";
+        break;
+      case "polygon":
+        baseUrl = "https://polygonscan.com/tx/";
+        break;
+      default:
+        baseUrl = "https://etherscan.io/tx/";
+    }
 
-    final uri = Uri.parse(url);
+    final uri = Uri.parse("$baseUrl$hash");
 
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 
@@ -657,6 +669,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
                   final isSent = tx["isSent"] == true;
                   final value = tx["value"]?.toString() ?? "0.000000";
+                  final usd = (double.tryParse(value) ?? 0) * livePrice;
                   final time = tx["time"] is DateTime
                       ? tx["time"]
                       : DateTime.tryParse(tx["time"].toString()) ?? DateTime.now();
@@ -717,7 +730,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                               Text(
                                 "${isSent ? "-" : "+"}$value ${widget.symbol}",
                                 style: TextStyle(
-                                  fontSize: 22,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: isSent ? Colors.red : Colors.green,
                                 ),
