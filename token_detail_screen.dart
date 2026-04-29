@@ -58,6 +58,25 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   List<Map<String, dynamic>> txs = [];
   bool isLoadingTx = true;
 
+  Widget _row(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.grey)),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -78,29 +97,92 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
   Widget buildTxDetails(Map<String, dynamic> tx) {
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+    final isSent = tx["isSent"] == true;
 
-          Text(
-            tx["isSent"] ? "Sent" : "Received", 
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+    final addressLabel = isSent ? "To" : "From";
+    final addressValue = isSent ? tx["to"] : tx["from"];
 
-          const SizedBox(height: 20),
+    final value = tx["value"] ?? "0.000000";
 
-          Text("Hash:\n${tx["hash"]}"),
+    final time = tx["time"] is DateTime
+        ? tx["time"]
+        : DateTime.tryParse(tx["time"].toString()) ?? DateTime.now();
 
-          const SizedBox(height: 10),
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
 
-          Text("To:\n${tx["to"]}"),
+            // 🔥 DRAG HANDLE
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 15),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
 
-          const SizedBox(height: 10),
+            // 🔥 TYPE
+            Text(
+              isSent ? "Sent" : "Received",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
 
-          Text("Value: ${tx["value"]} ${widget.symbol}"),
-        ],
+            const SizedBox(height: 10),
+
+            // 🔥 AMOUNT
+            Text(
+              "${isSent ? "-" : "+"}$value ${widget.symbol}",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: isSent ? Colors.red : Colors.green,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // 🔥 CARD DETAILS (Trust Style)
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  _row("Date", "${time.day}/${time.month}/${time.year}"),
+                  _row("Status", "Completed"),
+                  _row(addressLabel, addressValue ?? "-"),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            // 🔥 HASH
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Hash",
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ),
+
+            const SizedBox(height: 5),
+
+            SelectableText(
+              tx["hash"] ?? "",
+              style: const TextStyle(fontSize: 12),
+            ),
+
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
@@ -514,6 +596,10 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
+                        backgroundColor: Colors.white,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                        ),
                         builder: (_) => buildTxDetails(tx),
                       );
                     },
@@ -548,7 +634,10 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(shortAddr, style: const TextStyle(color: Colors.grey)),
+                                Text(
+                                  isSent ? "To: $shortAddr" : "From: $shortAddr",
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
                               ],
                             ),
                           ),
@@ -558,6 +647,11 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                             children: [
                               Text(
                                 "${isSent ? "-" : "+"}$value ${widget.symbol}",
+                                style: TextStyle(
+                                  color: isSent ? Colors.red : Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                                 style: TextStyle(
                                   color: isSent ? Colors.red : Colors.green,
                                   fontWeight: FontWeight.bold,
