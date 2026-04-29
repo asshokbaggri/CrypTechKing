@@ -146,7 +146,9 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
   Future<void> loadTransactions() async {
 
-    setState(() => isLoadingTx = true);
+    if (txs.isEmpty) {
+      setState(() => isLoadingTx = true);
+    }
 
     try {
       final apiList = await WalletService.getTransactionHistory(
@@ -164,10 +166,26 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
             : widget.contract,
       );
 
-      final merged = [
-        ...(cacheList ?? []),
-        ...(apiList ?? []),
-      ];
+      final Map<String, Map<String, dynamic>> uniqueMap = {};
+
+      // 🔥 STEP 1: cache first (instant UI)
+      for (var tx in cacheList ?? []) {
+        uniqueMap[tx["hash"]] = tx;
+      }
+
+      // 🔥 STEP 2: API overwrite (latest data)
+      for (var tx in apiList ?? []) {
+        uniqueMap[tx["hash"]] = tx;
+      }
+
+      // 🔥 FINAL MERGED LIST
+      final merged = uniqueMap.values.toList();
+
+      merged.sort((a, b) {
+        final t1 = DateTime.tryParse(a["time"].toString()) ?? DateTime.now();
+        final t2 = DateTime.tryParse(b["time"].toString()) ?? DateTime.now();
+        return t2.compareTo(t1); // latest first
+      });
 
       List<Map<String, dynamic>> filtered = [];
 
