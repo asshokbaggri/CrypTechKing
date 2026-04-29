@@ -652,11 +652,6 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                                style: TextStyle(
-                                  color: isSent ? Colors.red : Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
                               const SizedBox(height: 4),
                               Text(
                                 "${time.day}/${time.month}",
