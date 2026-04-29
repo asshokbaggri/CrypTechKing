@@ -544,41 +544,39 @@ static const Map<String, int> explorerChainIds = {
       // silent fail
     }
 
-    // ============================
-    // 🔥 MERGE CACHE (INSTANT UI)
-    // ============================
+  
 
-    try {
-      final symbolKey = isNative ? getSymbol(network) : (contract ?? "");
+    // 🔥 REMOVE DUPLICATES BY HASH
+    final Map<String, Map<String, dynamic>> uniqueMap = {};
 
-      final cached = await StorageService.getTxCache(
-        address,
-        network,
-        symbolKey,
-      );
+    for (var tx in txs) {
+      uniqueMap[tx["hash"]] = tx;
+    }
 
-      // 🔥 MERGE (NO DUPLICATE)
-      for (var c in cached) {
-        final exists = txs.any((t) => t["hash"] == c["hash"]);
-        if (!exists) {
-          txs.insert(0, {
-            ...c,
-            "time": DateTime.tryParse(c["time"].toString()) ?? DateTime.now(),
-          });
-        }
-      }
+    final cleanList = uniqueMap.values.toList();
 
-    } catch (_) {}
+    // 🔥 SORT LATEST FIRST
+    cleanList.sort((a, b) {
+      final ta = a["time"] is DateTime
+          ? a["time"]
+          : DateTime.tryParse(a["time"].toString()) ?? DateTime.now();
+
+      final tb = b["time"] is DateTime
+          ? b["time"]
+          : DateTime.tryParse(b["time"].toString()) ?? DateTime.now();
+
+      return tb.compareTo(ta);
+    });
 
     // 🔥 ADD THIS BLOCK (यहीं लगाना है)
     await StorageService.saveTxCache(
       address,
       network,
       isNative ? getSymbol(network) : (contract ?? ""),
-      txs,
+      cleanList,
     );
 
-    return txs;
+    return cleanList;
   }
 
   // =========================================================
