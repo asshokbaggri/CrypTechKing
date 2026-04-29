@@ -352,9 +352,30 @@ class StorageService {
 
       final key = "$network-$address-$symbol";
 
+      List<Map<String, dynamic>> existing = [];
+
+      if (cache.containsKey(key)) {
+        existing = List<Map<String, dynamic>>.from(cache[key]["data"] ?? []);
+      }
+
+      // 🔥 MERGE + REMOVE DUPLICATES
+      final Map<String, Map<String, dynamic>> uniqueMap = {};
+
+      // old cache
+      for (var tx in existing) {
+        uniqueMap[tx["hash"]] = tx;
+      }
+
+      // new txs overwrite
+      for (var tx in txs) {
+        uniqueMap[tx["hash"]] = tx;
+      }
+
+      final finalList = uniqueMap.values.toList();
+
       cache[key] = {
         "time": DateTime.now().millisecondsSinceEpoch,
-        "data": txs,
+        "data": finalList,
       };
 
       await _storage.write(
@@ -374,7 +395,7 @@ class StorageService {
 
       if (data == null) return [];
 
-      final cache = jsonDecode(data);
+      final cache = Map<String, dynamic>.from(jsonDecode(data));
 
       final key = "$network-$address-$symbol";
 
@@ -385,10 +406,7 @@ class StorageService {
       final timestamp = entry["time"];
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      // 🔥 30 sec cache
-      if (now - timestamp > 30000) return [];
-
-      final list = entry["data"] as List;
+      final list = (entry["data"] ?? []) as List;
 
       return list
           .map((e) => Map<String, dynamic>.from(e))
