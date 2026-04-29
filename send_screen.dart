@@ -325,14 +325,6 @@ class _SendScreenState extends State<SendScreen> {
       // 🔥 SAVE PENDING TX (INSTANT UI)
       // ============================
 
-      final existing = await StorageService.getTxCache(
-        widget.walletAddress,
-        selectedNetwork,
-        currentToken["isNative"] == true
-            ? currentToken["symbol"]
-            : currentToken["contract"],
-      );
-
       final newTx = {
         "hash": txHash,
         "from": widget.walletAddress,
@@ -350,10 +342,7 @@ class _SendScreenState extends State<SendScreen> {
         currentToken["isNative"] == true
             ? currentToken["symbol"]
             : currentToken["contract"],
-        [
-          newTx,
-          ...(existing ?? []),
-        ],
+        [newTx],
       );
 
       Navigator.pop(context);
