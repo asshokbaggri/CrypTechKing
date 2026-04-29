@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/storage_service.dart';
 import '../core/wallet_service.dart';
@@ -77,6 +78,45 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
     );
   }
 
+  Future<void> openExplorer(String hash) async {
+    final chainId = WalletService.explorerChainIds[widget.network];
+
+    final url =
+        "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=$hash&chainid=$chainId";
+
+    final uri = Uri.parse(url);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> refreshBalance() async {
+    double newBal = 0;
+
+    if (widget.isNative) {
+      final bal = await WalletService.getBalance(
+        widget.walletAddress,
+        widget.network,
+      );
+      newBal = double.tryParse(bal) ?? 0;
+    } else {
+      final bal = await WalletService.getTokenBalance(
+        address: widget.walletAddress,
+        contract: widget.contract,
+        decimals: 18,
+        network: widget.network,
+      );
+      newBal = double.tryParse(bal) ?? 0;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      // smooth update
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -99,10 +139,17 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
     final isSent = tx["isSent"] == true;
 
-    final addressLabel = isSent ? "To" : "From";
+    final addressLabel = isSent ? "Recipient" : "Sender";
     final addressValue = isSent ? tx["to"] : tx["from"];
 
+    String shortAddr(String addr) {
+      if (addr.length < 10) return addr;
+      return "${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}";
+    }
+
+    // 🔥 USD VALUE
     final value = tx["value"] ?? "0.000000";
+    final usd = (double.tryParse(value.toString()) ?? 0) * livePrice;
 
     final time = tx["time"] is DateTime
         ? tx["time"]
@@ -157,7 +204,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                 children: [
                   _row("Date", "${time.day}/${time.month}/${time.year}"),
                   _row("Status", "Completed"),
-                  _row(addressLabel, addressValue ?? "-"),
+                  _row(addressLabel, shortAddr(addressValue ?? "-")),
                 ],
               ),
             ),
@@ -175,12 +222,34 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
             const SizedBox(height: 5),
 
-            SelectableText(
-              tx["hash"] ?? "",
-              style: const TextStyle(fontSize: 12),
+            GestureDetector(
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: tx["hash"] ?? ""));
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(content: Text("Hash copied")));
+              },
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      tx["hash"] ?? "",
+                      style: const TextStyle(fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Icon(Icons.copy, size: 16),
+                ],
+              ),
             ),
-
             const SizedBox(height: 20),
+            
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => openExplorer(tx["hash"]),
+                child: const Text("View on block explorer"),
+              ),
+            ),
           ],
         ),
       ),
@@ -218,6 +287,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
       if (refreshCounter >= 5) { // 5 * 3sec = 15 sec
         refreshCounter = 0;
         loadTransactions();
+        refreshBalance(); // 🔥 ADD
       }
     });
   }
@@ -643,19 +713,19 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                           ),
 
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
                                 "${isSent ? "-" : "+"}$value ${widget.symbol}",
                                 style: TextStyle(
-                                  color: isSent ? Colors.red : Colors.green,
+                                  fontSize: 22,
                                   fontWeight: FontWeight.bold,
+                                  color: isSent ? Colors.red : Colors.green,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "${time.day}/${time.month}",
-                                style: const TextStyle(color: Colors.grey, fontSize: 11),
+                                "\$${usd.toStringAsFixed(2)}",
+                                style: const TextStyle(color: Colors.grey),
                               ),
                             ],
                           ),
