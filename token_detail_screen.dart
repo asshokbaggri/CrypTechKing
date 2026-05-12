@@ -59,6 +59,8 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   // 🔥 TX STATE
   List<Map<String, dynamic>> txs = [];
   bool isLoadingTx = true;
+  
+  double currentBalance = 0;
 
   Widget _row(String label, String value) {
     return Padding(
@@ -125,7 +127,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
     if (!mounted) return;
 
     setState(() {
-      // smooth update
+      currentBalance = newBal;
     });
   }
 
@@ -135,6 +137,8 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
 
     livePrice = widget.price;
     liveChange = widget.change;
+    
+    currentBalance = widget.balance;
 
     loadChart();
     startLivePrice();
@@ -203,6 +207,14 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
               ),
             ),
 
+            // 🔥 USD VALUE (ADD HERE)
+            const SizedBox(height: 5),
+
+            Text(
+              "\$${usd.toStringAsFixed(2)}",
+              style: const TextStyle(color: Colors.grey),
+            ),
+
             const SizedBox(height: 20),
 
             // 🔥 CARD DETAILS (Trust Style)
@@ -258,7 +270,11 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () => openExplorer(tx["hash"]),
+                onPressed: () {
+                  if (tx["hash"] != null) {
+                    openExplorer(tx["hash"]);
+                  }
+                },
                 child: const Text("View on block explorer"),
               ),
             ),
@@ -296,10 +312,13 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
       // 🔥 CONTROLLED TX REFRESH (हर ~15 सेकंड)
       refreshCounter++;
 
-      if (refreshCounter >= 5) { // 5 * 3sec = 15 sec
+      if (refreshCounter >= 5) {
         refreshCounter = 0;
-        loadTransactions();
-        refreshBalance(); // 🔥 ADD
+
+        Future.delayed(const Duration(milliseconds: 300), () {
+          loadTransactions();
+          refreshBalance();
+        });
       }
     });
   }
@@ -447,7 +466,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
   @override
   Widget build(BuildContext context) {
 
-    final usdValue = widget.balance * livePrice;
+    final usdValue = currentBalance * livePrice;
 
     final iconPath = WalletService.resolveLocalIcon(widget.symbol);
 
@@ -575,7 +594,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text("Your Holdings"),
-                      Text(widget.balance.toStringAsFixed(6)),
+                      Text(currentBalance.toStringAsFixed(6)),
                     ],
                   ),
 
@@ -608,11 +627,14 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                           "contract": widget.contract,
                           "network": widget.network,
                           "isNative": widget.isNative,
-                          "decimals": 18, // safe default
+                          "decimals": 18,
                         },
                       ),
                     ),
-                  );
+                  ).then((_) {
+                    loadTransactions();
+                    refreshBalance();
+                  });
                 }),
                 _btn(Icons.download, "Receive", () {
                   Navigator.push(
@@ -629,7 +651,10 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                         },
                       ),
                     ),
-                  );
+                  ).then((_) {
+                    loadTransactions();
+                    refreshBalance();
+                  });
                 }),
                 _btn(Icons.swap_horiz, "Swap", () {}),
                 _btn(Icons.shopping_cart, "Buy", () {}),
@@ -661,11 +686,11 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                 itemBuilder: (context, i) {
                   final tx = txs[i];
 
-                  final to = tx["to"]?.toString() ?? "";
-
-                  final shortAddr = to.length > 10
-                      ? "${to.substring(0, 6)}...${to.substring(to.length - 4)}"
-                      : to;
+                  final addr = isSent ? tx["to"] : tx["from"];
+                  
+                  final shortAddr = addr.length > 10
+                      ? "${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}"
+                      : addr;
 
                   final isSent = tx["isSent"] == true;
                   final value = tx["value"]?.toString() ?? "0.000000";
@@ -726,6 +751,7 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                           ),
 
                           Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
                                 "${isSent ? "-" : "+"}$value ${widget.symbol}",
