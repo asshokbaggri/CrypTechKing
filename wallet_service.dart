@@ -475,6 +475,61 @@ static const Map<String, int> explorerChainIds = {
       }
 
       // ============================
+      // 🔥 INTERNAL TX (RECEIVED FIX)
+      // ============================
+
+      if (isNative) {
+        final internalUrl = Uri.parse(
+          "https://api.etherscan.io/api"
+          "?chainid=$chainId"
+          "&module=account"
+          "&action=txlistinternal"
+          "&address=$address"
+          "&startblock=0"
+          "&endblock=99999999"
+          "&sort=desc"
+          "&apikey=$explorerApiKey",
+        );
+
+        final res = await Client().get(internalUrl);
+
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+
+          if (data["status"] == "1") {
+            final list = data["result"] as List;
+
+            for (var tx in list.take(30)) {
+
+              // 🔥 ONLY INCOMING (important)
+              if (tx["to"]?.toString().toLowerCase() != address.toLowerCase()) {
+                continue;
+              }
+
+              final valueWei =
+                  BigInt.tryParse(tx["value"]) ?? BigInt.zero;
+
+              final valueEth =
+                  valueWei / BigInt.from(10).pow(18);
+
+              txs.add({
+                "hash": tx["hash"],
+                "from": tx["from"],
+                "to": tx["to"],
+                "value": valueEth.toStringAsFixed(6),
+                "time": DateTime.fromMillisecondsSinceEpoch(
+                  int.parse(tx["timeStamp"]) * 1000,
+                ),
+                "isSent": false, // 🔥 FORCE RECEIVED
+                "status": true,
+                "symbol": getSymbol(network),
+              });
+            }
+          }
+        }
+      }
+
+      // ============================
       // 🔥 TOKEN TX (ERC20)
       // ============================
 
@@ -576,7 +631,16 @@ static const Map<String, int> explorerChainIds = {
       cleanList,
     );
 
-    return cleanList;
+    // 🔥 ENSURE BOTH SENT + RECEIVED
+    final finalList = cleanList.where((tx) {
+      final from = tx["from"]?.toString().toLowerCase() ?? "";
+      final to = tx["to"]?.toString().toLowerCase() ?? "";
+      final user = address.toLowerCase();
+
+      return from == user || to == user;
+    }).toList();
+
+    return finalList;
   }
 
   // =========================================================
