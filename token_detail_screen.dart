@@ -686,13 +686,14 @@ class _TokenDetailScreenState extends State<TokenDetailScreen> {
                 itemBuilder: (context, i) {
                   final tx = txs[i];
 
-                  final addr = isSent ? tx["to"] : tx["from"];
-                  
-                  final shortAddr = addr.length > 10
-                      ? "${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}"
-                      : addr;
-
                   final isSent = tx["isSent"] == true;
+
+                  final addr = isSent ? tx["to"] : tx["from"];
+
+                  final shortAddr = addr != null && addr.toString().length > 10
+                      ? "${addr.toString().substring(0, 6)}...${addr.toString().substring(addr.toString().length - 4)}"
+                      : (addr ?? "");
+                  
                   final value = tx["value"]?.toString() ?? "0.000000";
                   final usd = (double.tryParse(value) ?? 0) * livePrice;
                   final time = tx["time"] is DateTime
