@@ -445,7 +445,7 @@ static const Map<String, int> explorerChainIds = {
 
             final list = data["result"] as List;
 
-            for (var tx in list.take(30)) {
+            for (var tx in list) {
 
               final isSent =
                  tx["from"].toString().toLowerCase() ==
@@ -499,12 +499,13 @@ static const Map<String, int> explorerChainIds = {
           if (data["status"] == "1") {
             final list = data["result"] as List;
 
-            for (var tx in list.take(30)) {
+            for (var tx in list) {
 
-              // 🔥 ONLY INCOMING (important)
-              if (tx["to"]?.toString().toLowerCase() != address.toLowerCase()) {
-                continue;
-              }
+              final from = tx["from"]?.toString().toLowerCase() ?? "";
+              final to = tx["to"]?.toString().toLowerCase() ?? "";
+              final user = address.toLowerCase();
+
+              if (from != user && to != user) continue;
 
               final valueWei =
                   BigInt.tryParse(tx["value"]) ?? BigInt.zero;
@@ -560,9 +561,12 @@ static const Map<String, int> explorerChainIds = {
 
             for (var tx in list) {
 
-              // 🔥 STRICT CONTRACT FILTER
-              if (tx["contractAddress"]?.toString().toLowerCase() != contract.toLowerCase()) {
-                continue;
+              // 🔥 SAFE FILTER (DO NOT KILL TX)
+              if (contract.isNotEmpty) {
+                final txContract = tx["contractAddress"]?.toString().toLowerCase() ?? "";
+                if (!txContract.contains(contract.toLowerCase())) {
+                  continue;
+                }
               }
 
               final isSent =
